@@ -56,7 +56,7 @@ val jettyOverrides = Seq(
 
 lazy val root = (project in file("."))
   .settings(
-    name := "trader-services",
+    name := "trader-services-route-one",
     organization := "uk.gov.hmrc",
     scalaVersion := "2.12.12",
     PlayKeys.playDefaultPort := 9380,
