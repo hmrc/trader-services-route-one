@@ -1,3 +1,5 @@
 # microservice specific routes
 
-GET        /hello-world             uk.gov.hmrc.traderservicesrouteone.controllers.MicroserviceHelloWorldController.hello
+GET         /entities                       @uk.gov.hmrc.traderservices.controllers.TraderServicesController.entities
+GET         /entities/:utr                  @uk.gov.hmrc.traderservices.controllers.TraderServicesController.entitiesByUtr(utr:uk.gov.hmrc.agentmtdidentifiers.model.Utr)
+
