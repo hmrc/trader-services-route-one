@@ -53,4 +53,16 @@ class TraderServicesController @Inject() (
       }
     }
 
+  def createImport: Action[AnyContent] =
+    Action.async { implicit request =>
+      withAuthorisedAsTrader { eori =>
+      {
+        //TODO: convert to the import questions and then map to the Create Case Request
+//        request.body.asJson.get("importCase")
+        //TODO: need to somehow stub the create case api call so we can verify the correct structure was sent
+        Future.successful(Ok(toJson(TraderServicesModel(s"hello $eori", None, None, None))))
+      }
+      }
+    }
+
 }

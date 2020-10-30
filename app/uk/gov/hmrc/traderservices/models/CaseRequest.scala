@@ -8,8 +8,6 @@ case class CaseRequest
   ApplicationType: String = "Route1",
   OriginatingSystem: String = "Digital",
   Content: CaseRequestContent
-) {
-
-}
+)
 
 
