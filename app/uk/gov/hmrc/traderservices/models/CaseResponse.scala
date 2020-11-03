@@ -18,11 +18,16 @@ package uk.gov.hmrc.traderservices.models
 
 import play.api.libs.json.{Format, Json}
 
-case class CreateImportCaseRequest(
-  declarationDetails: DeclarationDetails,
-  importQuestionsAnswers: ImportQuestions
-)
+trait CaseResponse
 
-object CreateImportCaseRequest {
-  implicit val formats: Format[CreateImportCaseRequest] = Json.format[CreateImportCaseRequest]
+case class CreateCaseError(errorCode: String) extends CaseResponse
+case class CreateCaseSuccess(CaseID: String, ProcessingDate: String, Status: String, StatusText: String)
+    extends CaseResponse
+
+object CreateCaseSuccess {
+  implicit val formats: Format[CreateCaseSuccess] = Json.format[CreateCaseSuccess]
+}
+
+object CreateCaseError {
+  implicit val formats: Format[CreateCaseError] = Json.format[CreateCaseError]
 }

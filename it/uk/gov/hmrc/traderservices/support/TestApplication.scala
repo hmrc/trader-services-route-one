@@ -12,6 +12,8 @@ trait TestApplication {
     new GuiceApplicationBuilder()
       .configure(
         "microservice.services.auth.port" -> wireMockPort,
+        "microservice.services.case.host" -> wireMockHost,
+        "microservice.services.case.port" -> wireMockPort,
         "metrics.enabled"                 -> true,
         "auditing.enabled"                -> true,
         "auditing.consumer.baseUri.host"  -> wireMockHost,

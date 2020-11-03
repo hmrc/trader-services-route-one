@@ -30,6 +30,10 @@ trait AppConfig {
   val authorisedServiceName: String
 
   val authorisedIdentifierKey: String
+
+  val caseBaseUrl: String
+
+  val createCaseUrl: String
 }
 
 class AppConfigImpl @Inject() (config: ServicesConfig) extends AppConfig {
@@ -42,4 +46,7 @@ class AppConfigImpl @Inject() (config: ServicesConfig) extends AppConfig {
 
   val authorisedIdentifierKey: String = config.getString("authorisedIdentifierKey")
 
+  val caseBaseUrl: String = config.baseUrl("case")
+
+  val createCaseUrl: String = config.getString("createCaseUrl")
 }

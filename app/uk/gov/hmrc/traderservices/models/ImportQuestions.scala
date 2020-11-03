@@ -19,19 +19,15 @@ package uk.gov.hmrc.traderservices.models
 import play.api.libs.json.{Format, Json}
 
 case class ImportQuestions(
-  requestType: Option[ImportRequestType] = None,
-  routeType: Option[ImportRouteType] = None,
-  hasPriorityGoods: Option[Boolean] = None,
+  requestType: ImportRequestType,
+  routeType: ImportRouteType,
+  hasPriorityGoods: Boolean,
   priorityGoods: Option[ImportPriorityGoods] = None,
   hasALVS: Option[Boolean] = None,
   freightType: Option[ImportFreightType] = None,
   vesselDetails: Option[VesselDetails] = None,
-  contactInfo: Option[ImportContactInfo] = None
-) {
-
-  def shouldAskRouteQuestion: Boolean =
-    requestType.forall(_ != ImportRequestType.Hold)
-}
+  contactInfo: ImportContactInfo
+)
 
 object ImportQuestions {
   implicit val formats: Format[ImportQuestions] = Json.format[ImportQuestions]

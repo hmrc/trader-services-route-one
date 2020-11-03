@@ -3,3 +3,4 @@
 GET         /entities                       @uk.gov.hmrc.traderservices.controllers.TraderServicesController.entities
 GET         /entities/:utr                  @uk.gov.hmrc.traderservices.controllers.TraderServicesController.entitiesByUtr(utr:uk.gov.hmrc.agentmtdidentifiers.model.Utr)
 
+POST        /create-import-case             @uk.gov.hmrc.traderservices.controllers.TraderServicesController.createImport

@@ -18,11 +18,12 @@ package uk.gov.hmrc.traderservices.controllers
 
 import javax.inject.{Inject, Singleton}
 import play.api.libs.json.Json.toJson
+import play.api.libs.ws.WSClient
 import play.api.mvc._
 import play.api.{Configuration, Environment}
 import uk.gov.hmrc.agentmtdidentifiers.model.Utr
-import uk.gov.hmrc.traderservices.connectors.MicroserviceAuthConnector
-import uk.gov.hmrc.traderservices.models.TraderServicesModel
+import uk.gov.hmrc.traderservices.connectors.{CreateCaseConnector, MicroserviceAuthConnector}
+import uk.gov.hmrc.traderservices.models.{CreateCaseError, CreateCaseSuccess, CreateImportCaseRequest, TraderServicesModel}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import uk.gov.hmrc.traderservices.wiring.AppConfig
 
@@ -31,6 +32,7 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class TraderServicesController @Inject() (
   val authConnector: MicroserviceAuthConnector,
+  val createCaseConnector: CreateCaseConnector,
   val env: Environment,
   val appConfig: AppConfig,
   cc: ControllerComponents
@@ -56,12 +58,11 @@ class TraderServicesController @Inject() (
   def createImport: Action[AnyContent] =
     Action.async { implicit request =>
       withAuthorisedAsTrader { eori =>
-      {
-        //TODO: convert to the import questions and then map to the Create Case Request
-//        request.body.asJson.get("importCase")
-        //TODO: need to somehow stub the create case api call so we can verify the correct structure was sent
-        Future.successful(Ok(toJson(TraderServicesModel(s"hello $eori", None, None, None))))
-      }
+        val importRequest = CreateImportCaseRequest.formats.reads(request.body.asJson.get).get
+        createCaseConnector.processCreateImportCaseRequest(importRequest, eori) map {
+          case cce: CreateCaseError   => Ok(CreateCaseError.formats.writes(cce))
+          case ccs: CreateCaseSuccess => Ok(CreateCaseSuccess.formats.writes(ccs))
+        }
       }
     }
 

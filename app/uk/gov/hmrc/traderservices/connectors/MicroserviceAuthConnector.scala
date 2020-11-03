@@ -22,8 +22,7 @@ import uk.gov.hmrc.http.HttpPost
 import uk.gov.hmrc.traderservices.wiring.AppConfig
 
 @Singleton
-class MicroserviceAuthConnector @Inject() (appConfig: AppConfig, val http: HttpPost)
-    extends PlayAuthConnector {
+class MicroserviceAuthConnector @Inject() (appConfig: AppConfig, val http: HttpPost) extends PlayAuthConnector {
 
   override val serviceUrl: String = appConfig.authBaseUrl
 }

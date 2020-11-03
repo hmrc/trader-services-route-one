@@ -21,6 +21,8 @@ class AuthActionsISpec extends AppBaseISpec {
       override val authBaseUrl: String = "dummy"
       override val authorisedServiceName: String = "HMRC-XYZ"
       override val authorisedIdentifierKey: String = "XYZNumber"
+      override val caseBaseUrl: String = "dummy"
+      override val createCaseUrl: String = "dummy"
     }
 
     implicit val hc = HeaderCarrier()
@@ -40,11 +42,11 @@ class AuthActionsISpec extends AppBaseISpec {
       stubForAuthAuthorise(
         "{}",
         s"""{
-          |"authorisedEnrolments": [
-          |  { "key":"HMRC-XYZ", "identifiers": [
-          |    { "key":"XYZNumber", "value": "fooXyz" }
-          |  ]}
-          |]}""".stripMargin
+           |"authorisedEnrolments": [
+           |  { "key":"HMRC-XYZ", "identifiers": [
+           |    { "key":"XYZNumber", "value": "fooXyz" }
+           |  ]}
+           |]}""".stripMargin
       )
       val result = TestController.withAuthorisedAsTrader
       status(result) shouldBe 200
@@ -62,11 +64,11 @@ class AuthActionsISpec extends AppBaseISpec {
       stubForAuthAuthorise(
         "{}",
         s"""{
-          |"authorisedEnrolments": [
-          |  { "key":"HMRC-FOO", "identifiers": [
-          |    { "key":"XYZNumber", "value": "fooXyz" }
-          |  ]}
-          |]}""".stripMargin
+           |"authorisedEnrolments": [
+           |  { "key":"HMRC-FOO", "identifiers": [
+           |    { "key":"XYZNumber", "value": "fooXyz" }
+           |  ]}
+           |]}""".stripMargin
       )
       an[InsufficientEnrolments] shouldBe thrownBy {
         TestController.withAuthorisedAsTrader
@@ -77,11 +79,11 @@ class AuthActionsISpec extends AppBaseISpec {
       stubForAuthAuthorise(
         "{}",
         s"""{
-          |"authorisedEnrolments": [
-          |  { "key":"HMRC-XYZ", "identifiers": [
-          |    { "key":"BAR", "value": "fooArn" }
-          |  ]}
-          |]}""".stripMargin
+           |"authorisedEnrolments": [
+           |  { "key":"HMRC-XYZ", "identifiers": [
+           |    { "key":"BAR", "value": "fooArn" }
+           |  ]}
+           |]}""".stripMargin
       )
       an[InsufficientEnrolments] shouldBe thrownBy {
         TestController.withAuthorisedAsTrader

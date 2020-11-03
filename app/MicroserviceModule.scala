@@ -21,8 +21,7 @@ import uk.gov.hmrc.http._
 import uk.gov.hmrc.traderservices.connectors.MicroserviceAuthConnector
 import uk.gov.hmrc.play.bootstrap.http.DefaultHttpClient
 
-class MicroserviceModule(val environment: Environment, val configuration: Configuration)
-    extends AbstractModule {
+class MicroserviceModule(val environment: Environment, val configuration: Configuration) extends AbstractModule {
 
   def configure(): Unit = {
     val appName = "trader-services"

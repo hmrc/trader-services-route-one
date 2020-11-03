@@ -18,21 +18,21 @@ trait AuthStubs {
   ): Unit =
     stubForAuthAuthorise(
       s"""
-        |{
-        |  "authorise": [
-        |    { "identifiers":[], "state":"Activated", "enrolment": "${enrolment.serviceName}" },
-        |    { "authProviders": ["GovernmentGateway"] }
-        |  ],
-        |  "retrieve":["authorisedEnrolments"]
-        |}
+         |{
+         |  "authorise": [
+         |    { "identifiers":[], "state":"Activated", "enrolment": "${enrolment.serviceName}" },
+         |    { "authProviders": ["GovernmentGateway"] }
+         |  ],
+         |  "retrieve":["authorisedEnrolments"]
+         |}
            """.stripMargin,
       s"""
-        |{
-        |"authorisedEnrolments": [
-        |  { "key":"${enrolment.serviceName}", "identifiers": [
-        |    {"key":"${enrolment.identifierName}", "value": "${enrolment.identifierValue}"}
-        |  ]}
-        |]}
+         |{
+         |"authorisedEnrolments": [
+         |  { "key":"${enrolment.serviceName}", "identifiers": [
+         |    {"key":"${enrolment.identifierName}", "value": "${enrolment.identifierValue}"}
+         |  ]}
+         |]}
           """.stripMargin
     )
 

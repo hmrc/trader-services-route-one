@@ -48,9 +48,10 @@ trait StrictlyEnsureIndexes[A <: Any, ID <: Any] {
             throw new IllegalStateException(s"Failed to ensure index $indexInfo, error=$msg")
         }
       }
-      .recover { case t =>
-        logger.error(message, t)
-        false
+      .recover {
+        case t =>
+          logger.error(message, t)
+          false
       }
   }
 
