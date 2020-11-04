@@ -9,13 +9,14 @@ import uk.gov.hmrc.traderservices.support.WireMockSupport
 trait CreateCaseStubs {
   me: WireMockSupport =>
 
-  def givenImportCreateRequest[A](
+  def givenImportCreateRequestWithVesselDetails[A](
     importCaseRequest: CreateImportCaseRequest,
     eori: String
   ): Unit = {
     val answers = importCaseRequest.importQuestionsAnswers
     val declarationDetails = importCaseRequest.declarationDetails
     val date = declarationDetails.entryDate
+    val vesselDetails = answers.vesselDetails.get
     stubForPostWithResponse(
       s"""
          |{
@@ -23,7 +24,7 @@ trait CreateCaseStubs {
          |"OriginatingSystem" : "Digital",
          |"AcknowledgementReference" : "1234",
          |"Content": {
-         |  "IsALVS":"${answers.hasALVS.getOrElse(false)}",
+         |  "IsALVS":"${answers.hasALVS}",
          |  "EntryDate":"${date.format(DateTimeFormatter.ofPattern("yyyyMMdd"))}",
          |  "EntryNumber":"${declarationDetails.entryNumber.value}",
          |  "EntryProcessingUnit":"${declarationDetails.epu.value}",
@@ -33,7 +34,11 @@ trait CreateCaseStubs {
          |  "Route":"${answers.routeType}",
          |  "EORI":"$eori",
          |  "TelephoneNumber":"${answers.contactInfo.contactNumber.get}",
-         |  "EmailAddress":"${answers.contactInfo.contactEmail}"
+         |  "EmailAddress":"${answers.contactInfo.contactEmail}",
+         |  "Priority":"${answers.priorityGoods.get}",
+         |  "VesselName":"${vesselDetails.vesselName.get}",
+         |  "VesselEstimatedDate":"${vesselDetails.dateOfArrival.get}",
+         |  "VesselEstimatedTime":"${vesselDetails.timeOfArrival.get}"
          |  }
          |}
            """.stripMargin,

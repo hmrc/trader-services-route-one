@@ -31,7 +31,7 @@ case class CreateCase(
   VesselEstimatedDate: Option[String],
   VesselEstimatedTime: Option[String],
   MUCR: Option[String],
-  IsALVS: Option[String],
+  IsALVS: String,
   EORI: String,
   TelephoneNumber: String,
   EmailAddress: String

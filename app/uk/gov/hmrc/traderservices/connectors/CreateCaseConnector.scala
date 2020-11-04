@@ -26,7 +26,7 @@ import uk.gov.hmrc.traderservices.wiring.AppConfig
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class CreateCaseConnector @Inject() (val config: AppConfig, val http: HttpPost)(implicit ec: ExecutionContext) {
+class CreateCaseConnector @Inject() (val config: AppConfig, val http: HttpPost) {
 
   val entryDateFormat = DateTimeFormatter.ofPattern("yyyyMMdd")
 
@@ -53,7 +53,7 @@ class CreateCaseConnector @Inject() (val config: AppConfig, val http: HttpPost)(
             VesselName = vesselDetails.flatMap(vd => vd.vesselName),
             VesselEstimatedDate = vesselDetails.flatMap(vd => vd.dateOfArrival.map(_.toString)),
             VesselEstimatedTime = vesselDetails.flatMap(vd => vd.timeOfArrival.map(_.toString)),
-            IsALVS = answers.hasALVS.map(_.toString),
+            IsALVS = answers.hasALVS.toString,
             EORI = eori,
             TelephoneNumber = answers.contactInfo.contactNumber.get,
             EmailAddress = answers.contactInfo.contactEmail,

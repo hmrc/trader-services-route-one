@@ -50,6 +50,7 @@ class TraderServicesControllerISpec extends ServerBaseISpec with AuthStubs with 
             routeType = ImportRouteType.Route6,
             priorityGoods = Some(ImportPriorityGoods.HighValueArt),
             hasPriorityGoods = true,
+            hasALVS = false,
             freightType = Some(ImportFreightType.Air),
             vesselDetails = Some(
               VesselDetails(
@@ -67,14 +68,19 @@ class TraderServicesControllerISpec extends ServerBaseISpec with AuthStubs with 
         )
         val payload = CreateImportCaseRequest.formats.writes(createImportCaseRequest)
 
-        givenImportCreateRequest(createImportCaseRequest, "xyz")
+        givenImportCreateRequestWithVesselDetails(createImportCaseRequest, "xyz")
 
         val result = wsClient
           .url(s"$url/create-import-case")
           .post(payload)
           .futureValue
         result.status shouldBe 200
-        result.json shouldBe Json.obj("caseId" -> "Risk-363")
+        result.json shouldBe Json.obj(
+          "CaseID"         -> "Risk-363",
+          "ProcessingDate" -> "2020-08-24T09:16:10.047Z",
+          "Status"         -> "Success",
+          "StatusText"     -> "Case created successfully"
+        )
       }
     }
   }

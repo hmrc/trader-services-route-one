@@ -23,7 +23,7 @@ case class ImportQuestions(
   routeType: ImportRouteType,
   hasPriorityGoods: Boolean,
   priorityGoods: Option[ImportPriorityGoods] = None,
-  hasALVS: Option[Boolean] = None,
+  hasALVS: Boolean,
   freightType: Option[ImportFreightType] = None,
   vesselDetails: Option[VesselDetails] = None,
   contactInfo: ImportContactInfo
