@@ -16,18 +16,13 @@
 
 package uk.gov.hmrc.traderservices.connectors
 
-import play.api.libs.json.{Format, Json}
+import scala.concurrent.{ExecutionContext, Future}
 
-trait CaseResponse
-
-case class CreateCaseError(errorCode: String) extends CaseResponse
-case class CreateCaseSuccess(CaseID: String, ProcessingDate: String, Status: String, StatusText: String)
-    extends CaseResponse
-
-object CreateCaseSuccess {
-  implicit val formats: Format[CreateCaseSuccess] = Json.format[CreateCaseSuccess]
-}
-
-object CreateCaseError {
-  implicit val formats: Format[CreateCaseError] = Json.format[CreateCaseError]
+trait HttpAPIMonitor extends AverageResponseTimer with HttpErrorRateMeter {
+  def monitor[T](serviceName: String)(function: => Future[T])(implicit ec: ExecutionContext): Future[T] =
+    super.countErrors(serviceName) {
+      super.timer(serviceName) {
+        function
+      }
+    }
 }

@@ -23,7 +23,6 @@ import org.scalatest.concurrent.Eventually
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatest.time.{Millis, Span}
 import play.api.test.FakeRequest
-import uk.gov.hmrc.agentmtdidentifiers.model.Arn
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.http.logging.{Authorization, RequestId, SessionId}
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
@@ -49,10 +48,8 @@ class AuditServiceSpec extends UnitSpec with MockitoSugar with Eventually {
         requestId = Some(RequestId("dummy request id"))
       )
 
-      val model = ""
-
       await(
-        service.sendTraderServicesSomethingHappened(model, Arn("ARN0001"))(
+        service.sendTraderServicesSomethingHappened("")(
           hc,
           FakeRequest("GET", "/path"),
           ExecutionContext.Implicits.global
@@ -66,11 +63,6 @@ class AuditServiceSpec extends UnitSpec with MockitoSugar with Eventually {
 
         sentEvent.auditType shouldBe "TraderServicesSomethingHappened"
         sentEvent.auditSource shouldBe "trader-services"
-        sentEvent.detail("agentReference") shouldBe "ARN0001"
-        sentEvent.detail("parameter1") shouldBe "John Smith"
-        sentEvent.detail("telephoneNumber") shouldBe "12313"
-        sentEvent.detail("emailAddress") shouldBe "john.smith@email.com"
-
         sentEvent.tags(
           "transactionName"
         ) shouldBe "trader-services-route-one-something-happened"

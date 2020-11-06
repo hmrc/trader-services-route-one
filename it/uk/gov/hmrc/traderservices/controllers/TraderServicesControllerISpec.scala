@@ -2,15 +2,15 @@ package uk.gov.hmrc.traderservices.controllers
 
 import java.time.LocalDateTime
 import java.time.LocalDate
-import java.time.temporal.ChronoUnit
 
 import org.scalatest.Suite
 import org.scalatestplus.play.ServerProvider
 import play.api.libs.json.Json
 import play.api.libs.ws.WSClient
 import uk.gov.hmrc.traderservices.models._
-import uk.gov.hmrc.traderservices.stubs.{AuthStubs, CreateCaseStubs}
+import uk.gov.hmrc.traderservices.stubs._
 import uk.gov.hmrc.traderservices.support.ServerBaseISpec
+import java.time.LocalTime
 
 class TraderServicesControllerISpec extends ServerBaseISpec with AuthStubs with CreateCaseStubs {
 
@@ -27,45 +27,42 @@ class TraderServicesControllerISpec extends ServerBaseISpec with AuthStubs with 
     "POST /create-case" should {
       "when import questions submitted will respond with case id for valid data" in {
         givenAuthorisedAsValidTrader("xyz")
-        val dateTimeOfArrival = dateTime.plusDays(1).truncatedTo(ChronoUnit.MINUTES)
-        val createImportCaseRequest = TraderServicesCreateCaseRequest(
-          DeclarationDetails(EPU(235), EntryNumber("111111X"), LocalDate.parse("2020-09-23")),
+        val createCaseRequest = TraderServicesCreateCaseRequest(
+          DeclarationDetails(EPU(2), EntryNumber("A23456A"), LocalDate.parse("2020-09-02")),
           ImportQuestions(
-            requestType = Some(ImportRequestType.New),
-            routeType = Some(ImportRouteType.Route6),
-            priorityGoods = Some(ImportPriorityGoods.HighValueArt),
-            hasPriorityGoods = Some(true),
-            hasALVS = Some(false),
-            freightType = Some(ImportFreightType.Air),
+            requestType = ImportRequestType.New,
+            routeType = ImportRouteType.Route1,
+            priorityGoods = None,
+            hasALVS = false,
+            freightType = ImportFreightType.Maritime,
             vesselDetails = Some(
               VesselDetails(
-                vesselName = Some("Foo Bar"),
-                dateOfArrival = Some(dateTimeOfArrival.toLocalDate()),
-                timeOfArrival = Some(dateTimeOfArrival.toLocalTime())
+                vesselName = Some("Vessel Name"),
+                dateOfArrival = Some(LocalDate.of(2020, 10, 29)),
+                timeOfArrival = Some(LocalTime.of(23, 45, 0))
               )
             ),
-            contactInfo = Some(
-              ImportContactInfo(
-                contactName = "Full Name",
-                contactNumber = Some("07777888999"),
-                contactEmail = "someone@email.com"
-              )
+            contactInfo = ImportContactInfo(
+              contactName = "Full Name",
+              contactNumber = Some("07123456789"),
+              contactEmail = "sampelname@gmail.com"
             )
           ),
-          Seq()
+          Seq(),
+          "GB123456789012345"
         )
-        val payload = TraderServicesCreateCaseRequest.formats.writes(createImportCaseRequest)
 
-        givenImportCreateRequestWithVesselDetails(createImportCaseRequest, "xyz")
+        givenPegaCreateCaseRequestSucceeds()
 
         val result = wsClient
           .url(s"$url/create-case")
-          .post(payload)
+          .post(Json.toJson(createCaseRequest))
           .futureValue
+
         result.status shouldBe 200
         result.json shouldBe Json.obj(
-          "CaseID"         -> "Risk-363",
-          "ProcessingDate" -> "2020-08-24T09:16:10.047Z",
+          "CaseID"         -> "PCE201103470D2CC8K0NH3",
+          "ProcessingDate" -> "2020-11-03T15:29:28.601Z",
           "Status"         -> "Success",
           "StatusText"     -> "Case created successfully"
         )

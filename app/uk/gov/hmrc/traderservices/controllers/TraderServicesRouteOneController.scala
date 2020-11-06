@@ -17,22 +17,22 @@
 package uk.gov.hmrc.traderservices.controllers
 
 import javax.inject.{Inject, Singleton}
-import play.api.libs.json.Json.toJson
-import play.api.libs.ws.WSClient
+import play.api.libs.json.Json
 import play.api.mvc._
 import play.api.{Configuration, Environment}
-import uk.gov.hmrc.agentmtdidentifiers.model.Utr
-import uk.gov.hmrc.traderservices.connectors.{CreateCaseConnector, CreateCaseError, CreateCaseSuccess, MicroserviceAuthConnector}
-import uk.gov.hmrc.traderservices.models.{CreateImportCaseRequest, TraderServicesCreateCaseRequest}
+import uk.gov.hmrc.traderservices.connectors._
+import uk.gov.hmrc.traderservices.models._
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import uk.gov.hmrc.traderservices.wiring.AppConfig
 
 import scala.concurrent.{ExecutionContext, Future}
+import uk.gov.hmrc.traderservices.connectors.PegaCreateCaseRequest
+import java.{util => ju}
 
 @Singleton
 class TraderServicesRouteOneController @Inject() (
   val authConnector: MicroserviceAuthConnector,
-  val createCaseConnector: CreateCaseConnector,
+  val createCaseConnector: PegaCreateCaseConnector,
   val env: Environment,
   val appConfig: AppConfig,
   cc: ControllerComponents
@@ -44,9 +44,16 @@ class TraderServicesRouteOneController @Inject() (
       withAuthorisedAsTrader { eori =>
         val createCaseRequest: TraderServicesCreateCaseRequest =
           TraderServicesCreateCaseRequest.formats.reads(request.body.asJson.get).get
-        createCaseConnector.processCreateCaseRequest(createCaseRequest, eori) map {
-          case cce: CreateCaseError   => Ok(CreateCaseError.formats.writes(cce))
-          case ccs: CreateCaseSuccess => Ok(CreateCaseSuccess.formats.writes(ccs))
+
+        val pegaCreateCaseRequest = PegaCreateCaseRequest(
+          AcknowledgementReference = ju.UUID.randomUUID().toString().replace("-", ""),
+          ApplicationType = "Route1",
+          OriginatingSystem = "Digital",
+          Content = PegaCreateCaseRequestContent.from(createCaseRequest)
+        )
+        createCaseConnector.processCreateCaseRequest(pegaCreateCaseRequest, eori) map {
+          case cce: PegaCreateCaseError   => Ok(PegaCreateCaseError.formats.writes(cce))
+          case ccs: PegaCreateCaseSuccess => Ok(PegaCreateCaseSuccess.formats.writes(ccs))
         }
       }
     }

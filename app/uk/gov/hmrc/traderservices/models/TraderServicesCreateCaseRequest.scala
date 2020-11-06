@@ -22,7 +22,8 @@ import play.api.libs.json.Format
 case class TraderServicesCreateCaseRequest(
   declarationDetails: DeclarationDetails,
   questionsAnswers: QuestionsAnswers,
-  uploadedFiles: Seq[UploadedFile]
+  uploadedFiles: Seq[UploadedFile],
+  eori: String
 )
 
 object TraderServicesCreateCaseRequest {
