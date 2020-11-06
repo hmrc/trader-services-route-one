@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.traderservices.controllers
+package uk.gov.hmrc.traderservices.models
 
 import play.api.libs.json.Json
-import uk.gov.hmrc.traderservices.models.{DeclarationDetails, QuestionsAnswers, UploadedFile}
+import play.api.libs.json.Format
 
 case class TraderServicesCreateCaseRequest(
   declarationDetails: DeclarationDetails,
@@ -26,5 +26,6 @@ case class TraderServicesCreateCaseRequest(
 )
 
 object TraderServicesCreateCaseRequest {
-  implicit val formats = Json.format[TraderServicesCreateCaseRequest]
+  implicit val formats: Format[TraderServicesCreateCaseRequest] =
+    Json.format[TraderServicesCreateCaseRequest]
 }

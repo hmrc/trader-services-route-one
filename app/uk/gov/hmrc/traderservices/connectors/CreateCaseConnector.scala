@@ -20,7 +20,6 @@ import java.time.format.DateTimeFormatter
 
 import javax.inject.{Inject, Singleton}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpPost}
-import uk.gov.hmrc.traderservices.controllers.TraderServicesCreateCaseRequest
 import uk.gov.hmrc.traderservices.models._
 import uk.gov.hmrc.traderservices.wiring.AppConfig
 

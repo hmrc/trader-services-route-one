@@ -3,8 +3,7 @@ package uk.gov.hmrc.traderservices.stubs
 import java.time.format.DateTimeFormatter
 
 import com.github.tomakehurst.wiremock.client.WireMock._
-import uk.gov.hmrc.traderservices.controllers.TraderServicesCreateCaseRequest
-import uk.gov.hmrc.traderservices.models.{CreateImportCaseRequest, ExportQuestions, ImportQuestions}
+import uk.gov.hmrc.traderservices.models.{CreateImportCaseRequest, ExportQuestions, ImportQuestions, TraderServicesCreateCaseRequest}
 import uk.gov.hmrc.traderservices.support.WireMockSupport
 
 trait CreateCaseStubs {
