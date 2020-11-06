@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.traderservices.models
+package uk.gov.hmrc.traderservices.connectors
 
 import play.api.libs.json.{Format, Json}
 

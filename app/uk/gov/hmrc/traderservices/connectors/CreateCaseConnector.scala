@@ -20,6 +20,7 @@ import java.time.format.DateTimeFormatter
 
 import javax.inject.{Inject, Singleton}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpPost}
+import uk.gov.hmrc.traderservices.controllers.TraderServicesCreateCaseRequest
 import uk.gov.hmrc.traderservices.models._
 import uk.gov.hmrc.traderservices.wiring.AppConfig
 
@@ -30,35 +31,18 @@ class CreateCaseConnector @Inject() (val config: AppConfig, val http: HttpPost) 
 
   val entryDateFormat = DateTimeFormatter.ofPattern("yyyyMMdd")
 
-  def processCreateImportCaseRequest(createImportCaseRequest: CreateImportCaseRequest, eori: String)(implicit
+  def processCreateCaseRequest(createImportCaseRequest: TraderServicesCreateCaseRequest, eori: String)(implicit
     hc: HeaderCarrier,
     ec: ExecutionContext
   ): Future[CaseResponse] = {
-    val answers = createImportCaseRequest.importQuestionsAnswers
+    val answers = createImportCaseRequest.questionsAnswers
     val declarationDetails = createImportCaseRequest.declarationDetails
-    val vesselDetails = answers.vesselDetails
+    val createCase = buildCreateCase(eori, answers, declarationDetails)
     val json =
       CreateCaseRequest.formats.writes(
         CreateCaseRequest(
-          AcknowledgementReference = "1234",
-          Content = CreateCase(
-            EntryType = "Import",
-            RequestType = answers.requestType.toString,
-            EntryNumber = declarationDetails.entryNumber.value,
-            Route = answers.routeType.toString,
-            EntryProcessingUnit = declarationDetails.epu.value.toString,
-            EntryDate = entryDateFormat.format(declarationDetails.entryDate),
-            FreightOption = answers.freightType.get.toString,
-            Priority = answers.priorityGoods.map(pg => pg.toString),
-            VesselName = vesselDetails.flatMap(vd => vd.vesselName),
-            VesselEstimatedDate = vesselDetails.flatMap(vd => vd.dateOfArrival.map(_.toString)),
-            VesselEstimatedTime = vesselDetails.flatMap(vd => vd.timeOfArrival.map(_.toString)),
-            IsALVS = answers.hasALVS.toString,
-            EORI = eori,
-            TelephoneNumber = answers.contactInfo.contactNumber.get,
-            EmailAddress = answers.contactInfo.contactEmail,
-            MUCR = None
-          )
+          AcknowledgementReference = "1234", //TODO: How will we set this?
+          Content = createCase
         )
       )
     http.POST(config.caseBaseUrl + config.createCaseUrl, json) map {
@@ -70,4 +54,55 @@ class CreateCaseConnector @Inject() (val config: AppConfig, val http: HttpPost) 
       }
     }
   }
+
+  private def buildCreateCase(eori: String, answers: QuestionsAnswers, declarationDetails: DeclarationDetails) =
+    answers match {
+      case ImportQuestions(
+            requestType,
+            routeType,
+            _,
+            priorityGoods,
+            hasALVS,
+            freightType,
+            vesselDetails,
+            contactInfo
+          ) =>
+        CreateCase(
+          EntryType = "Import",
+          RequestType = requestType.get.toString,
+          EntryNumber = declarationDetails.entryNumber.value,
+          Route = routeType.get.toString,
+          EntryProcessingUnit = declarationDetails.epu.value.toString,
+          EntryDate = entryDateFormat.format(declarationDetails.entryDate),
+          FreightOption = freightType.get.toString,
+          Priority = priorityGoods.map(pg => pg.toString),
+          VesselName = vesselDetails.flatMap(vd => vd.vesselName),
+          VesselEstimatedDate = vesselDetails.flatMap(vd => vd.dateOfArrival.map(_.toString)),
+          VesselEstimatedTime = vesselDetails.flatMap(vd => vd.timeOfArrival.map(_.toString)),
+          IsALVS = hasALVS.get.toString,
+          EORI = eori,
+          TelephoneNumber = contactInfo.get.contactNumber.get,
+          EmailAddress = contactInfo.get.contactEmail,
+          MUCR = None
+        )
+      case ExportQuestions(requestType, routeType, _, priorityGoods, freightType, vesselDetails, contactInfo) =>
+        CreateCase(
+          EntryType = "Import",
+          RequestType = requestType.get.toString,
+          EntryNumber = declarationDetails.entryNumber.value,
+          Route = routeType.get.toString,
+          EntryProcessingUnit = declarationDetails.epu.value.toString,
+          EntryDate = entryDateFormat.format(declarationDetails.entryDate),
+          FreightOption = freightType.get.toString,
+          Priority = priorityGoods.map(pg => pg.toString),
+          VesselName = vesselDetails.flatMap(vd => vd.vesselName),
+          VesselEstimatedDate = vesselDetails.flatMap(vd => vd.dateOfArrival.map(_.toString)),
+          VesselEstimatedTime = vesselDetails.flatMap(vd => vd.timeOfArrival.map(_.toString)),
+          IsALVS = "false",
+          EORI = eori,
+          TelephoneNumber = contactInfo.get.contactNumber.get,
+          EmailAddress = contactInfo.get.contactEmail,
+          MUCR = None
+        )
+    }
 }

@@ -19,16 +19,23 @@ package uk.gov.hmrc.traderservices.models
 import play.api.libs.json.{Format, Json}
 
 case class ImportQuestions(
-  requestType: ImportRequestType,
-  routeType: ImportRouteType,
-  hasPriorityGoods: Boolean,
+  requestType: Option[ImportRequestType] = None,
+  routeType: Option[ImportRouteType] = None,
+  hasPriorityGoods: Option[Boolean] = None,
   priorityGoods: Option[ImportPriorityGoods] = None,
-  hasALVS: Boolean,
+  hasALVS: Option[Boolean] = None,
   freightType: Option[ImportFreightType] = None,
   vesselDetails: Option[VesselDetails] = None,
-  contactInfo: ImportContactInfo
-)
+  contactInfo: Option[ImportContactInfo] = None
+) extends QuestionsAnswers
 
 object ImportQuestions {
+  val tag = "import"
   implicit val formats: Format[ImportQuestions] = Json.format[ImportQuestions]
+
+  def from(questionsAnswers: QuestionsAnswers): ImportQuestions =
+    questionsAnswers match {
+      case i: ImportQuestions => i
+      case e: ExportQuestions => ImportQuestions()
+    }
 }

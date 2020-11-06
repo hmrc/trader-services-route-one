@@ -22,8 +22,8 @@ import play.api.libs.ws.WSClient
 import play.api.mvc._
 import play.api.{Configuration, Environment}
 import uk.gov.hmrc.agentmtdidentifiers.model.Utr
-import uk.gov.hmrc.traderservices.connectors.{CreateCaseConnector, MicroserviceAuthConnector}
-import uk.gov.hmrc.traderservices.models.{CreateCaseError, CreateCaseSuccess, CreateImportCaseRequest, TraderServicesModel}
+import uk.gov.hmrc.traderservices.connectors.{CreateCaseConnector, CreateCaseError, CreateCaseSuccess, MicroserviceAuthConnector}
+import uk.gov.hmrc.traderservices.models.{CreateImportCaseRequest, TraderServicesModel}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import uk.gov.hmrc.traderservices.wiring.AppConfig
 
@@ -55,15 +55,14 @@ class TraderServicesController @Inject() (
       }
     }
 
-  def createImport: Action[AnyContent] =
+  def createCase: Action[AnyContent] =
     Action.async { implicit request =>
       withAuthorisedAsTrader { eori =>
-        val importRequest = CreateImportCaseRequest.formats.reads(request.body.asJson.get).get
-        createCaseConnector.processCreateImportCaseRequest(importRequest, eori) map {
+        val createCaseRequest = TraderServicesCreateCaseRequest.formats.reads(request.body.asJson.get).get
+        createCaseConnector.processCreateCaseRequest(createCaseRequest, eori) map {
           case cce: CreateCaseError   => Ok(CreateCaseError.formats.writes(cce))
           case ccs: CreateCaseSuccess => Ok(CreateCaseSuccess.formats.writes(ccs))
         }
       }
     }
-
 }

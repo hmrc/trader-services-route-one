@@ -39,18 +39,18 @@ class TraderServicesControllerISpec extends ServerBaseISpec with AuthStubs with 
       }
     }
 
-    "POST /create-import-case" should {
-      "respond with case id for valid data" in {
+    "POST /create-case" should {
+      "when import questions submitted will respond with case id for valid data" in {
         givenAuthorisedAsValidTrader("xyz")
         val dateTimeOfArrival = dateTime.plusDays(1).truncatedTo(ChronoUnit.MINUTES)
-        val createImportCaseRequest = CreateImportCaseRequest(
+        val createImportCaseRequest = TraderServicesCreateCaseRequest(
           DeclarationDetails(EPU(235), EntryNumber("111111X"), LocalDate.parse("2020-09-23")),
           ImportQuestions(
-            requestType = ImportRequestType.New,
-            routeType = ImportRouteType.Route6,
+            requestType = Some(ImportRequestType.New),
+            routeType = Some(ImportRouteType.Route6),
             priorityGoods = Some(ImportPriorityGoods.HighValueArt),
-            hasPriorityGoods = true,
-            hasALVS = false,
+            hasPriorityGoods = Some(true),
+            hasALVS = Some(false),
             freightType = Some(ImportFreightType.Air),
             vesselDetails = Some(
               VesselDetails(
@@ -59,19 +59,22 @@ class TraderServicesControllerISpec extends ServerBaseISpec with AuthStubs with 
                 timeOfArrival = Some(dateTimeOfArrival.toLocalTime())
               )
             ),
-            contactInfo = ImportContactInfo(
-              contactName = "Full Name",
-              contactNumber = Some("07777888999"),
-              contactEmail = "someone@email.com"
+            contactInfo = Some(
+              ImportContactInfo(
+                contactName = "Full Name",
+                contactNumber = Some("07777888999"),
+                contactEmail = "someone@email.com"
+              )
             )
-          )
+          ),
+          Seq()
         )
-        val payload = CreateImportCaseRequest.formats.writes(createImportCaseRequest)
+        val payload = TraderServicesCreateCaseRequest.formats.writes(createImportCaseRequest)
 
         givenImportCreateRequestWithVesselDetails(createImportCaseRequest, "xyz")
 
         val result = wsClient
-          .url(s"$url/create-import-case")
+          .url(s"$url/create-case")
           .post(payload)
           .futureValue
         result.status shouldBe 200

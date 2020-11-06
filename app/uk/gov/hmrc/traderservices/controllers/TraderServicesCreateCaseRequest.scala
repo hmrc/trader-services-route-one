@@ -14,20 +14,17 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.traderservices.models
+package uk.gov.hmrc.traderservices.controllers
 
-import play.api.libs.json.{Format, Json}
+import play.api.libs.json.Json
+import uk.gov.hmrc.traderservices.models.{DeclarationDetails, QuestionsAnswers, UploadedFile}
 
-trait CaseResponse
+case class TraderServicesCreateCaseRequest(
+  declarationDetails: DeclarationDetails,
+  questionsAnswers: QuestionsAnswers,
+  uploadedFiles: Seq[UploadedFile]
+)
 
-case class CreateCaseError(errorCode: String) extends CaseResponse
-case class CreateCaseSuccess(CaseID: String, ProcessingDate: String, Status: String, StatusText: String)
-    extends CaseResponse
-
-object CreateCaseSuccess {
-  implicit val formats: Format[CreateCaseSuccess] = Json.format[CreateCaseSuccess]
-}
-
-object CreateCaseError {
-  implicit val formats: Format[CreateCaseError] = Json.format[CreateCaseError]
+object TraderServicesCreateCaseRequest {
+  implicit val formats = Json.format[TraderServicesCreateCaseRequest]
 }
