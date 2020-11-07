@@ -14,23 +14,15 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.traderservices.models
+package uk.gov.hmrc.traderservices.connectors
 
-import play.api.libs.json.Json
-import play.api.libs.json.Format
+import play.api.libs.json.{Format, Json}
 
-case class TraderServicesCreateCaseRequest(
-  declarationDetails: DeclarationDetails,
-  questionsAnswers: QuestionsAnswers,
-  uploadedFiles: Seq[UploadedFile],
-  eori: String
+case class ApiError(
+  errorCode: String,
+  errorMessage: String
 )
 
-object TraderServicesCreateCaseRequest {
-
-  implicit val formats: Format[TraderServicesCreateCaseRequest] =
-    Json.format[TraderServicesCreateCaseRequest]
-
-  implicit val validate: Validator.Validate[TraderServicesCreateCaseRequest] =
-    Validator.always
+object ApiError {
+  implicit val formats: Format[ApiError] = Json.format[ApiError]
 }

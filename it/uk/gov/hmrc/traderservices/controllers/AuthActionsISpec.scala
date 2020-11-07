@@ -17,12 +17,13 @@ class AuthActionsISpec extends AppBaseISpec {
     override def authConnector: AuthConnector = app.injector.instanceOf[AuthConnector]
 
     override val appConfig: AppConfig = new AppConfig {
-      override val appName: String = "dummy"
-      override val authBaseUrl: String = "dummy"
+      override val appName: String = "???"
+      override val authBaseUrl: String = "???"
       override val authorisedServiceName: String = "HMRC-XYZ"
       override val authorisedIdentifierKey: String = "XYZNumber"
-      override val caseBaseUrl: String = "dummy"
-      override val createCaseUrl: String = "dummy"
+      override val createCaseApiBaseUrl: String = "???"
+      override val createCaseApiPath: String = "???"
+      override val createCaseApiAuthorizationToken: String = "???"
     }
 
     implicit val hc = HeaderCarrier()
@@ -39,6 +40,7 @@ class AuthActionsISpec extends AppBaseISpec {
   "withAuthorisedAsAgent" should {
 
     "call body with arn when valid agent" in {
+      givenAuditConnector()
       stubForAuthAuthorise(
         "{}",
         s"""{

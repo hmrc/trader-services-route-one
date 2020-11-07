@@ -23,9 +23,9 @@ object Validator {
 
   import Implicits._
 
-  type Validator[T] = T => Validated[List[String], Unit]
+  type Validate[T] = T => Validated[List[String], Unit]
 
-  def apply[T](constraints: Validator[T]*): Validator[T] =
+  def apply[T](constraints: Validate[T]*): Validate[T] =
     (entity: T) =>
       constraints
         .foldLeft[Validated[List[String], Unit]](Valid(()))((v, fx) =>
@@ -34,47 +34,49 @@ object Validator {
           )
         )
 
-  def alternatively[T](constraints: Validator[T]*): Validator[T] =
+  def always[T]: Validate[T] = (entity: T) => Valid(entity)
+
+  def alternatively[T](constraints: Validate[T]*): Validate[T] =
     (entity: T) =>
       constraints
         .foldLeft[Validated[List[String], Unit]](Valid(()))((v, fx) => v.orElse(fx(entity)))
 
-  def product[A, B](constraintA: Validator[A], constraintB: Validator[B]): Validator[(A, B)] =
+  def product[A, B](constraintA: Validate[A], constraintB: Validate[B]): Validate[(A, B)] =
     (entity: (A, B)) => constraintA(entity._1).combine(constraintB(entity._2))
 
   def product[A, B, C](
-    constraintA: Validator[A],
-    constraintB: Validator[B],
-    constraintC: Validator[C]
-  ): Validator[(A, B, C)] =
+    constraintA: Validate[A],
+    constraintB: Validate[B],
+    constraintC: Validate[C]
+  ): Validate[(A, B, C)] =
     (entity: (A, B, C)) => constraintA(entity._1).combine(constraintB(entity._2)).combine(constraintC(entity._3))
 
   private type SimpleValidator[T] = T => Validated[String, Unit]
-  def validate[T](constraints: SimpleValidator[T]*): Validator[T] =
+  def validate[T](constraints: SimpleValidator[T]*): Validate[T] =
     (entity: T) =>
       constraints
         .foldLeft[Validated[List[String], Unit]](Valid(()))((v, fx) => v.combine(fx(entity).leftMap(_ :: Nil)))
 
-  def check[T](test: T => Boolean, error: String): Validator[T] =
+  def check[T](test: T => Boolean, error: String): Validate[T] =
     (entity: T) => Validated.cond(test(entity), (), error :: Nil)
 
-  def checkFromEither[T](test: T => Either[String, Any], error: String): Validator[T] =
+  def checkFromEither[T](test: T => Either[String, Any], error: String): Validate[T] =
     (entity: T) => Validated.fromEither(test(entity).map(_ => ()).left.map(_ :: Nil))
 
-  def checkFromOption[T](test: T => Option[Any], error: String): Validator[T] =
+  def checkFromOption[T](test: T => Option[Any], error: String): Validate[T] =
     (entity: T) => Validated.fromOption(test(entity).map(_ => ()), "Some expected but got None" :: Nil)
 
-  def checkObject[T, E](element: T => E, validator: Validator[E]): Validator[T] =
+  def checkObject[T, E](element: T => E, validator: Validate[E]): Validate[T] =
     (entity: T) => validator(element(entity))
 
-  def checkProperty[T, E](element: T => E, validator: Validator[E]): Validator[T] =
+  def checkProperty[T, E](element: T => E, validator: Validate[E]): Validate[T] =
     (entity: T) => validator(element(entity))
 
   def checkObjectIfSome[T, E](
     element: T => Option[E],
-    validator: Validator[E],
+    validator: Validate[E],
     isValidIfNone: Boolean = true
-  ): Validator[T] =
+  ): Validate[T] =
     (entity: T) =>
       element(entity)
         .map(validator)
@@ -84,9 +86,9 @@ object Validator {
 
   def checkIfSome[T, E](
     element: T => Option[E],
-    validator: Validator[E],
+    validator: Validate[E],
     isValidIfNone: Boolean = true
-  ): Validator[T] =
+  ): Validate[T] =
     (entity: T) =>
       element(entity)
         .map(validator)
@@ -94,14 +96,14 @@ object Validator {
           if (isValidIfNone) Valid(()) else Invalid(List("Some value expected but got None"))
         )
 
-  def checkEach[T, E](elements: T => Seq[E], validator: Validator[E]): Validator[T] =
+  def checkEach[T, E](elements: T => Seq[E], validator: Validate[E]): Validate[T] =
     (entity: T) => elements(entity).map(validator).reduce(_.combine(_))
 
   def checkEachIfSome[T, E](
     extract: T => Option[Seq[E]],
-    validator: Validator[E],
+    validator: Validate[E],
     isValidIfNone: Boolean = true
-  ): Validator[T] =
+  ): Validate[T] =
     (entity: T) =>
       extract(entity)
         .map(
@@ -115,7 +117,7 @@ object Validator {
   def checkIfAtLeastOneIsDefined[T](
     alternatives: Seq[T => Option[Any]],
     expectations: String
-  ): Validator[T] =
+  ): Validate[T] =
     (entity: T) =>
       if (alternatives.exists(f => f(entity).isDefined)) Valid(())
       else Invalid(List(s"One of an alternative values $expectations must be defined"))
@@ -123,7 +125,7 @@ object Validator {
   def checkIfOnlyOneSetIsDefined[T](
     alternatives: Seq[Set[T => Option[Any]]],
     expectations: String
-  ): Validator[T] =
+  ): Validate[T] =
     (entity: T) => {
       val definedSetCount =
         alternatives.map(_.map(f => f(entity).isDefined).reduce(_ && _)).count(_ == true)

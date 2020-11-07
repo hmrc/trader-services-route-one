@@ -33,7 +33,7 @@ import play.api.libs.json.Json
 
 trait ControllerHelper {
 
-  type HandleError = (String, String) => Future[Result]
+  type HandleError = (String, String) => Result
 
   protected def withPayload[T](
     f: T => Future[Result]
@@ -42,7 +42,7 @@ trait ControllerHelper {
   )(implicit
     request: Request[String],
     reads: Reads[T],
-    validate: Validator.Validator[T],
+    validate: Validator.Validate[T],
     ec: ExecutionContext
   ): Future[Result] =
     Try(Json.parse(request.body).validate[T]) match {
@@ -54,14 +54,14 @@ trait ControllerHelper {
             f(payload)
 
           case Invalid(errs) =>
-            handleError(
+            Future successful handleError(
               "ERROR_VALIDATION",
               s"Invalid payload: Validation failed due to ${errs.mkString(", and ")}."
             )
         }
 
       case Success(JsError(errs)) =>
-        handleError(
+        Future successful handleError(
           "ERROR_JSON",
           s"Invalid payload: Parsing failed due to ${errs
             .map {
@@ -72,7 +72,7 @@ trait ControllerHelper {
         )
 
       case Failure(e) =>
-        handleError("ERROR_UNKNOWN", s"Could not parse payload due to ${e.getMessage}.")
+        Future successful handleError("ERROR_UNKNOWN", s"Could not parse payload due to ${e.getMessage}.")
     }
 
 }

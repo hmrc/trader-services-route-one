@@ -37,7 +37,13 @@ trait CreateCaseStubs {
 
   def stubForPostWithResponse(payload: String, responseBody: String): Unit =
     stubFor(
-      post(urlEqualTo("/v1/create-case"))
+      post(urlEqualTo("/cpr/caserequest/route1/create/v1"))
+        .withHeader("x-correlation-id", matching("[A-Za-z0-9-]{36}"))
+        .withHeader("x-forwarded-host", matching("[A-Za-z0-9.-]{1,255}"))
+        .withHeader("date", matching("[A-Za-z0-9,: ]{29}"))
+        .withHeader("accept", equalTo("application/json"))
+        .withHeader("content-Type", equalTo("application/json"))
+        .withHeader("authorization", matching("Bearer \\w{1,1024}"))
         .withRequestBody(equalToJson(payload, true, true))
         .willReturn(
           aResponse()

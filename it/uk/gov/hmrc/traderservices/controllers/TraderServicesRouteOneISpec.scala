@@ -11,8 +11,11 @@ import uk.gov.hmrc.traderservices.models._
 import uk.gov.hmrc.traderservices.stubs._
 import uk.gov.hmrc.traderservices.support.ServerBaseISpec
 import java.time.LocalTime
+import uk.gov.hmrc.traderservices.support.JsonMatchers
+import play.api.libs.json.JsObject
+import java.{util => ju}
 
-class TraderServicesControllerISpec extends ServerBaseISpec with AuthStubs with CreateCaseStubs {
+class TraderServicesRouteOneISpec extends ServerBaseISpec with AuthStubs with CreateCaseStubs with JsonMatchers {
 
   this: Suite with ServerProvider =>
 
@@ -23,10 +26,9 @@ class TraderServicesControllerISpec extends ServerBaseISpec with AuthStubs with 
   val wsClient = app.injector.instanceOf[WSClient]
 
   "TraderServicesRouteOneController" when {
-
     "POST /create-case" should {
-      "when import questions submitted will respond with case id for valid data" in {
-        givenAuthorisedAsValidTrader("xyz")
+      "return CaseID as a result if successful PEGA API call" in {
+
         val createCaseRequest = TraderServicesCreateCaseRequest(
           DeclarationDetails(EPU(2), EntryNumber("A23456A"), LocalDate.parse("2020-09-02")),
           ImportQuestions(
@@ -52,19 +54,21 @@ class TraderServicesControllerISpec extends ServerBaseISpec with AuthStubs with 
           "GB123456789012345"
         )
 
+        givenAuthorisedAsValidTrader("xyz")
         givenPegaCreateCaseRequestSucceeds()
+
+        val correlationId = ju.UUID.randomUUID().toString()
 
         val result = wsClient
           .url(s"$url/create-case")
+          .withHttpHeaders("X-Correlation-ID" -> correlationId)
           .post(Json.toJson(createCaseRequest))
           .futureValue
 
-        result.status shouldBe 200
-        result.json shouldBe Json.obj(
-          "CaseID"         -> "PCE201103470D2CC8K0NH3",
-          "ProcessingDate" -> "2020-11-03T15:29:28.601Z",
-          "Status"         -> "Success",
-          "StatusText"     -> "Case created successfully"
+        result.status shouldBe 201
+        result.json.as[JsObject] should (
+          haveProperty[String]("correlationId", be(correlationId)) and
+            haveProperty[String]("result", be("PCE201103470D2CC8K0NH3"))
         )
       }
     }

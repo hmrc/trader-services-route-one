@@ -28,6 +28,7 @@ import uk.gov.hmrc.traderservices.wiring.AppConfig
 import scala.concurrent.{ExecutionContext, Future}
 import uk.gov.hmrc.traderservices.connectors.PegaCreateCaseRequest
 import java.{util => ju}
+import views.html.defaultpages.error
 
 @Singleton
 class TraderServicesRouteOneController @Inject() (
@@ -37,23 +38,64 @@ class TraderServicesRouteOneController @Inject() (
   val appConfig: AppConfig,
   cc: ControllerComponents
 )(implicit val configuration: Configuration, ec: ExecutionContext)
-    extends BackendController(cc) with AuthActions {
+    extends BackendController(cc) with AuthActions with ControllerHelper {
 
-  def createCase: Action[AnyContent] =
-    Action.async { implicit request =>
+  def createCase: Action[String] =
+    Action.async(parse.tolerantText) { implicit request =>
       withAuthorisedAsTrader { eori =>
-        val createCaseRequest: TraderServicesCreateCaseRequest =
-          TraderServicesCreateCaseRequest.formats.reads(request.body.asJson.get).get
+        val correlationId = request.headers
+          .get("x-correlation-id")
+          .getOrElse(ju.UUID.randomUUID().toString())
 
-        val pegaCreateCaseRequest = PegaCreateCaseRequest(
-          AcknowledgementReference = ju.UUID.randomUUID().toString().replace("-", ""),
-          ApplicationType = "Route1",
-          OriginatingSystem = "Digital",
-          Content = PegaCreateCaseRequestContent.from(createCaseRequest)
-        )
-        createCaseConnector.processCreateCaseRequest(pegaCreateCaseRequest, eori) map {
-          case cce: PegaCreateCaseError   => Ok(PegaCreateCaseError.formats.writes(cce))
-          case ccs: PegaCreateCaseSuccess => Ok(PegaCreateCaseSuccess.formats.writes(ccs))
+        withPayload[TraderServicesCreateCaseRequest] { createCaseRequest =>
+          val pegaCreateCaseRequest = PegaCreateCaseRequest(
+            AcknowledgementReference = correlationId.replace("-", ""),
+            ApplicationType = "Route1",
+            OriginatingSystem = "Digital",
+            Content = PegaCreateCaseRequestContent.from(createCaseRequest)
+          )
+
+          createCaseConnector
+            .createCase(pegaCreateCaseRequest, eori, correlationId) map {
+            case ccs: PegaCreateCaseSuccess =>
+              Created(
+                Json.toJson(
+                  TraderServicesCreateCaseResponse(
+                    correlationId = correlationId,
+                    result = Some(ccs.CaseID)
+                  )
+                )
+              )
+            // when request to the upstream api returns an error
+            case cce: PegaCreateCaseError =>
+              BadRequest(
+                Json.toJson(
+                  TraderServicesCreateCaseResponse(
+                    correlationId = correlationId,
+                    error = Some(
+                      ApiError(
+                        errorCode = cce.ErrorCode.getOrElse("ERROR_UPSTREAM_UNDEFINED"),
+                        errorMessage = cce.ErrorMessage.getOrElse("")
+                      )
+                    )
+                  )
+                )
+              )
+          }
+
+        } {
+          // when incoming request's payload validation fails
+          case (errorCode, errorMessage) =>
+            BadRequest(
+              Json.toJson(
+                TraderServicesCreateCaseResponse(
+                  correlationId = correlationId,
+                  error = Some(
+                    ApiError(errorCode, errorMessage)
+                  )
+                )
+              )
+            )
         }
       }
     }

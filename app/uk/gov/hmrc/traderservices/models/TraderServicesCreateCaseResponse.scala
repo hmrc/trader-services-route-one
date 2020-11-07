@@ -14,15 +14,20 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.traderservices.models
+package uk.gov.hmrc.traderservices.connectors
 
 import play.api.libs.json.{Format, Json}
 
-case class CreateImportCaseRequest(
-  declarationDetails: DeclarationDetails,
-  importQuestionsAnswers: ImportQuestions
+case class TraderServicesCreateCaseResponse(
+  // Identifier associated with a request,
+  correlationId: String,
+  // Represents an error occurred
+  error: Option[ApiError] = None,
+  // Represents the result
+  result: Option[String] = None
 )
 
-object CreateImportCaseRequest {
-  implicit val formats: Format[CreateImportCaseRequest] = Json.format[CreateImportCaseRequest]
+object TraderServicesCreateCaseResponse {
+  implicit val formats: Format[TraderServicesCreateCaseResponse] =
+    Json.format[TraderServicesCreateCaseResponse]
 }

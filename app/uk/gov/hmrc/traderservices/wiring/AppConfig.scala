@@ -31,22 +31,35 @@ trait AppConfig {
 
   val authorisedIdentifierKey: String
 
-  val caseBaseUrl: String
+  val createCaseApiBaseUrl: String
 
-  val createCaseUrl: String
+  val createCaseApiPath: String
+
+  val createCaseApiAuthorizationToken: String
 }
 
 class AppConfigImpl @Inject() (config: ServicesConfig) extends AppConfig {
 
-  val appName: String = config.getString("appName")
+  override val appName: String = config.getString("appName")
 
-  val authBaseUrl: String = config.baseUrl("auth")
+  override val authBaseUrl: String = config.baseUrl("auth")
 
-  val authorisedServiceName: String = config.getString("authorisedServiceName")
+  override val authorisedServiceName: String = config.getString("authorisedServiceName")
 
-  val authorisedIdentifierKey: String = config.getString("authorisedIdentifierKey")
+  override val authorisedIdentifierKey: String = config.getString("authorisedIdentifierKey")
 
-  val caseBaseUrl: String = config.baseUrl("case")
+  override val createCaseApiBaseUrl: String = config.baseUrl("eis.createcaseapi")
 
-  val createCaseUrl: String = config.getString("createCaseUrl")
+  override val createCaseApiPath: String =
+    config.getConfString(
+      "eis.createcaseapi.path",
+      throw new IllegalStateException("Missing [microservice.services.eis.createcaseapi.path] configuration property")
+    )
+
+  override val createCaseApiAuthorizationToken: String =
+    config.getConfString(
+      "eis.createcaseapi.token",
+      throw new IllegalStateException("Missing [microservice.services.eis.createcaseapi.token] configuration property")
+    )
+
 }
