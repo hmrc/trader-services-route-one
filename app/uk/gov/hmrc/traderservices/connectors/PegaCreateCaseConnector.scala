@@ -32,7 +32,8 @@ import java.time.ZonedDateTime
 
 @Singleton
 class PegaCreateCaseConnector @Inject() (val config: AppConfig, val http: HttpPost, metrics: Metrics)
-    extends HttpAPIMonitor {
+    extends ReadSuccessOrFailure[PegaCreateCaseResponse, PegaCreateCaseSuccess, PegaCreateCaseError]
+    with HttpAPIMonitor {
 
   override val kenshooRegistry: MetricRegistry = metrics.defaultRegistry
 
@@ -50,7 +51,7 @@ class PegaCreateCaseConnector @Inject() (val config: AppConfig, val http: HttpPo
       http
         .POST[PegaCreateCaseRequest, PegaCreateCaseResponse](url, createCaseRequest)(
           implicitly[Writes[PegaCreateCaseRequest]],
-          HttpReads.Implicits.readFromJson[PegaCreateCaseResponse],
+          readFromJsonSuccessOrFailure,
           hc.withExtraHeaders(
             "x-correlation-id" -> correlationId,
             "x-forwarded-host" -> config.appName,

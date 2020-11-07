@@ -8,6 +8,7 @@ trait CreateCaseStubs {
 
   def givenPegaCreateCaseRequestSucceeds(): Unit =
     stubForPostWithResponse(
+      200,
       """{
         |  "ApplicationType" : "Route1",
         |  "OriginatingSystem" : "Digital",
@@ -35,7 +36,23 @@ trait CreateCaseStubs {
         |}""".stripMargin
     )
 
-  def stubForPostWithResponse(payload: String, responseBody: String): Unit =
+  def givenPegaCreateCaseRequestFails(status: Int, errorCode: String, errorMessage: String = ""): Unit =
+    stubForPostWithResponse(
+      status,
+      """{
+        |  "ApplicationType" : "Route1",
+        |  "OriginatingSystem" : "Digital",
+        |  "Content": {}
+        |}""".stripMargin,
+      s"""{
+         |   "ProcessingDate": "2020-11-03T15:29:28.601Z", 
+         |   "CorrelationId": "123123123", 
+         |   "ErrorCode": "$errorCode"
+         |   ${if (errorMessage.nonEmpty) s""","ErrorMessage": "$errorMessage"""" else ""}
+         |}""".stripMargin
+    )
+
+  def stubForPostWithResponse(status: Int, payload: String, responseBody: String): Unit =
     stubFor(
       post(urlEqualTo("/cpr/caserequest/route1/create/v1"))
         .withHeader("x-correlation-id", matching("[A-Za-z0-9-]{36}"))
@@ -47,7 +64,7 @@ trait CreateCaseStubs {
         .withRequestBody(equalToJson(payload, true, true))
         .willReturn(
           aResponse()
-            .withStatus(200)
+            .withStatus(status)
             .withHeader("Content-Type", "application/json")
             .withBody(responseBody)
         )

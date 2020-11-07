@@ -75,7 +75,7 @@ class TraderServicesRouteOneController @Inject() (
                     error = Some(
                       ApiError(
                         errorCode = cce.ErrorCode.getOrElse("ERROR_UPSTREAM_UNDEFINED"),
-                        errorMessage = cce.ErrorMessage.getOrElse("")
+                        errorMessage = cce.ErrorMessage
                       )
                     )
                   )
@@ -91,7 +91,7 @@ class TraderServicesRouteOneController @Inject() (
                 TraderServicesCreateCaseResponse(
                   correlationId = correlationId,
                   error = Some(
-                    ApiError(errorCode, errorMessage)
+                    ApiError(errorCode, Some(errorMessage))
                   )
                 )
               )

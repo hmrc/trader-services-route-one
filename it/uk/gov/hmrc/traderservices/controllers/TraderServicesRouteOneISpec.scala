@@ -15,7 +15,8 @@ import uk.gov.hmrc.traderservices.support.JsonMatchers
 import play.api.libs.json.JsObject
 import java.{util => ju}
 
-class TraderServicesRouteOneISpec extends ServerBaseISpec with AuthStubs with CreateCaseStubs with JsonMatchers {
+class TraderServicesRouteOneISpec
+    extends ServerBaseISpec with AuthStubs with CreateCaseStubs with JsonMatchers with TestData {
 
   this: Suite with ServerProvider =>
 
@@ -27,32 +28,7 @@ class TraderServicesRouteOneISpec extends ServerBaseISpec with AuthStubs with Cr
 
   "TraderServicesRouteOneController" when {
     "POST /create-case" should {
-      "return CaseID as a result if successful PEGA API call" in {
-
-        val createCaseRequest = TraderServicesCreateCaseRequest(
-          DeclarationDetails(EPU(2), EntryNumber("A23456A"), LocalDate.parse("2020-09-02")),
-          ImportQuestions(
-            requestType = ImportRequestType.New,
-            routeType = ImportRouteType.Route1,
-            priorityGoods = None,
-            hasALVS = false,
-            freightType = ImportFreightType.Maritime,
-            vesselDetails = Some(
-              VesselDetails(
-                vesselName = Some("Vessel Name"),
-                dateOfArrival = Some(LocalDate.of(2020, 10, 29)),
-                timeOfArrival = Some(LocalTime.of(23, 45, 0))
-              )
-            ),
-            contactInfo = ImportContactInfo(
-              contactName = "Full Name",
-              contactNumber = Some("07123456789"),
-              contactEmail = "sampelname@gmail.com"
-            )
-          ),
-          Seq(),
-          "GB123456789012345"
-        )
+      "return 201 with CaseID as a result if successful PEGA API call" in {
 
         givenAuthorisedAsValidTrader("xyz")
         givenPegaCreateCaseRequestSucceeds()
@@ -62,7 +38,7 @@ class TraderServicesRouteOneISpec extends ServerBaseISpec with AuthStubs with Cr
         val result = wsClient
           .url(s"$url/create-case")
           .withHttpHeaders("X-Correlation-ID" -> correlationId)
-          .post(Json.toJson(createCaseRequest))
+          .post(testCreateCaseRequest)
           .futureValue
 
         result.status shouldBe 201
@@ -71,6 +47,83 @@ class TraderServicesRouteOneISpec extends ServerBaseISpec with AuthStubs with Cr
             haveProperty[String]("result", be("PCE201103470D2CC8K0NH3"))
         )
       }
+
+      "return 400 with error code and message if PEGA API call fails with 403" in {
+
+        givenAuthorisedAsValidTrader("xyz")
+        givenPegaCreateCaseRequestFails(403, "400")
+
+        val correlationId = ju.UUID.randomUUID().toString()
+
+        val result = wsClient
+          .url(s"$url/create-case")
+          .withHttpHeaders("X-Correlation-ID" -> correlationId)
+          .post(testCreateCaseRequest)
+          .futureValue
+
+        result.status shouldBe 400
+        result.json.as[JsObject] should (
+          haveProperty[JsObject](
+            "error",
+            haveProperty[String]("errorCode", be("400")) and
+              notHaveProperty("errorMessage")
+          )
+        )
+      }
+
+      "return 400 with error code and message if PEGA API call fails with 500" in {
+
+        givenAuthorisedAsValidTrader("xyz")
+        givenPegaCreateCaseRequestFails(500, "500", "Foo Bar")
+
+        val correlationId = ju.UUID.randomUUID().toString()
+
+        val result = wsClient
+          .url(s"$url/create-case")
+          .withHttpHeaders("X-Correlation-ID" -> correlationId)
+          .post(testCreateCaseRequest)
+          .futureValue
+
+        result.status shouldBe 400
+        result.json.as[JsObject] should (
+          haveProperty[JsObject](
+            "error",
+            haveProperty[String]("errorCode", be("500")) and
+              haveProperty[String]("errorMessage", be("Foo Bar"))
+          )
+        )
+      }
     }
   }
+}
+
+trait TestData {
+
+  val testCreateCaseRequest = Json.toJson(
+    TraderServicesCreateCaseRequest(
+      DeclarationDetails(EPU(2), EntryNumber("A23456A"), LocalDate.parse("2020-09-02")),
+      ImportQuestions(
+        requestType = ImportRequestType.New,
+        routeType = ImportRouteType.Route1,
+        priorityGoods = None,
+        hasALVS = false,
+        freightType = ImportFreightType.Maritime,
+        vesselDetails = Some(
+          VesselDetails(
+            vesselName = Some("Vessel Name"),
+            dateOfArrival = Some(LocalDate.of(2020, 10, 29)),
+            timeOfArrival = Some(LocalTime.of(23, 45, 0))
+          )
+        ),
+        contactInfo = ImportContactInfo(
+          contactName = "Full Name",
+          contactNumber = Some("07123456789"),
+          contactEmail = "sampelname@gmail.com"
+        )
+      ),
+      Seq(),
+      "GB123456789012345"
+    )
+  )
+
 }
