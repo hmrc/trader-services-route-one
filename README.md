@@ -6,9 +6,9 @@ Backend microservice exposing an API of Trader Services on MDTP.
 
 ## API
 
-Method | Path
----|---
-`POST` | `/create-case`
+Method | Path | Description | Authorization
+---|---|---|---
+`POST` | `/create-case` | create new case in the PEGA system or report duplicate | any GovernmentGateway authorized user
 
 Header | Description
 ---|---
