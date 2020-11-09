@@ -20,8 +20,8 @@ Response status | Description
 400| when payload invalid or has not passed the validation
 409| when duplicate case
 
-Example request payload |
----|---
+Example request payload 
+
     {
         "declarationDetails" : {
             "epu" : "123",
@@ -55,15 +55,15 @@ Example request payload |
         "eori" : "GB123456789012345"
     }
 
-Example 201 success response payload |
----|---
+Example 201 success response payload
+
     {
         "correlationId" : "4327cf1f-5bcc-4c4a-acae-391588567d87",
         "result" : "330XGBNZJO04"
     }
 
-Example 400 error response payload |
----|---
+Example 400 error response payload
+
     {
         "correlationId" : "7fedc2d5-1bba-434b-87e6-4d4ec1757e31",
         "error" : {
@@ -72,8 +72,7 @@ Example 400 error response payload |
         }
     } 
 
-Example 409 duplicate case error payload |      
----|---
+Example 409 duplicate case error payload
 
     {
         "correlationId" : "7fedc2d5-1bba-434b-87e6-4d4ec1757e31",
