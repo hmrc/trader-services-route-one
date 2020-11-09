@@ -93,6 +93,29 @@ class TraderServicesRouteOneISpec
           )
         )
       }
+
+      "return 409 with error code and message if PEGA reports duplicated case" in {
+
+        givenAuthorisedAsValidTrader("xyz")
+        givenPegaCreateCaseRequestFails(500, "500", "999: PCE201103470D2CC8K0NH3")
+
+        val correlationId = ju.UUID.randomUUID().toString()
+
+        val result = wsClient
+          .url(s"$url/create-case")
+          .withHttpHeaders("X-Correlation-ID" -> correlationId)
+          .post(testCreateCaseRequest)
+          .futureValue
+
+        result.status shouldBe 409
+        result.json.as[JsObject] should (
+          haveProperty[JsObject](
+            "error",
+            haveProperty[String]("errorCode", be("409")) and
+              haveProperty[String]("errorMessage", be("PCE201103470D2CC8K0NH3"))
+          )
+        )
+      }
     }
   }
 }

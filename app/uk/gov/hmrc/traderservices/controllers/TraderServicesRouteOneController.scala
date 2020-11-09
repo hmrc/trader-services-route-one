@@ -57,30 +57,45 @@ class TraderServicesRouteOneController @Inject() (
 
           createCaseConnector
             .createCase(pegaCreateCaseRequest, eori, correlationId) map {
-            case ccs: PegaCreateCaseSuccess =>
+            case success: PegaCreateCaseSuccess =>
               Created(
                 Json.toJson(
                   TraderServicesCreateCaseResponse(
                     correlationId = correlationId,
-                    result = Some(ccs.CaseID)
+                    result = Some(success.CaseID)
                   )
                 )
               )
             // when request to the upstream api returns an error
-            case cce: PegaCreateCaseError =>
-              BadRequest(
-                Json.toJson(
-                  TraderServicesCreateCaseResponse(
-                    correlationId = correlationId,
-                    error = Some(
-                      ApiError(
-                        errorCode = cce.ErrorCode.getOrElse("ERROR_UPSTREAM_UNDEFINED"),
-                        errorMessage = cce.ErrorMessage
+            case error: PegaCreateCaseError =>
+              if (error.isDuplicateCaseError)
+                Conflict(
+                  Json.toJson(
+                    TraderServicesCreateCaseResponse(
+                      correlationId = correlationId,
+                      error = Some(
+                        ApiError(
+                          errorCode = "409",
+                          errorMessage = error.duplicateCaseID
+                        )
                       )
                     )
                   )
                 )
-              )
+              else
+                BadRequest(
+                  Json.toJson(
+                    TraderServicesCreateCaseResponse(
+                      correlationId = correlationId,
+                      error = Some(
+                        ApiError(
+                          errorCode = error.ErrorCode.getOrElse("ERROR_UPSTREAM_UNDEFINED"),
+                          errorMessage = error.ErrorMessage
+                        )
+                      )
+                    )
+                  )
+                )
           }
 
         } {

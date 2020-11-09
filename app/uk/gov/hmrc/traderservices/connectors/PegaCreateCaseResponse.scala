@@ -41,7 +41,15 @@ case class PegaCreateCaseError(
   CorrelationID: Option[String],
   ErrorCode: Option[String],
   ErrorMessage: Option[String]
-) extends PegaCreateCaseResponse
+) extends PegaCreateCaseResponse {
+
+  def isDuplicateCaseError: Boolean =
+    ErrorMessage.exists(_.replace(" ", "").startsWith("999:"))
+
+  def duplicateCaseID: Option[String] =
+    ErrorMessage.map(_.replace(" ", "").drop(4))
+
+}
 
 object PegaCreateCaseError {
   implicit val formats: Format[PegaCreateCaseError] =
