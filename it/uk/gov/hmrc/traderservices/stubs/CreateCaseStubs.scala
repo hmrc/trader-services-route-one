@@ -60,7 +60,8 @@ trait CreateCaseStubs {
         .withHeader("date", matching("[A-Za-z0-9,: ]{29}"))
         .withHeader("accept", equalTo("application/json"))
         .withHeader("content-Type", equalTo("application/json"))
-        .withHeader("authorization", matching("Bearer \\w{1,1024}"))
+        .withHeader("authorization", equalTo("Bearer dummy-it-token"))
+        .withHeader("environment", equalTo("it"))
         .withRequestBody(equalToJson(payload, true, true))
         .willReturn(
           aResponse()

@@ -57,7 +57,8 @@ class PegaCreateCaseConnector @Inject() (val config: AppConfig, val http: HttpPo
             "x-forwarded-host" -> config.appName,
             "date"             -> httpDateFormat.format(ZonedDateTime.now),
             "accept"           -> "application/json",
-            "authorization"    -> s"Bearer ${config.createCaseApiAuthorizationToken}"
+            "authorization"    -> s"Bearer ${config.createCaseApiAuthorizationToken}",
+            "environment"      -> config.createCaseApiEnvironment
           ),
           implicitly[ExecutionContext]
         )

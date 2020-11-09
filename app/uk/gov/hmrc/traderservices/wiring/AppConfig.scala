@@ -36,6 +36,8 @@ trait AppConfig {
   val createCaseApiPath: String
 
   val createCaseApiAuthorizationToken: String
+
+  val createCaseApiEnvironment: String
 }
 
 class AppConfigImpl @Inject() (config: ServicesConfig) extends AppConfig {
@@ -60,6 +62,14 @@ class AppConfigImpl @Inject() (config: ServicesConfig) extends AppConfig {
     config.getConfString(
       "eis.createcaseapi.token",
       throw new IllegalStateException("Missing [microservice.services.eis.createcaseapi.token] configuration property")
+    )
+
+  override val createCaseApiEnvironment: String =
+    config.getConfString(
+      "eis.createcaseapi.environment",
+      throw new IllegalStateException(
+        "Missing [microservice.services.eis.createcaseapi.environment] configuration property"
+      )
     )
 
 }

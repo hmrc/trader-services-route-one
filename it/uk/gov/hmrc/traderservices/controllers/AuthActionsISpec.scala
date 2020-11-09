@@ -17,13 +17,14 @@ class AuthActionsISpec extends AppBaseISpec {
     override def authConnector: AuthConnector = app.injector.instanceOf[AuthConnector]
 
     override val appConfig: AppConfig = new AppConfig {
-      override val appName: String = "???"
-      override val authBaseUrl: String = "???"
+      override val appName: String = ""
+      override val authBaseUrl: String = ""
       override val authorisedServiceName: String = "HMRC-XYZ"
       override val authorisedIdentifierKey: String = "XYZNumber"
-      override val createCaseApiBaseUrl: String = "???"
-      override val createCaseApiPath: String = "???"
-      override val createCaseApiAuthorizationToken: String = "???"
+      override val createCaseApiBaseUrl: String = ""
+      override val createCaseApiPath: String = ""
+      override val createCaseApiAuthorizationToken: String = ""
+      override val createCaseApiEnvironment: String = ""
     }
 
     implicit val hc = HeaderCarrier()
