@@ -16,13 +16,13 @@
 
 package uk.gov.hmrc.traderservices.connectors
 
-import javax.inject.{Inject, Singleton}
-import uk.gov.hmrc.auth.core.PlayAuthConnector
-import uk.gov.hmrc.http.HttpPost
-import uk.gov.hmrc.traderservices.wiring.AppConfig
+import scala.concurrent.{ExecutionContext, Future}
 
-@Singleton
-class MicroserviceAuthConnector @Inject() (appConfig: AppConfig, val http: HttpPost) extends PlayAuthConnector {
-
-  override val serviceUrl: String = appConfig.authBaseUrl
+trait HttpAPIMonitor extends AverageResponseTimer with HttpErrorRateMeter {
+  def monitor[T](serviceName: String)(function: => Future[T])(implicit ec: ExecutionContext): Future[T] =
+    super.countErrors(serviceName) {
+      super.timer(serviceName) {
+        function
+      }
+    }
 }

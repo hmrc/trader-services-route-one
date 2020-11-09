@@ -14,15 +14,17 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.traderservices.connectors
+package uk.gov.hmrc.traderservices.models
 
-import javax.inject.{Inject, Singleton}
-import uk.gov.hmrc.auth.core.PlayAuthConnector
-import uk.gov.hmrc.http.HttpPost
-import uk.gov.hmrc.traderservices.wiring.AppConfig
+sealed trait ImportPriorityGoods
 
-@Singleton
-class MicroserviceAuthConnector @Inject() (appConfig: AppConfig, val http: HttpPost) extends PlayAuthConnector {
+object ImportPriorityGoods extends EnumerationFormats[ImportPriorityGoods] {
 
-  override val serviceUrl: String = appConfig.authBaseUrl
+  case object LiveAnimals extends ImportPriorityGoods
+  case object HumanRemains extends ImportPriorityGoods
+  case object ExplosivesOrFireworks extends ImportPriorityGoods
+  case object HighValueArt extends ImportPriorityGoods
+  case object ClassADrugs extends ImportPriorityGoods
+
+  val values = Set(LiveAnimals, HumanRemains, ExplosivesOrFireworks, HighValueArt, ClassADrugs)
 }

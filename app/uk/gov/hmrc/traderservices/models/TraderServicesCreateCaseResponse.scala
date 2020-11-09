@@ -16,13 +16,18 @@
 
 package uk.gov.hmrc.traderservices.connectors
 
-import javax.inject.{Inject, Singleton}
-import uk.gov.hmrc.auth.core.PlayAuthConnector
-import uk.gov.hmrc.http.HttpPost
-import uk.gov.hmrc.traderservices.wiring.AppConfig
+import play.api.libs.json.{Format, Json}
 
-@Singleton
-class MicroserviceAuthConnector @Inject() (appConfig: AppConfig, val http: HttpPost) extends PlayAuthConnector {
+case class TraderServicesCreateCaseResponse(
+  // Identifier associated with a request,
+  correlationId: String,
+  // Represents an error occurred
+  error: Option[ApiError] = None,
+  // Represents the result
+  result: Option[String] = None
+)
 
-  override val serviceUrl: String = appConfig.authBaseUrl
+object TraderServicesCreateCaseResponse {
+  implicit val formats: Format[TraderServicesCreateCaseResponse] =
+    Json.format[TraderServicesCreateCaseResponse]
 }

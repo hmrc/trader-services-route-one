@@ -14,15 +14,23 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.traderservices.connectors
+package uk.gov.hmrc.traderservices.models
 
-import javax.inject.{Inject, Singleton}
-import uk.gov.hmrc.auth.core.PlayAuthConnector
-import uk.gov.hmrc.http.HttpPost
-import uk.gov.hmrc.traderservices.wiring.AppConfig
+import play.api.libs.json.{Format, Json}
 
-@Singleton
-class MicroserviceAuthConnector @Inject() (appConfig: AppConfig, val http: HttpPost) extends PlayAuthConnector {
+case class ExportQuestions(
+  requestType: ExportRequestType,
+  routeType: ExportRouteType,
+  priorityGoods: Option[ExportPriorityGoods] = None,
+  freightType: ExportFreightType,
+  vesselDetails: Option[VesselDetails] = None,
+  contactInfo: ExportContactInfo
+) extends QuestionsAnswers
 
-  override val serviceUrl: String = appConfig.authBaseUrl
+object ExportQuestions {
+
+  val tag = "export"
+
+  implicit val formats: Format[ExportQuestions] =
+    Json.format[ExportQuestions]
 }

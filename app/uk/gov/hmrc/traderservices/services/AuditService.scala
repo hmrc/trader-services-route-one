@@ -20,8 +20,6 @@ import javax.inject.Inject
 
 import com.google.inject.Singleton
 import play.api.mvc.Request
-import uk.gov.hmrc.agentmtdidentifiers.model.Arn
-import uk.gov.hmrc.traderservices.models.TraderServicesModel
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.audit.AuditExtensions._
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
@@ -42,18 +40,12 @@ class AuditService @Inject() (val auditConnector: AuditConnector) {
   import TraderServicesEvent._
 
   def sendTraderServicesSomethingHappened(
-    model: TraderServicesModel,
-    agentReference: Arn
+    model: String
   )(implicit hc: HeaderCarrier, request: Request[Any], ec: ExecutionContext): Unit =
     auditEvent(
       TraderServicesEvent.TraderServicesSomethingHappened,
-      "trader-services-something-happened",
-      Seq(
-        "agentReference"  -> agentReference.value,
-        "parameter1"      -> model.parameter1,
-        "telephoneNumber" -> model.telephoneNumber.getOrElse(""),
-        "emailAddress"    -> model.emailAddress.getOrElse("")
-      )
+      "trader-services-route-one-something-happened",
+      Seq.empty
     )
 
   private[services] def auditEvent(

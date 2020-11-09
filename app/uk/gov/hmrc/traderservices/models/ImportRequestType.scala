@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.traderservices.connectors
+package uk.gov.hmrc.traderservices.models
 
-import javax.inject.{Inject, Singleton}
-import uk.gov.hmrc.auth.core.PlayAuthConnector
-import uk.gov.hmrc.http.HttpPost
-import uk.gov.hmrc.traderservices.wiring.AppConfig
+sealed trait ImportRequestType
 
-@Singleton
-class MicroserviceAuthConnector @Inject() (appConfig: AppConfig, val http: HttpPost) extends PlayAuthConnector {
+object ImportRequestType extends EnumerationFormats[ImportRequestType] {
 
-  override val serviceUrl: String = appConfig.authBaseUrl
+  case object New extends ImportRequestType
+  case object Cancellation extends ImportRequestType
+
+  val values: Set[ImportRequestType] = Set(New, Cancellation)
 }

@@ -14,15 +14,19 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.traderservices.connectors
+package uk.gov.hmrc.traderservices.models
 
-import javax.inject.{Inject, Singleton}
-import uk.gov.hmrc.auth.core.PlayAuthConnector
-import uk.gov.hmrc.http.HttpPost
-import uk.gov.hmrc.traderservices.wiring.AppConfig
+import play.api.libs.json.{Format, JsError, JsString, JsSuccess, Json, Reads, Writes}
 
-@Singleton
-class MicroserviceAuthConnector @Inject() (appConfig: AppConfig, val http: HttpPost) extends PlayAuthConnector {
+object SimpleStringFormat {
 
-  override val serviceUrl: String = appConfig.authBaseUrl
+  def apply[A](fromString: String => A, toString: A => String): Format[A] =
+    Format(
+      Reads {
+        case JsString(value) => JsSuccess(fromString(value))
+        case json            => JsError(s"Expected json string but got ${json.getClass.getSimpleName}")
+      },
+      Writes.apply(entity => JsString(toString(entity)))
+    )
+
 }

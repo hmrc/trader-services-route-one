@@ -14,15 +14,18 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.traderservices.connectors
+package uk.gov.hmrc.traderservices.models
 
-import javax.inject.{Inject, Singleton}
-import uk.gov.hmrc.auth.core.PlayAuthConnector
-import uk.gov.hmrc.http.HttpPost
-import uk.gov.hmrc.traderservices.wiring.AppConfig
+sealed trait ExportRouteType
 
-@Singleton
-class MicroserviceAuthConnector @Inject() (appConfig: AppConfig, val http: HttpPost) extends PlayAuthConnector {
+object ExportRouteType extends EnumerationFormats[ExportRouteType] {
 
-  override val serviceUrl: String = appConfig.authBaseUrl
+  case object Route1 extends ExportRouteType
+  case object Route1Cap extends ExportRouteType
+  case object Route2 extends ExportRouteType
+  case object Route3 extends ExportRouteType
+  case object Route6 extends ExportRouteType
+  case object Hold extends ExportRouteType
+
+  val values = Set(Route1, Route1Cap, Route2, Route3, Route6, Hold)
 }

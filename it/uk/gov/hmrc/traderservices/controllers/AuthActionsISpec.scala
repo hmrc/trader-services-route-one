@@ -17,15 +17,24 @@ class AuthActionsISpec extends AppBaseISpec {
     override def authConnector: AuthConnector = app.injector.instanceOf[AuthConnector]
 
     override val appConfig: AppConfig = new AppConfig {
-      override val appName: String = "dummy"
-      override val authBaseUrl: String = "dummy"
+      override val appName: String = ""
+      override val authBaseUrl: String = ""
       override val authorisedServiceName: String = "HMRC-XYZ"
       override val authorisedIdentifierKey: String = "XYZNumber"
+      override val createCaseApiBaseUrl: String = ""
+      override val createCaseApiPath: String = ""
+      override val createCaseApiAuthorizationToken: String = ""
+      override val createCaseApiEnvironment: String = ""
     }
 
     implicit val hc = HeaderCarrier()
     implicit val request = FakeRequest().withSession(SessionKeys.authToken -> "Bearer XYZ")
     import scala.concurrent.ExecutionContext.Implicits.global
+
+    def withAuthorised[A]: Result =
+      await(super.withAuthorised {
+        Future.successful(Ok("Hello!"))
+      })
 
     def withAuthorisedAsTrader[A]: Result =
       await(super.withAuthorisedAsTrader { identifier =>
@@ -34,17 +43,39 @@ class AuthActionsISpec extends AppBaseISpec {
 
   }
 
-  "withAuthorisedAsAgent" should {
+  "withAuthorised" should {
 
-    "call body with arn when valid agent" in {
+    "call body when user is authorized" in {
+      givenAuditConnector()
+      stubForAuthAuthorise(
+        "{}",
+        "{}"
+      )
+      val result = TestController.withAuthorised
+      status(result) shouldBe 200
+      bodyOf(result) shouldBe "Hello!"
+    }
+
+    "throw an AutorisationException when user not logged in" in {
+      givenUnauthorisedWith("MissingBearerToken")
+      an[AuthorisationException] shouldBe thrownBy {
+        TestController.withAuthorised
+      }
+    }
+  }
+
+  "withAuthorisedAsTrader" should {
+
+    "call body with arn when valid trader" in {
+      givenAuditConnector()
       stubForAuthAuthorise(
         "{}",
         s"""{
-          |"authorisedEnrolments": [
-          |  { "key":"HMRC-XYZ", "identifiers": [
-          |    { "key":"XYZNumber", "value": "fooXyz" }
-          |  ]}
-          |]}""".stripMargin
+           |"authorisedEnrolments": [
+           |  { "key":"HMRC-XYZ", "identifiers": [
+           |    { "key":"XYZNumber", "value": "fooXyz" }
+           |  ]}
+           |]}""".stripMargin
       )
       val result = TestController.withAuthorisedAsTrader
       status(result) shouldBe 200
@@ -58,30 +89,30 @@ class AuthActionsISpec extends AppBaseISpec {
       }
     }
 
-    "throw InsufficientEnrolments when agent not enrolled for service" in {
+    "throw InsufficientEnrolments when trader not enrolled for service" in {
       stubForAuthAuthorise(
         "{}",
         s"""{
-          |"authorisedEnrolments": [
-          |  { "key":"HMRC-FOO", "identifiers": [
-          |    { "key":"XYZNumber", "value": "fooXyz" }
-          |  ]}
-          |]}""".stripMargin
+           |"authorisedEnrolments": [
+           |  { "key":"HMRC-FOO", "identifiers": [
+           |    { "key":"XYZNumber", "value": "fooXyz" }
+           |  ]}
+           |]}""".stripMargin
       )
       an[InsufficientEnrolments] shouldBe thrownBy {
         TestController.withAuthorisedAsTrader
       }
     }
 
-    "throw InsufficientEnrolments when expected agent's identifier missing" in {
+    "throw InsufficientEnrolments when expected trader's identifier missing" in {
       stubForAuthAuthorise(
         "{}",
         s"""{
-          |"authorisedEnrolments": [
-          |  { "key":"HMRC-XYZ", "identifiers": [
-          |    { "key":"BAR", "value": "fooArn" }
-          |  ]}
-          |]}""".stripMargin
+           |"authorisedEnrolments": [
+           |  { "key":"HMRC-XYZ", "identifiers": [
+           |    { "key":"BAR", "value": "foo" }
+           |  ]}
+           |]}""".stripMargin
       )
       an[InsufficientEnrolments] shouldBe thrownBy {
         TestController.withAuthorisedAsTrader

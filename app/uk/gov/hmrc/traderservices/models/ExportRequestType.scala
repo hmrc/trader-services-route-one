@@ -16,15 +16,16 @@
 
 package uk.gov.hmrc.traderservices.models
 
-import play.api.libs.json.Json
+sealed trait ExportRequestType
 
-case class TraderServicesModel(
-  parameter1: String,
-  parameter2: Option[String],
-  telephoneNumber: Option[String],
-  emailAddress: Option[String]
-)
+object ExportRequestType extends EnumerationFormats[ExportRequestType] {
 
-object TraderServicesModel {
-  implicit val modelFormat = Json.format[TraderServicesModel]
+  case object New extends ExportRequestType
+  case object Cancellation extends ExportRequestType
+  case object C1601 extends ExportRequestType
+  case object C1602 extends ExportRequestType
+  case object C1603 extends ExportRequestType
+  case object WithdrawalOrReturn extends ExportRequestType
+
+  val values = Set(New, Cancellation, C1601, C1602, C1603, WithdrawalOrReturn)
 }

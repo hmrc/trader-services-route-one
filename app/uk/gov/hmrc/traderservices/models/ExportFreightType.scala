@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.traderservices.connectors
+package uk.gov.hmrc.traderservices.models
 
-import javax.inject.{Inject, Singleton}
-import uk.gov.hmrc.auth.core.PlayAuthConnector
-import uk.gov.hmrc.http.HttpPost
-import uk.gov.hmrc.traderservices.wiring.AppConfig
+sealed trait ExportFreightType
 
-@Singleton
-class MicroserviceAuthConnector @Inject() (appConfig: AppConfig, val http: HttpPost) extends PlayAuthConnector {
+object ExportFreightType extends EnumerationFormats[ExportFreightType] {
 
-  override val serviceUrl: String = appConfig.authBaseUrl
+  case object Maritime extends ExportFreightType
+  case object Air extends ExportFreightType
+  //Road, Rail or Roll on Roll off
+  case object RORO extends ExportFreightType
+
+  val values = Set(Maritime, Air, RORO)
 }

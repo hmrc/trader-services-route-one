@@ -14,15 +14,20 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.traderservices.connectors
+package uk.gov.hmrc.traderservices.models
 
-import javax.inject.{Inject, Singleton}
-import uk.gov.hmrc.auth.core.PlayAuthConnector
-import uk.gov.hmrc.http.HttpPost
-import uk.gov.hmrc.traderservices.wiring.AppConfig
+import java.time.ZonedDateTime
+import play.api.libs.json.Format
+import play.api.libs.json.Json
 
-@Singleton
-class MicroserviceAuthConnector @Inject() (appConfig: AppConfig, val http: HttpPost) extends PlayAuthConnector {
+case class UploadedFile(
+  downloadUrl: String,
+  uploadTimestamp: ZonedDateTime,
+  checksum: String,
+  fileName: String,
+  fileMimeType: String
+)
 
-  override val serviceUrl: String = appConfig.authBaseUrl
+object UploadedFile {
+  implicit val formats: Format[UploadedFile] = Json.format[UploadedFile]
 }
