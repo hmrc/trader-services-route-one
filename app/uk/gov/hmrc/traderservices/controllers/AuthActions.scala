@@ -29,6 +29,11 @@ trait AuthActions extends AuthorisedFunctions {
 
   val appConfig: AppConfig
 
+  protected def withAuthorised[A](
+    body: => Future[Result]
+  )(implicit request: Request[A], hc: HeaderCarrier, ec: ExecutionContext): Future[Result] =
+    authorised(AuthProviders(GovernmentGateway))(body)
+
   protected def withAuthorisedAsTrader[A](
     body: String => Future[Result]
   )(implicit request: Request[A], hc: HeaderCarrier, ec: ExecutionContext): Future[Result] =

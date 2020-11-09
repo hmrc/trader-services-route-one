@@ -43,7 +43,7 @@ class PegaCreateCaseConnector @Inject() (val config: AppConfig, val http: HttpPo
 
   val url = config.createCaseApiBaseUrl + config.createCaseApiPath
 
-  def createCase(createCaseRequest: PegaCreateCaseRequest, eori: String, correlationId: String)(implicit
+  def createCase(createCaseRequest: PegaCreateCaseRequest, correlationId: String)(implicit
     hc: HeaderCarrier,
     ec: ExecutionContext
   ): Future[PegaCreateCaseResponse] =

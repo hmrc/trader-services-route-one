@@ -30,7 +30,7 @@ class TraderServicesRouteOneISpec
     "POST /create-case" should {
       "return 201 with CaseID as a result if successful PEGA API call" in {
 
-        givenAuthorisedAsValidTrader("xyz")
+        givenAuthorised()
         givenPegaCreateCaseRequestSucceeds()
 
         val correlationId = ju.UUID.randomUUID().toString()
@@ -50,7 +50,7 @@ class TraderServicesRouteOneISpec
 
       "return 400 with error code and message if PEGA API call fails with 403" in {
 
-        givenAuthorisedAsValidTrader("xyz")
+        givenAuthorised()
         givenPegaCreateCaseRequestFails(403, "400")
 
         val correlationId = ju.UUID.randomUUID().toString()
@@ -73,7 +73,7 @@ class TraderServicesRouteOneISpec
 
       "return 400 with error code and message if PEGA API call fails with 500" in {
 
-        givenAuthorisedAsValidTrader("xyz")
+        givenAuthorised()
         givenPegaCreateCaseRequestFails(500, "500", "Foo Bar")
 
         val correlationId = ju.UUID.randomUUID().toString()
@@ -96,7 +96,7 @@ class TraderServicesRouteOneISpec
 
       "return 409 with error code and message if PEGA reports duplicated case" in {
 
-        givenAuthorisedAsValidTrader("xyz")
+        givenAuthorised()
         givenPegaCreateCaseRequestFails(500, "500", "999: PCE201103470D2CC8K0NH3")
 
         val correlationId = ju.UUID.randomUUID().toString()

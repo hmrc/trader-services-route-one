@@ -30,6 +30,11 @@ class AuthActionsISpec extends AppBaseISpec {
     implicit val request = FakeRequest().withSession(SessionKeys.authToken -> "Bearer XYZ")
     import scala.concurrent.ExecutionContext.Implicits.global
 
+    def withAuthorised[A]: Result =
+      await(super.withAuthorised {
+        Future.successful(Ok("Hello!"))
+      })
+
     def withAuthorisedAsTrader[A]: Result =
       await(super.withAuthorisedAsTrader { identifier =>
         Future.successful(Ok(identifier))
@@ -37,9 +42,30 @@ class AuthActionsISpec extends AppBaseISpec {
 
   }
 
-  "withAuthorisedAsAgent" should {
+  "withAuthorised" should {
 
-    "call body with arn when valid agent" in {
+    "call body when user is authorized" in {
+      givenAuditConnector()
+      stubForAuthAuthorise(
+        "{}",
+        "{}"
+      )
+      val result = TestController.withAuthorised
+      status(result) shouldBe 200
+      bodyOf(result) shouldBe "Hello!"
+    }
+
+    "throw an AutorisationException when user not logged in" in {
+      givenUnauthorisedWith("MissingBearerToken")
+      an[AuthorisationException] shouldBe thrownBy {
+        TestController.withAuthorised
+      }
+    }
+  }
+
+  "withAuthorisedAsTrader" should {
+
+    "call body with arn when valid trader" in {
       givenAuditConnector()
       stubForAuthAuthorise(
         "{}",
@@ -62,7 +88,7 @@ class AuthActionsISpec extends AppBaseISpec {
       }
     }
 
-    "throw InsufficientEnrolments when agent not enrolled for service" in {
+    "throw InsufficientEnrolments when trader not enrolled for service" in {
       stubForAuthAuthorise(
         "{}",
         s"""{
@@ -77,13 +103,13 @@ class AuthActionsISpec extends AppBaseISpec {
       }
     }
 
-    "throw InsufficientEnrolments when expected agent's identifier missing" in {
+    "throw InsufficientEnrolments when expected trader's identifier missing" in {
       stubForAuthAuthorise(
         "{}",
         s"""{
            |"authorisedEnrolments": [
            |  { "key":"HMRC-XYZ", "identifiers": [
-           |    { "key":"BAR", "value": "fooArn" }
+           |    { "key":"BAR", "value": "foo" }
            |  ]}
            |]}""".stripMargin
       )

@@ -42,7 +42,7 @@ class TraderServicesRouteOneController @Inject() (
 
   def createCase: Action[String] =
     Action.async(parse.tolerantText) { implicit request =>
-      withAuthorisedAsTrader { eori =>
+      withAuthorised {
         val correlationId = request.headers
           .get("x-correlation-id")
           .getOrElse(ju.UUID.randomUUID().toString())
@@ -56,7 +56,7 @@ class TraderServicesRouteOneController @Inject() (
           )
 
           createCaseConnector
-            .createCase(pegaCreateCaseRequest, eori, correlationId) map {
+            .createCase(pegaCreateCaseRequest, correlationId) map {
             case success: PegaCreateCaseSuccess =>
               Created(
                 Json.toJson(

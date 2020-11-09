@@ -2,18 +2,28 @@ package uk.gov.hmrc.traderservices.stubs
 
 import com.github.tomakehurst.wiremock.client.WireMock._
 import uk.gov.hmrc.traderservices.support.WireMockSupport
-import play.api.test.FakeRequest
-import uk.gov.hmrc.http.SessionKeys
 
 trait AuthStubs {
   me: WireMockSupport =>
 
   case class Enrolment(serviceName: String, identifierName: String, identifierValue: String)
 
-  def givenAuthorisedAsValidTrader[A](eori: String) =
+  def givenAuthorised() =
+    stubForAuthAuthorise(
+      s"""
+         |{
+         |  "authorise": [
+         |    { "authProviders": ["GovernmentGateway"] }
+         |  ]
+         |}
+           """.stripMargin,
+      "{}"
+    )
+
+  def givenAuthorisedAsValidTrader(eori: String) =
     givenAuthorisedWithEnrolment(Enrolment("HMRC-CUS-ORG", "EORINumber", eori))
 
-  def givenAuthorisedWithEnrolment[A](
+  def givenAuthorisedWithEnrolment(
     enrolment: Enrolment
   ): Unit =
     stubForAuthAuthorise(
