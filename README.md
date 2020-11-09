@@ -1,6 +1,6 @@
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/hmrc/trader-services-route-one) ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/hmrc/trader-services-route-one)
 
-# Trader Services 
+# trader-services-route-one
 
 Backend microservice exposing an API of Trader Services on MDTP.
 
