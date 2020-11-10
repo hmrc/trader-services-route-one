@@ -14,6 +14,8 @@ import java.time.LocalTime
 import uk.gov.hmrc.traderservices.support.JsonMatchers
 import play.api.libs.json.JsObject
 import java.{util => ju}
+import uk.gov.hmrc.http.Upstream4xxResponse
+import uk.gov.hmrc.http.UpstreamErrorResponse
 
 class TraderServicesRouteOneISpec
     extends ServerBaseISpec with AuthStubs with CreateCaseStubs with JsonMatchers with TestData {
@@ -115,6 +117,22 @@ class TraderServicesRouteOneISpec
               haveProperty[String]("errorMessage", be("PCE201103470D2CC8K0NH3"))
           )
         )
+      }
+
+      "return 400 if api call returns html content" in {
+
+        givenAuthorised()
+        givenPegaCreateCaseRequestRespondsWithHtml()
+
+        val correlationId = ju.UUID.randomUUID().toString()
+
+        val result = wsClient
+          .url(s"$url/create-case")
+          .withHttpHeaders("X-Correlation-ID" -> correlationId)
+          .post(testCreateCaseRequest)
+          .futureValue
+
+        result.status shouldBe 400
       }
     }
   }

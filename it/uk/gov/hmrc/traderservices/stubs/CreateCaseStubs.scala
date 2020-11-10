@@ -71,4 +71,24 @@ trait CreateCaseStubs {
         )
     )
 
+  def givenPegaCreateCaseRequestRespondsWithHtml(): Unit =
+    stubFor(
+      post(urlEqualTo("/cpr/caserequest/route1/create/v1"))
+        .withHeader("x-correlation-id", matching("[A-Za-z0-9-]{36}"))
+        .withHeader("x-forwarded-host", matching("[A-Za-z0-9.-]{1,255}"))
+        .withHeader("date", matching("[A-Za-z0-9,: ]{29}"))
+        .withHeader("accept", equalTo("application/json"))
+        .withHeader("content-Type", equalTo("application/json"))
+        .withHeader("authorization", equalTo("Bearer dummy-it-token"))
+        .withHeader("environment", equalTo("it"))
+        .willReturn(
+          aResponse()
+            .withStatus(400)
+            .withHeader("Content-Type", "text/html")
+            .withBody(
+              """<html>\r\n<head><title>400 Bad Request</title></head>\r\n<body bgcolor=\"white\">\r\n<center><h1>400 Bad Request</h1></center>\r\n<hr><center>nginx</center>\r\n</body>\r\n</html>\r\n\"""
+            )
+        )
+    )
+
 }
