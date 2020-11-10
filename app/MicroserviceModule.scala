@@ -20,6 +20,16 @@ import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http._
 import uk.gov.hmrc.traderservices.connectors.MicroserviceAuthConnector
 import uk.gov.hmrc.play.bootstrap.http.DefaultHttpClient
+import uk.gov.hmrc.play.audit.http.HttpAuditing
+import com.google.inject.{Inject, Singleton}
+import uk.gov.hmrc.play.audit.http.connector.AuditConnector
+import com.google.inject.name.Named
+import scala.util.matching.Regex
+import akka.actor.ActorSystem
+import play.api.libs.ws.WSClient
+import uk.gov.hmrc.http.hooks.HttpHook
+import com.typesafe.config.Config
+import uk.gov.hmrc.play.http.ws.WSHttp
 
 class MicroserviceModule(val environment: Environment, val configuration: Configuration) extends AbstractModule {
 
@@ -27,8 +37,32 @@ class MicroserviceModule(val environment: Environment, val configuration: Config
     val appName = "trader-services"
     Logger(getClass).info(s"Starting microservice : $appName : in mode : ${environment.mode}")
 
-    bind(classOf[HttpGet]).to(classOf[DefaultHttpClient])
-    bind(classOf[HttpPost]).to(classOf[DefaultHttpClient])
+    bind(classOf[HttpGet]).to(classOf[CustomHttpClient])
+    bind(classOf[HttpPost]).to(classOf[CustomHttpClient])
     bind(classOf[AuthConnector]).to(classOf[MicroserviceAuthConnector])
   }
+}
+
+@Singleton
+class CustomHttpAuditing @Inject() (
+  val auditConnector: AuditConnector,
+  @Named("appName") val appName: String
+) extends HttpAuditing {
+
+  override val auditDisabledForPattern: Regex =
+    """none""".r
+
+}
+
+@Singleton
+class CustomHttpClient @Inject() (
+  config: Configuration,
+  val httpAuditing: CustomHttpAuditing,
+  override val wsClient: WSClient,
+  override protected val actorSystem: ActorSystem
+) extends uk.gov.hmrc.http.HttpClient with WSHttp {
+
+  override lazy val configuration: Option[Config] = Option(config.underlying)
+
+  override val hooks: Seq[HttpHook] = Seq(httpAuditing.AuditingHook)
 }
