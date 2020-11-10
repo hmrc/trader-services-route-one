@@ -56,7 +56,7 @@ trait CreateCaseStubs {
     stubFor(
       post(urlEqualTo("/cpr/caserequest/route1/create/v1"))
         .withHeader("x-correlation-id", matching("[A-Za-z0-9-]{36}"))
-        .withHeader("x-forwarded-host", matching("[A-Za-z0-9.-]{1,255}"))
+        //.withHeader("x-forwarded-host", matching("[A-Za-z0-9.-]{1,255}"))
         .withHeader("date", matching("[A-Za-z0-9,: ]{29}"))
         .withHeader("accept", equalTo("application/json"))
         .withHeader("content-Type", equalTo("application/json"))
@@ -75,7 +75,7 @@ trait CreateCaseStubs {
     stubFor(
       post(urlEqualTo("/cpr/caserequest/route1/create/v1"))
         .withHeader("x-correlation-id", matching("[A-Za-z0-9-]{36}"))
-        .withHeader("x-forwarded-host", matching("[A-Za-z0-9.-]{1,255}"))
+        //.withHeader("x-forwarded-host", matching("[A-Za-z0-9.-]{1,255}"))
         .withHeader("date", matching("[A-Za-z0-9,: ]{29}"))
         .withHeader("accept", equalTo("application/json"))
         .withHeader("content-Type", equalTo("application/json"))
