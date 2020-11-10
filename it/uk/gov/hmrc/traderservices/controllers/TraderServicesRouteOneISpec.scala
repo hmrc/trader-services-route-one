@@ -50,7 +50,7 @@ class TraderServicesRouteOneISpec
         )
       }
 
-      "return 400 with error code and message if PEGA API call fails with 403" in {
+      "return 400 with error code 400 and message if PEGA API call fails with 403" in {
 
         givenAuthorised()
         givenPegaCreateCaseRequestFails(403, "400")
@@ -73,7 +73,7 @@ class TraderServicesRouteOneISpec
         )
       }
 
-      "return 400 with error code and message if PEGA API call fails with 500" in {
+      "return 400 with error code 500 and message if PEGA API call fails with 500" in {
 
         givenAuthorised()
         givenPegaCreateCaseRequestFails(500, "500", "Foo Bar")
@@ -96,7 +96,7 @@ class TraderServicesRouteOneISpec
         )
       }
 
-      "return 409 with error code and message if PEGA reports duplicated case" in {
+      "return 400 with error code 409 and message if PEGA reports duplicated case" in {
 
         givenAuthorised()
         givenPegaCreateCaseRequestFails(500, "500", "999: PCE201103470D2CC8K0NH3")
@@ -115,6 +115,28 @@ class TraderServicesRouteOneISpec
             "error",
             haveProperty[String]("errorCode", be("409")) and
               haveProperty[String]("errorMessage", be("PCE201103470D2CC8K0NH3"))
+          )
+        )
+      }
+
+      "return 400 with error code 403 if api call returns 403 without content" in {
+
+        givenAuthorised()
+        givenPegaCreateCaseRequestRespondsWith403WithoutContent()
+
+        val correlationId = ju.UUID.randomUUID().toString()
+
+        val result = wsClient
+          .url(s"$url/create-case")
+          .withHttpHeaders("X-Correlation-ID" -> correlationId)
+          .post(testCreateCaseRequest)
+          .futureValue
+
+        result.status shouldBe 400
+        result.json.as[JsObject] should (
+          haveProperty[JsObject](
+            "error",
+            haveProperty[String]("errorCode", be("403"))
           )
         )
       }

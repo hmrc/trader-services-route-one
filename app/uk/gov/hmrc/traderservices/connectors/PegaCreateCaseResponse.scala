@@ -54,6 +54,9 @@ case class PegaCreateCaseError(
 object PegaCreateCaseError {
   implicit val formats: Format[PegaCreateCaseError] =
     Json.format[PegaCreateCaseError]
+
+  def fromStatus(status: Int): PegaCreateCaseError =
+    PegaCreateCaseError(None, None, Some(status.toString), None)
 }
 
 object PegaCreateCaseResponse {

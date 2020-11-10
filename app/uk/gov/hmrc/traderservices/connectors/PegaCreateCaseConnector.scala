@@ -33,8 +33,9 @@ import uk.gov.hmrc.http.logging.Authorization
 
 @Singleton
 class PegaCreateCaseConnector @Inject() (val config: AppConfig, val http: HttpPost, metrics: Metrics)
-    extends ReadSuccessOrFailure[PegaCreateCaseResponse, PegaCreateCaseSuccess, PegaCreateCaseError]
-    with HttpAPIMonitor {
+    extends ReadSuccessOrFailure[PegaCreateCaseResponse, PegaCreateCaseSuccess, PegaCreateCaseError](
+      PegaCreateCaseError.fromStatus
+    ) with HttpAPIMonitor {
 
   override val kenshooRegistry: MetricRegistry = metrics.defaultRegistry
 

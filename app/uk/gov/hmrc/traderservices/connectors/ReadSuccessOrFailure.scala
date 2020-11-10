@@ -27,13 +27,16 @@ import uk.gov.hmrc.http.HttpReads.Implicits._
 import play.mvc.Http.HeaderNames
 import play.mvc.Http.MimeTypes
 
-abstract class ReadSuccessOrFailure[A, S <: A: Reads, F <: A: Reads](implicit mf: Manifest[A]) {
+abstract class ReadSuccessOrFailure[A, S <: A: Reads, F <: A: Reads](fallback: Int => A)(implicit mf: Manifest[A]) {
 
   implicit val readFromJsonSuccessOrFailure: HttpReads[A] =
     HttpReads[HttpResponse]
       .flatMap { response =>
         val status = response.status
         response.header(HeaderNames.CONTENT_TYPE) match {
+          case None =>
+            HttpReads.pure(fallback(status))
+
           case Some(MimeTypes.JSON) =>
             if (status >= 200 && status < 300)
               implicitly[Reads[S]].reads(response.json) match {
