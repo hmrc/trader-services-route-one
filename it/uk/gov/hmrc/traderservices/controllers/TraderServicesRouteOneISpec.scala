@@ -119,7 +119,7 @@ class TraderServicesRouteOneISpec
         )
       }
 
-      "return 400 if api call returns html content" in {
+      "return 500 if api call returns unexpected content" in {
 
         givenAuthorised()
         givenPegaCreateCaseRequestRespondsWithHtml()
@@ -132,7 +132,7 @@ class TraderServicesRouteOneISpec
           .post(testCreateCaseRequest)
           .futureValue
 
-        result.status shouldBe 400
+        result.status shouldBe 500
       }
     }
   }

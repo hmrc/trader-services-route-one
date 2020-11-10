@@ -54,13 +54,13 @@ abstract class ReadSuccessOrFailure[A, S <: A: Reads, F <: A: Reads](implicit mf
                   }
               }
             else
-              throw UpstreamErrorResponse(s"Unexpected response status $status", 400)
+              throw UpstreamErrorResponse(s"Unexpected response status $status", 500)
 
           case other =>
             throw UpstreamErrorResponse(
               s"Unexpected response type of status $status, expected application/json but got ${other
                 .getOrElse("none")} with body:\n${response.body}",
-              400
+              500
             )
         }
       }
