@@ -29,6 +29,7 @@ import java.time.format.DateTimeFormatter
 import java.time.ZoneId
 import java.{util => ju}
 import java.time.ZonedDateTime
+import uk.gov.hmrc.http.logging.Authorization
 
 @Singleton
 class PegaCreateCaseConnector @Inject() (val config: AppConfig, val http: HttpPost, metrics: Metrics)
@@ -52,14 +53,15 @@ class PegaCreateCaseConnector @Inject() (val config: AppConfig, val http: HttpPo
         .POST[PegaCreateCaseRequest, PegaCreateCaseResponse](url, createCaseRequest)(
           implicitly[Writes[PegaCreateCaseRequest]],
           readFromJsonSuccessOrFailure,
-          hc.withExtraHeaders(
-            "x-correlation-id" -> correlationId,
-            "x-forwarded-host" -> config.appName,
-            "date"             -> httpDateFormat.format(ZonedDateTime.now),
-            "accept"           -> "application/json",
-            "authorization"    -> s"Bearer ${config.createCaseApiAuthorizationToken}",
-            "environment"      -> config.createCaseApiEnvironment
-          ),
+          HeaderCarrier(authorization = Some(Authorization(s"Bearer ${config.createCaseApiAuthorizationToken}")))
+            .withExtraHeaders(
+              "x-correlation-id" -> correlationId,
+              "x-forwarded-host" -> config.appName,
+              "date"             -> httpDateFormat.format(ZonedDateTime.now),
+              "accept"           -> "application/json",
+              "authorization"    -> s"Bearer ${config.createCaseApiAuthorizationToken}",
+              "environment"      -> config.createCaseApiEnvironment
+            ),
           implicitly[ExecutionContext]
         )
     }
