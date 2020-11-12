@@ -24,7 +24,6 @@ import scala.concurrent.{ExecutionContext, Future}
 import com.kenshoo.play.metrics.Metrics
 import com.codahale.metrics.MetricRegistry
 import play.api.libs.json.Writes
-import uk.gov.hmrc.http.HttpReads
 import java.time.format.DateTimeFormatter
 import java.time.ZoneId
 import java.{util => ju}
@@ -34,7 +33,7 @@ import uk.gov.hmrc.http.logging.Authorization
 @Singleton
 class PegaCreateCaseConnector @Inject() (val config: AppConfig, val http: HttpPost, metrics: Metrics)
     extends ReadSuccessOrFailure[PegaCreateCaseResponse, PegaCreateCaseSuccess, PegaCreateCaseError](
-      PegaCreateCaseError.fromStatus
+      PegaCreateCaseError.fromStatusAndMessage
     ) with HttpAPIMonitor {
 
   override val kenshooRegistry: MetricRegistry = metrics.defaultRegistry

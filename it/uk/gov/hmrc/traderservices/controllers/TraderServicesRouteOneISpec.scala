@@ -14,8 +14,6 @@ import java.time.LocalTime
 import uk.gov.hmrc.traderservices.support.JsonMatchers
 import play.api.libs.json.JsObject
 import java.{util => ju}
-import uk.gov.hmrc.http.Upstream4xxResponse
-import uk.gov.hmrc.http.UpstreamErrorResponse
 
 class TraderServicesRouteOneISpec
     extends ServerBaseISpec with AuthStubs with CreateCaseStubs with JsonMatchers with TestData {
@@ -119,7 +117,7 @@ class TraderServicesRouteOneISpec
         )
       }
 
-      "return 400 with error code 403 if api call returns 403 without content" in {
+      "return 400 with error code 403 if api call returns 403 with empty body" in {
 
         givenAuthorised()
         givenPegaCreateCaseRequestRespondsWith403WithoutContent()
@@ -136,7 +134,8 @@ class TraderServicesRouteOneISpec
         result.json.as[JsObject] should (
           haveProperty[JsObject](
             "error",
-            haveProperty[String]("errorCode", be("403"))
+            haveProperty[String]("errorCode", be("403")) and
+              haveProperty[String]("errorMessage", be("Error: empty response"))
           )
         )
       }
