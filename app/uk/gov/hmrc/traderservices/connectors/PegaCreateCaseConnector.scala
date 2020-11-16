@@ -55,11 +55,11 @@ class PegaCreateCaseConnector @Inject() (val config: AppConfig, val http: HttpPo
           readFromJsonSuccessOrFailure,
           HeaderCarrier(authorization = Some(Authorization(s"Bearer ${config.createCaseApiAuthorizationToken}")))
             .withExtraHeaders(
-              "x-correlation-id" -> correlationId,
-              //"x-forwarded-host" -> config.appName,
-              "date"        -> httpDateFormat.format(ZonedDateTime.now),
-              "accept"      -> "application/json",
-              "environment" -> config.createCaseApiEnvironment
+              "x-correlation-id"    -> correlationId,
+              "CustomProcessesHost" -> "Digital", // required by PEGA API spec
+              "date"                -> httpDateFormat.format(ZonedDateTime.now),
+              "accept"              -> "application/json",
+              "environment"         -> config.createCaseApiEnvironment
             ),
           implicitly[ExecutionContext]
         )
