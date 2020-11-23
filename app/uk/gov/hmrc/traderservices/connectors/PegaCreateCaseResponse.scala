@@ -37,26 +37,65 @@ object PegaCreateCaseSuccess {
 }
 
 case class PegaCreateCaseError(
-  ProcessingDate: Option[String],
-  CorrelationID: Option[String],
-  ErrorCode: Option[String],
-  ErrorMessage: Option[String]
+  errorDetail: PegaCreateCaseError.ErrorDetail
 ) extends PegaCreateCaseResponse {
 
+  def errorCode: Option[String] = errorDetail.errorCode
+  def errorMessage: Option[String] = errorDetail.errorMessage
+
   def isDuplicateCaseError: Boolean =
-    ErrorMessage.exists(_.replace(" ", "").startsWith("999:"))
+    errorDetail.errorMessage.exists(_.replace(" ", "").startsWith("999:"))
 
   def duplicateCaseID: Option[String] =
-    ErrorMessage.map(_.replace(" ", "").drop(4))
+    errorDetail.errorMessage.map(_.replace(" ", "").drop(4))
 
 }
 
 object PegaCreateCaseError {
+
+  def apply(
+    timestamp: String,
+    correlationId: String,
+    errorCode: String,
+    errorMessage: String
+  ): PegaCreateCaseError =
+    PegaCreateCaseError(errorDetail =
+      ErrorDetail(Some(correlationId), Some(timestamp), Some(errorCode), Some(errorMessage))
+    )
+
+  def fromStatusAndMessage(status: Int, message: String): PegaCreateCaseError =
+    PegaCreateCaseError(errorDetail = ErrorDetail(None, None, Some(status.toString), Some(message)))
+
+  case class ErrorDetail(
+    correlationId: Option[String] = None,
+    timestamp: Option[String] = None,
+    errorCode: Option[String] = None,
+    errorMessage: Option[String] = None,
+    source: Option[String] = None,
+    sourceFaultDetail: Option[PegaCreateCaseError.ErrorDetail.SourceFaultDetail] = None
+  )
+
+  object ErrorDetail {
+
+    case class SourceFaultDetail(
+      detail: Option[Seq[String]] = None,
+      restFault: Option[JsObject] = None,
+      soapFault: Option[JsObject] = None
+    )
+
+    object SourceFaultDetail {
+      implicit val formats: Format[SourceFaultDetail] =
+        Json.format[SourceFaultDetail]
+
+    }
+
+    implicit val formats: Format[ErrorDetail] =
+      Json.format[ErrorDetail]
+  }
+
   implicit val formats: Format[PegaCreateCaseError] =
     Json.format[PegaCreateCaseError]
 
-  def fromStatusAndMessage(status: Int, message: String): PegaCreateCaseError =
-    PegaCreateCaseError(None, None, Some(status.toString), Some(message))
 }
 
 object PegaCreateCaseResponse {

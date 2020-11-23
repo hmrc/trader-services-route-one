@@ -44,12 +44,12 @@ trait CreateCaseStubs {
         |  "OriginatingSystem" : "Digital",
         |  "Content": {}
         |}""".stripMargin,
-      s"""{
-         |   "ProcessingDate": "2020-11-03T15:29:28.601Z", 
-         |   "CorrelationId": "123123123", 
-         |   "ErrorCode": "$errorCode"
-         |   ${if (errorMessage.nonEmpty) s""","ErrorMessage": "$errorMessage"""" else ""}
-         |}""".stripMargin
+      s"""{"errorDetail":{
+         |   "timestamp": "2020-11-03T15:29:28.601Z", 
+         |   "correlationId": "123123123", 
+         |   "errorCode": "$errorCode"
+         |   ${if (errorMessage.nonEmpty) s""","errorMessage": "$errorMessage"""" else ""}
+         |}}""".stripMargin
     )
 
   def stubForPostWithResponse(status: Int, payload: String, responseBody: String): Unit =
