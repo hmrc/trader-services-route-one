@@ -132,7 +132,7 @@ object PegaCreateCaseRequestContent {
           TelephoneNumber = contactInfo.contactNumber,
           EmailAddress = contactInfo.contactEmail,
           MUCR = None,
-          TraderName = Some(contactInfo.contactName)
+          TraderName = contactInfo.contactName
         )
       case ExportQuestions(
             requestType,
@@ -183,7 +183,7 @@ object PegaCreateCaseRequestContent {
           TelephoneNumber = contactInfo.contactNumber,
           EmailAddress = contactInfo.contactEmail,
           MUCR = None,
-          TraderName = Some(contactInfo.contactName)
+          TraderName = contactInfo.contactName
         )
     }
 }

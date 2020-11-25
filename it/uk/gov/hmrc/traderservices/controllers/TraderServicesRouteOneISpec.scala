@@ -178,7 +178,7 @@ trait TestData {
           )
         ),
         contactInfo = ImportContactInfo(
-          contactName = "Full Name",
+          contactName = Some("Full Name"),
           contactNumber = Some("07123456789"),
           contactEmail = "sampelname@gmail.com"
         )
