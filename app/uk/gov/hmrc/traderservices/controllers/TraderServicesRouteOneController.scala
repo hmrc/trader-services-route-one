@@ -25,7 +25,7 @@ import uk.gov.hmrc.traderservices.models._
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import uk.gov.hmrc.traderservices.wiring.AppConfig
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 import uk.gov.hmrc.traderservices.connectors.PegaCreateCaseRequest
 import java.{util => ju}
 import views.html.defaultpages.error
@@ -34,12 +34,14 @@ import views.html.defaultpages.error
 class TraderServicesRouteOneController @Inject() (
   val authConnector: MicroserviceAuthConnector,
   val createCaseConnector: PegaCreateCaseConnector,
+  val updateCaseConnector: PegaUpdateCaseConnector,
   val env: Environment,
   val appConfig: AppConfig,
   cc: ControllerComponents
 )(implicit val configuration: Configuration, ec: ExecutionContext)
     extends BackendController(cc) with AuthActions with ControllerHelper {
 
+  // POST /create-case
   def createCase: Action[String] =
     Action.async(parse.tolerantText) { implicit request =>
       withAuthorised {
@@ -52,26 +54,26 @@ class TraderServicesRouteOneController @Inject() (
             AcknowledgementReference = correlationId.replace("-", ""),
             ApplicationType = "Route1",
             OriginatingSystem = "Digital",
-            Content = PegaCreateCaseRequestContent.from(createCaseRequest)
+            Content = PegaCreateCaseRequest.Content.from(createCaseRequest)
           )
 
           createCaseConnector
             .createCase(pegaCreateCaseRequest, correlationId) map {
-            case success: PegaCreateCaseSuccess =>
+            case success: PegaCaseSuccess =>
               Created(
                 Json.toJson(
-                  TraderServicesCreateCaseResponse(
+                  TraderServicesCaseResponse(
                     correlationId = correlationId,
                     result = Some(success.CaseID)
                   )
                 )
               )
             // when request to the upstream api returns an error
-            case error: PegaCreateCaseError =>
+            case error: PegaCaseError =>
               if (error.isDuplicateCaseError)
                 Conflict(
                   Json.toJson(
-                    TraderServicesCreateCaseResponse(
+                    TraderServicesCaseResponse(
                       correlationId = correlationId,
                       error = Some(
                         ApiError(
@@ -85,7 +87,7 @@ class TraderServicesRouteOneController @Inject() (
               else
                 BadRequest(
                   Json.toJson(
-                    TraderServicesCreateCaseResponse(
+                    TraderServicesCaseResponse(
                       correlationId = correlationId,
                       error = Some(
                         ApiError(
@@ -103,7 +105,68 @@ class TraderServicesRouteOneController @Inject() (
           case (errorCode, errorMessage) =>
             BadRequest(
               Json.toJson(
-                TraderServicesCreateCaseResponse(
+                TraderServicesCaseResponse(
+                  correlationId = correlationId,
+                  error = Some(
+                    ApiError(errorCode, Some(errorMessage))
+                  )
+                )
+              )
+            )
+        }
+      }
+    }
+
+  // POST /update-case
+  def updateCase: Action[String] =
+    Action.async(parse.tolerantText) { implicit request =>
+      withAuthorised {
+        val correlationId = request.headers
+          .get("x-correlation-id")
+          .getOrElse(ju.UUID.randomUUID().toString())
+
+        withPayload[TraderServicesUpdateCaseRequest] { createCaseRequest =>
+          val pegaCreateCaseRequest = PegaUpdateCaseRequest(
+            AcknowledgementReference = correlationId.replace("-", ""),
+            ApplicationType = "Route1",
+            OriginatingSystem = "Digital",
+            Content = PegaUpdateCaseRequest.Content.from(createCaseRequest)
+          )
+
+          updateCaseConnector
+            .updateCase(pegaCreateCaseRequest, correlationId) map {
+            case success: PegaCaseSuccess =>
+              Created(
+                Json.toJson(
+                  TraderServicesCaseResponse(
+                    correlationId = correlationId,
+                    result = Some(success.CaseID)
+                  )
+                )
+              )
+            // when request to the upstream api returns an error
+            case error: PegaCaseError =>
+              BadRequest(
+                Json.toJson(
+                  TraderServicesCaseResponse(
+                    correlationId = correlationId,
+                    error = Some(
+                      ApiError(
+                        errorCode = error.errorCode.getOrElse("ERROR_UPSTREAM_UNDEFINED"),
+                        errorMessage = error.errorMessage
+                      )
+                    )
+                  )
+                )
+              )
+          }
+
+        } {
+          // when incoming request's payload validation fails
+          case (errorCode, errorMessage) =>
+            BadRequest(
+              Json.toJson(
+                TraderServicesCaseResponse(
                   correlationId = correlationId,
                   error = Some(
                     ApiError(errorCode, Some(errorMessage))

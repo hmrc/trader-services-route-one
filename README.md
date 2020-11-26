@@ -6,6 +6,8 @@ Backend microservice exposing an API of Trader Services on MDTP.
 
 ## API
 
+### Create Case
+
 Method | Path | Description | Authorization
 ---|---|---|---
 `POST` | `/create-case` | create new case in the PEGA system or report duplicate | any GovernmentGateway authorized user
@@ -82,6 +84,52 @@ Example 409 duplicate case error payload
         }
     }
 
+### Update Case
+
+Method | Path | Description | Authorization
+---|---|---|---
+`POST` | `/update-case` | update existing case in the PEGA system | any GovernmentGateway authorized user
+
+Header | Description
+---|---
+`x-correlation-id` | message correlation UUID (optional)
+
+Response status | Description
+---|---
+201| when updated, body payload will be `{ "result" : "$CaseID" }`
+400| when payload invalid or has not passed the validation
+
+Example request payload 
+
+    {
+        "caseReferenceNumber": "PCE201103470D2CC8K0NH3",
+        "typeOfAmendment": "WriteResponseAndUploadDocuments"
+        "responseText":"An example response.",
+        "uploadedFiles" : [ {
+            "downloadUrl" : "https://bucketName.s3.eu-west-2.amazonaws.com?1235676",
+            "uploadTimestamp" : "2018-04-24T09:30:00Z",
+            "checksum" : "396f101dd52e8b2ace0dcf5ed09b1d1f030e608938510ce46e7a5c7a4e775100",
+            "fileName" : "test.pdf",
+            "fileMimeType" : "application/pdf"
+        } ]
+    }
+
+Example 201 success response payload
+
+    {
+        "correlationId" : "4327cf1f-5bcc-4c4a-acae-391588567d87",
+        "result" : "330XGBNZJO04"
+    }
+
+Example 400 error response payload
+
+    {
+        "correlationId" : "7fedc2d5-1bba-434b-87e6-4d4ec1757e31",
+        "error" : {
+            "errorCode" : "400",
+            "errorMessage" : "invalid phone number"
+        }
+    } 
 
 ## Running the tests
 

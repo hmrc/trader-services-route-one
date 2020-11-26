@@ -24,43 +24,29 @@ import scala.concurrent.{ExecutionContext, Future}
 import com.kenshoo.play.metrics.Metrics
 import com.codahale.metrics.MetricRegistry
 import play.api.libs.json.Writes
-import java.time.format.DateTimeFormatter
-import java.time.ZoneId
-import java.{util => ju}
-import java.time.ZonedDateTime
 import uk.gov.hmrc.http.logging.Authorization
 
 @Singleton
-class PegaCreateCaseConnector @Inject() (val config: AppConfig, val http: HttpPost, metrics: Metrics)
+class PegaUpdateCaseConnector @Inject() (val config: AppConfig, val http: HttpPost, metrics: Metrics)
     extends ReadSuccessOrFailure[PegaCaseResponse, PegaCaseSuccess, PegaCaseError](
       PegaCaseError.fromStatusAndMessage
-    ) with HttpAPIMonitor {
+    ) with PegaConnector with HttpAPIMonitor {
 
   override val kenshooRegistry: MetricRegistry = metrics.defaultRegistry
 
-  val httpDateFormat = DateTimeFormatter
-    .ofPattern("EEE, dd MMM yyyy HH:mm:ss z", ju.Locale.ENGLISH)
-    .withZone(ZoneId.of("GMT"))
+  val url = config.eisBaseUrl + config.eisUpdateCaseApiPath
 
-  val url = config.eisBaseUrl + config.eisCreateCaseApiPath
-
-  def createCase(createCaseRequest: PegaCreateCaseRequest, correlationId: String)(implicit
+  def updateCase(createCaseRequest: PegaUpdateCaseRequest, correlationId: String)(implicit
     hc: HeaderCarrier,
     ec: ExecutionContext
   ): Future[PegaCaseResponse] =
-    monitor(s"ConsumedAPI-eis-pega-create-case-api-POST") {
+    monitor(s"ConsumedAPI-eis-pega-update-case-api-POST") {
       http
-        .POST[PegaCreateCaseRequest, PegaCaseResponse](url, createCaseRequest)(
-          implicitly[Writes[PegaCreateCaseRequest]],
+        .POST[PegaUpdateCaseRequest, PegaCaseResponse](url, createCaseRequest)(
+          implicitly[Writes[PegaUpdateCaseRequest]],
           readFromJsonSuccessOrFailure,
           HeaderCarrier(authorization = Some(Authorization(s"Bearer ${config.eisAuthorizationToken}")))
-            .withExtraHeaders(
-              "x-correlation-id"    -> correlationId,
-              "CustomProcessesHost" -> "Digital", // required by the PEGA API spec
-              "date"                -> httpDateFormat.format(ZonedDateTime.now),
-              "accept"              -> "application/json",
-              "environment"         -> config.eisEnvironment
-            ),
+            .withExtraHeaders(pegaApiHeaders(correlationId, config.eisEnvironment): _*),
           implicitly[ExecutionContext]
         )
     }
