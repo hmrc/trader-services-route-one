@@ -22,23 +22,23 @@ import play.api.libs.json.Writes
 import play.api.libs.json.JsObject
 import play.api.libs.json.JsValue
 
-sealed trait PegaCreateCaseResponse
+sealed trait PegaCaseResponse
 
-case class PegaCreateCaseSuccess(
+case class PegaCaseSuccess(
   CaseID: String,
   ProcessingDate: String,
   Status: String,
   StatusText: String
-) extends PegaCreateCaseResponse
+) extends PegaCaseResponse
 
-object PegaCreateCaseSuccess {
-  implicit val formats: Format[PegaCreateCaseSuccess] =
-    Json.format[PegaCreateCaseSuccess]
+object PegaCaseSuccess {
+  implicit val formats: Format[PegaCaseSuccess] =
+    Json.format[PegaCaseSuccess]
 }
 
-case class PegaCreateCaseError(
-  errorDetail: PegaCreateCaseError.ErrorDetail
-) extends PegaCreateCaseResponse {
+case class PegaCaseError(
+  errorDetail: PegaCaseError.ErrorDetail
+) extends PegaCaseResponse {
 
   def errorCode: Option[String] = errorDetail.errorCode
   def errorMessage: Option[String] = errorDetail.errorMessage
@@ -51,20 +51,18 @@ case class PegaCreateCaseError(
 
 }
 
-object PegaCreateCaseError {
+object PegaCaseError {
 
   def apply(
     timestamp: String,
     correlationId: String,
     errorCode: String,
     errorMessage: String
-  ): PegaCreateCaseError =
-    PegaCreateCaseError(errorDetail =
-      ErrorDetail(Some(correlationId), Some(timestamp), Some(errorCode), Some(errorMessage))
-    )
+  ): PegaCaseError =
+    PegaCaseError(errorDetail = ErrorDetail(Some(correlationId), Some(timestamp), Some(errorCode), Some(errorMessage)))
 
-  def fromStatusAndMessage(status: Int, message: String): PegaCreateCaseError =
-    PegaCreateCaseError(errorDetail = ErrorDetail(None, None, Some(status.toString), Some(message)))
+  def fromStatusAndMessage(status: Int, message: String): PegaCaseError =
+    PegaCaseError(errorDetail = ErrorDetail(None, None, Some(status.toString), Some(message)))
 
   case class ErrorDetail(
     correlationId: Option[String] = None,
@@ -72,7 +70,7 @@ object PegaCreateCaseError {
     errorCode: Option[String] = None,
     errorMessage: Option[String] = None,
     source: Option[String] = None,
-    sourceFaultDetail: Option[PegaCreateCaseError.ErrorDetail.SourceFaultDetail] = None
+    sourceFaultDetail: Option[PegaCaseError.ErrorDetail.SourceFaultDetail] = None
   )
 
   object ErrorDetail {
@@ -93,29 +91,29 @@ object PegaCreateCaseError {
       Json.format[ErrorDetail]
   }
 
-  implicit val formats: Format[PegaCreateCaseError] =
-    Json.format[PegaCreateCaseError]
+  implicit val formats: Format[PegaCaseError] =
+    Json.format[PegaCaseError]
 
 }
 
 object PegaCreateCaseResponse {
 
-  implicit def reads: Reads[PegaCreateCaseResponse] =
+  implicit def reads: Reads[PegaCaseResponse] =
     Reads {
       case jsObject: JsObject if (jsObject \ "CaseID").isDefined =>
-        PegaCreateCaseSuccess.formats.reads(jsObject)
+        PegaCaseSuccess.formats.reads(jsObject)
       case jsValue =>
-        PegaCreateCaseError.formats.reads(jsValue)
+        PegaCaseError.formats.reads(jsValue)
     }
 
-  implicit def writes: Writes[PegaCreateCaseResponse] =
-    new Writes[PegaCreateCaseResponse] {
-      override def writes(o: PegaCreateCaseResponse): JsValue =
+  implicit def writes: Writes[PegaCaseResponse] =
+    new Writes[PegaCaseResponse] {
+      override def writes(o: PegaCaseResponse): JsValue =
         o match {
-          case s: PegaCreateCaseSuccess =>
-            PegaCreateCaseSuccess.formats.writes(s)
-          case e: PegaCreateCaseError =>
-            PegaCreateCaseError.formats.writes(e)
+          case s: PegaCaseSuccess =>
+            PegaCaseSuccess.formats.writes(s)
+          case e: PegaCaseError =>
+            PegaCaseError.formats.writes(e)
         }
     }
 

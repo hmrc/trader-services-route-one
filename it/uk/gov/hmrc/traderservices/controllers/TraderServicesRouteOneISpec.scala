@@ -16,8 +16,7 @@ import play.api.libs.json.JsObject
 import java.{util => ju}
 
 class TraderServicesRouteOneISpec
-    extends ServerBaseISpec with AuthStubs with CreateCaseStubs with JsonMatchers with TestData {
-
+    extends ServerBaseISpec with AuthStubs with CreateCaseStubs with UpdateCaseStubs with JsonMatchers {
   this: Suite with ServerProvider =>
 
   val url = s"http://localhost:$port"
@@ -29,7 +28,6 @@ class TraderServicesRouteOneISpec
   "TraderServicesRouteOneController" when {
     "POST /create-case" should {
       "return 201 with CaseID as a result if successful PEGA API call" in {
-
         givenAuthorised()
         givenPegaCreateCaseRequestSucceeds()
 
@@ -38,7 +36,7 @@ class TraderServicesRouteOneISpec
         val result = wsClient
           .url(s"$url/create-case")
           .withHttpHeaders("X-Correlation-ID" -> correlationId)
-          .post(testCreateCaseRequest)
+          .post(Json.toJson(TestData.testCreateCaseRequest))
           .futureValue
 
         result.status shouldBe 201
@@ -49,7 +47,6 @@ class TraderServicesRouteOneISpec
       }
 
       "return 400 with error code 400 and message if PEGA API call fails with 403" in {
-
         givenAuthorised()
         givenPegaCreateCaseRequestFails(403, "400")
 
@@ -58,7 +55,7 @@ class TraderServicesRouteOneISpec
         val result = wsClient
           .url(s"$url/create-case")
           .withHttpHeaders("X-Correlation-ID" -> correlationId)
-          .post(testCreateCaseRequest)
+          .post(Json.toJson(TestData.testCreateCaseRequest))
           .futureValue
 
         result.status shouldBe 400
@@ -72,7 +69,6 @@ class TraderServicesRouteOneISpec
       }
 
       "return 400 with error code 500 and message if PEGA API call fails with 500" in {
-
         givenAuthorised()
         givenPegaCreateCaseRequestFails(500, "500", "Foo Bar")
 
@@ -81,7 +77,7 @@ class TraderServicesRouteOneISpec
         val result = wsClient
           .url(s"$url/create-case")
           .withHttpHeaders("X-Correlation-ID" -> correlationId)
-          .post(testCreateCaseRequest)
+          .post(Json.toJson(TestData.testCreateCaseRequest))
           .futureValue
 
         result.status shouldBe 400
@@ -95,7 +91,6 @@ class TraderServicesRouteOneISpec
       }
 
       "return 400 with error code 409 and message if PEGA reports duplicated case" in {
-
         givenAuthorised()
         givenPegaCreateCaseRequestFails(500, "500", "999: PCE201103470D2CC8K0NH3")
 
@@ -104,7 +99,7 @@ class TraderServicesRouteOneISpec
         val result = wsClient
           .url(s"$url/create-case")
           .withHttpHeaders("X-Correlation-ID" -> correlationId)
-          .post(testCreateCaseRequest)
+          .post(Json.toJson(TestData.testCreateCaseRequest))
           .futureValue
 
         result.status shouldBe 409
@@ -118,7 +113,6 @@ class TraderServicesRouteOneISpec
       }
 
       "return 400 with error code 403 if api call returns 403 with empty body" in {
-
         givenAuthorised()
         givenPegaCreateCaseRequestRespondsWith403WithoutContent()
 
@@ -127,7 +121,7 @@ class TraderServicesRouteOneISpec
         val result = wsClient
           .url(s"$url/create-case")
           .withHttpHeaders("X-Correlation-ID" -> correlationId)
-          .post(testCreateCaseRequest)
+          .post(Json.toJson(TestData.testCreateCaseRequest))
           .futureValue
 
         result.status shouldBe 400
@@ -141,7 +135,6 @@ class TraderServicesRouteOneISpec
       }
 
       "return 500 if api call returns unexpected content" in {
-
         givenAuthorised()
         givenPegaCreateCaseRequestRespondsWithHtml()
 
@@ -150,7 +143,131 @@ class TraderServicesRouteOneISpec
         val result = wsClient
           .url(s"$url/create-case")
           .withHttpHeaders("X-Correlation-ID" -> correlationId)
-          .post(testCreateCaseRequest)
+          .post(Json.toJson(TestData.testCreateCaseRequest))
+          .futureValue
+
+        result.status shouldBe 500
+      }
+    }
+
+    "POST /update-case" should {
+      "return 201 with CaseID as a result if successful PEGA API call" in {
+        givenAuthorised()
+        givenPegaUpdateCaseRequestSucceeds()
+
+        val correlationId = ju.UUID.randomUUID().toString()
+
+        val result = wsClient
+          .url(s"$url/update-case")
+          .withHttpHeaders("X-Correlation-ID" -> correlationId)
+          .post(Json.toJson(TestData.testUpdateCaseRequest))
+          .futureValue
+
+        result.status shouldBe 201
+        result.json.as[JsObject] should (
+          haveProperty[String]("correlationId", be(correlationId)) and
+            haveProperty[String]("result", be("PCE201103470D2CC8K0NH3"))
+        )
+      }
+
+      "return 400 with error code 400 and message if PEGA API call fails with 403" in {
+        givenAuthorised()
+        givenPegaUpdateCaseRequestFails(403, "400")
+
+        val correlationId = ju.UUID.randomUUID().toString()
+
+        val result = wsClient
+          .url(s"$url/update-case")
+          .withHttpHeaders("X-Correlation-ID" -> correlationId)
+          .post(Json.toJson(TestData.testUpdateCaseRequest))
+          .futureValue
+
+        result.status shouldBe 400
+        result.json.as[JsObject] should (
+          haveProperty[JsObject](
+            "error",
+            haveProperty[String]("errorCode", be("400")) and
+              notHaveProperty("errorMessage")
+          )
+        )
+      }
+
+      "return 400 with error code 500 and message if PEGA API call fails with 500" in {
+        givenAuthorised()
+        givenPegaUpdateCaseRequestFails(500, "500", "Foo Bar")
+
+        val correlationId = ju.UUID.randomUUID().toString()
+
+        val result = wsClient
+          .url(s"$url/update-case")
+          .withHttpHeaders("X-Correlation-ID" -> correlationId)
+          .post(Json.toJson(TestData.testUpdateCaseRequest))
+          .futureValue
+
+        result.status shouldBe 400
+        result.json.as[JsObject] should (
+          haveProperty[JsObject](
+            "error",
+            haveProperty[String]("errorCode", be("500")) and
+              haveProperty[String]("errorMessage", be("Foo Bar"))
+          )
+        )
+      }
+
+      "return 400 with error code 500 and message if PEGA reports duplicated case" in {
+        givenAuthorised()
+        givenPegaUpdateCaseRequestFails(500, "500", "999: PCE201103470D2CC8K0NH3")
+
+        val correlationId = ju.UUID.randomUUID().toString()
+
+        val result = wsClient
+          .url(s"$url/update-case")
+          .withHttpHeaders("X-Correlation-ID" -> correlationId)
+          .post(Json.toJson(TestData.testUpdateCaseRequest))
+          .futureValue
+
+        result.status shouldBe 400
+        result.json.as[JsObject] should (
+          haveProperty[JsObject](
+            "error",
+            haveProperty[String]("errorCode", be("500")) and
+              haveProperty[String]("errorMessage", be("999: PCE201103470D2CC8K0NH3"))
+          )
+        )
+      }
+
+      "return 400 with error code 403 if api call returns 403 with empty body" in {
+        givenAuthorised()
+        givenPegaUpdateCaseRequestRespondsWith403WithoutContent()
+
+        val correlationId = ju.UUID.randomUUID().toString()
+
+        val result = wsClient
+          .url(s"$url/update-case")
+          .withHttpHeaders("X-Correlation-ID" -> correlationId)
+          .post(Json.toJson(TestData.testUpdateCaseRequest))
+          .futureValue
+
+        result.status shouldBe 400
+        result.json.as[JsObject] should (
+          haveProperty[JsObject](
+            "error",
+            haveProperty[String]("errorCode", be("403")) and
+              haveProperty[String]("errorMessage", be("Error: empty response"))
+          )
+        )
+      }
+
+      "return 500 if api call returns unexpected content" in {
+        givenAuthorised()
+        givenPegaUpdateCaseRequestRespondsWithHtml()
+
+        val correlationId = ju.UUID.randomUUID().toString()
+
+        val result = wsClient
+          .url(s"$url/update-case")
+          .withHttpHeaders("X-Correlation-ID" -> correlationId)
+          .post(Json.toJson(TestData.testUpdateCaseRequest))
           .futureValue
 
         result.status shouldBe 500
@@ -159,9 +276,9 @@ class TraderServicesRouteOneISpec
   }
 }
 
-trait TestData {
+object TestData {
 
-  val testCreateCaseRequest = Json.toJson(
+  val testCreateCaseRequest =
     TraderServicesCreateCaseRequest(
       DeclarationDetails(EPU(2), EntryNumber("A23456A"), LocalDate.parse("2020-09-02")),
       ImportQuestions(
@@ -186,6 +303,12 @@ trait TestData {
       Seq(),
       "GB123456789012345"
     )
+
+  val testUpdateCaseRequest = TraderServicesUpdateCaseRequest(
+    caseReferenceNumber = "PCE201103470D2CC8K0NH3",
+    typeOfAmendment = TypeOfAmendment.WriteResponse,
+    responseText = Some("An example description."),
+    Seq()
   )
 
 }

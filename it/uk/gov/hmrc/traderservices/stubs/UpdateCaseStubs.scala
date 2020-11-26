@@ -3,40 +3,30 @@ package uk.gov.hmrc.traderservices.stubs
 import com.github.tomakehurst.wiremock.client.WireMock._
 import uk.gov.hmrc.traderservices.support.WireMockSupport
 
-trait CreateCaseStubs {
+trait UpdateCaseStubs {
   me: WireMockSupport =>
 
-  def givenPegaCreateCaseRequestSucceeds(): Unit =
+  def givenPegaUpdateCaseRequestSucceeds(): Unit =
     stubForPostWithResponse(
       200,
       """{
         |  "ApplicationType" : "Route1",
         |  "OriginatingSystem" : "Digital",
         |  "Content": {
-        |    "EntryType":"Import",
-        |    "RequestType":"New",
-        |    "EntryProcessingUnit":"002",
-        |    "Route":"Route 1",
-        |    "EntryNumber":"A23456A",
-        |    "VesselName":"Vessel Name",
-        |    "EntryDate":"20200902",
-        |    "VesselEstimatedDate":"20201029",
-        |    "VesselEstimatedTime":"234500",
-        |    "FreightOption":"Maritime",
-        |    "EORI":"GB123456789012345",
-        |    "TelephoneNumber":"07123456789",
-        |    "EmailAddress":"sampelname@gmail.com"
+        |    "RequestType": "Additional Information",
+        |    "CaseID": "PCE201103470D2CC8K0NH3",
+        |    "Description": "An example description."
         |    }
         |}""".stripMargin,
       """{
         |    "Status": "Success",
-        |    "StatusText": "Case created successfully",
+        |    "StatusText": "Case Updated successfully",
         |    "CaseID": "PCE201103470D2CC8K0NH3",
         |    "ProcessingDate": "2020-11-03T15:29:28.601Z"
         |}""".stripMargin
     )
 
-  def givenPegaCreateCaseRequestFails(status: Int, errorCode: String, errorMessage: String = ""): Unit =
+  def givenPegaUpdateCaseRequestFails(status: Int, errorCode: String, errorMessage: String = ""): Unit =
     stubForPostWithResponse(
       status,
       """{
@@ -54,7 +44,7 @@ trait CreateCaseStubs {
 
   private def stubForPostWithResponse(status: Int, payload: String, responseBody: String): Unit =
     stubFor(
-      post(urlEqualTo("/cpr/caserequest/route1/create/v1"))
+      post(urlEqualTo("/cpr/caserequest/route1/update/v1"))
         .withHeader("x-correlation-id", matching("[A-Za-z0-9-]{36}"))
         .withHeader("CustomProcessesHost", equalTo("Digital"))
         .withHeader("date", matching("[A-Za-z0-9,: ]{29}"))
@@ -71,9 +61,9 @@ trait CreateCaseStubs {
         )
     )
 
-  def givenPegaCreateCaseRequestRespondsWithHtml(): Unit =
+  def givenPegaUpdateCaseRequestRespondsWithHtml(): Unit =
     stubFor(
-      post(urlEqualTo("/cpr/caserequest/route1/create/v1"))
+      post(urlEqualTo("/cpr/caserequest/route1/update/v1"))
         .withHeader("x-correlation-id", matching("[A-Za-z0-9-]{36}"))
         .withHeader("CustomProcessesHost", equalTo("Digital"))
         .withHeader("date", matching("[A-Za-z0-9,: ]{29}"))
@@ -91,9 +81,9 @@ trait CreateCaseStubs {
         )
     )
 
-  def givenPegaCreateCaseRequestRespondsWith403WithoutContent(): Unit =
+  def givenPegaUpdateCaseRequestRespondsWith403WithoutContent(): Unit =
     stubFor(
-      post(urlEqualTo("/cpr/caserequest/route1/create/v1"))
+      post(urlEqualTo("/cpr/caserequest/route1/update/v1"))
         .withHeader("x-correlation-id", matching("[A-Za-z0-9-]{36}"))
         .withHeader("CustomProcessesHost", equalTo("Digital"))
         .withHeader("date", matching("[A-Za-z0-9,: ]{29}"))
