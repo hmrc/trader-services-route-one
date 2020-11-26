@@ -38,7 +38,7 @@ object TraderServicesEntity extends ReactiveMongoFormats {
     format[TraderServicesEntity]
 }
 
-@Singleton
+//@Singleton set this annotation when the repository is back in use
 class TraderServicesRepository @Inject() (mongoComponent: ReactiveMongoComponent)
     extends ReactiveRepository[TraderServicesEntity, BSONObjectID](
       "trader-services",

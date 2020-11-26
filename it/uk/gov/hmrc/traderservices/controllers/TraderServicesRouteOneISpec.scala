@@ -177,7 +177,7 @@ trait TestData {
             timeOfArrival = Some(LocalTime.of(23, 45, 0))
           )
         ),
-        contactInfo = ImportContactInfo(
+        contactInfo = ContactInfo(
           contactName = Some("Full Name"),
           contactNumber = Some("07123456789"),
           contactEmail = "sampelname@gmail.com"

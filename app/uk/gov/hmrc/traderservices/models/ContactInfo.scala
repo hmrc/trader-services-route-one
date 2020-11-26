@@ -18,7 +18,7 @@ package uk.gov.hmrc.traderservices.models
 
 import play.api.libs.json.{Format, Json}
 
-case class ImportContactInfo(
+case class ContactInfo(
   contactName: Option[String],
   contactEmail: String,
   contactNumber: Option[String] = None
@@ -27,6 +27,6 @@ case class ImportContactInfo(
   def isEmpty = contactEmail.isEmpty && contactNumber.isEmpty
 }
 
-object ImportContactInfo {
-  implicit val formats: Format[ImportContactInfo] = Json.format[ImportContactInfo]
+object ContactInfo {
+  implicit val formats: Format[ContactInfo] = Json.format[ContactInfo]
 }
