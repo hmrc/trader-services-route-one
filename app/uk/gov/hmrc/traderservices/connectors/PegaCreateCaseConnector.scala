@@ -42,7 +42,7 @@ class PegaCreateCaseConnector @Inject() (val config: AppConfig, val http: HttpPo
     .ofPattern("EEE, dd MMM yyyy HH:mm:ss z", ju.Locale.ENGLISH)
     .withZone(ZoneId.of("GMT"))
 
-  val url = config.createCaseApiBaseUrl + config.createCaseApiPath
+  val url = config.eisBaseUrl + config.eisCreateCaseApiPath
 
   def createCase(createCaseRequest: PegaCreateCaseRequest, correlationId: String)(implicit
     hc: HeaderCarrier,
@@ -53,13 +53,13 @@ class PegaCreateCaseConnector @Inject() (val config: AppConfig, val http: HttpPo
         .POST[PegaCreateCaseRequest, PegaCreateCaseResponse](url, createCaseRequest)(
           implicitly[Writes[PegaCreateCaseRequest]],
           readFromJsonSuccessOrFailure,
-          HeaderCarrier(authorization = Some(Authorization(s"Bearer ${config.createCaseApiAuthorizationToken}")))
+          HeaderCarrier(authorization = Some(Authorization(s"Bearer ${config.eisAuthorizationToken}")))
             .withExtraHeaders(
               "x-correlation-id"    -> correlationId,
-              "CustomProcessesHost" -> "Digital", // required by PEGA API spec
+              "CustomProcessesHost" -> "Digital", // required by the PEGA API spec
               "date"                -> httpDateFormat.format(ZonedDateTime.now),
               "accept"              -> "application/json",
-              "environment"         -> config.createCaseApiEnvironment
+              "environment"         -> config.eisEnvironment
             ),
           implicitly[ExecutionContext]
         )

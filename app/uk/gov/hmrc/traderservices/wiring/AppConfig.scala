@@ -31,13 +31,15 @@ trait AppConfig {
 
   val authorisedIdentifierKey: String
 
-  val createCaseApiBaseUrl: String
+  val eisBaseUrl: String
 
-  val createCaseApiPath: String
+  val eisCreateCaseApiPath: String
 
-  val createCaseApiAuthorizationToken: String
+  val eisUpdateCaseApiPath: String
 
-  val createCaseApiEnvironment: String
+  val eisAuthorizationToken: String
+
+  val eisEnvironment: String
 }
 
 class AppConfigImpl @Inject() (config: ServicesConfig) extends AppConfig {
@@ -50,25 +52,37 @@ class AppConfigImpl @Inject() (config: ServicesConfig) extends AppConfig {
 
   override val authorisedIdentifierKey: String = config.getString("authorisedIdentifierKey")
 
-  override val createCaseApiBaseUrl: String = config.baseUrl("eis.createcaseapi")
+  override val eisBaseUrl: String = config.baseUrl("eis.cpr.caserequest.route1")
 
-  override val createCaseApiPath: String =
+  override val eisCreateCaseApiPath: String =
     config.getConfString(
-      "eis.createcaseapi.path",
-      throw new IllegalStateException("Missing [microservice.services.eis.createcaseapi.path] configuration property")
-    )
-
-  override val createCaseApiAuthorizationToken: String =
-    config.getConfString(
-      "eis.createcaseapi.token",
-      throw new IllegalStateException("Missing [microservice.services.eis.createcaseapi.token] configuration property")
-    )
-
-  override val createCaseApiEnvironment: String =
-    config.getConfString(
-      "eis.createcaseapi.environment",
+      "eis.cpr.caserequest.route1.create.path",
       throw new IllegalStateException(
-        "Missing [microservice.services.eis.createcaseapi.environment] configuration property"
+        "Missing [microservice.services.eis.cpr.caserequest.route1.create.path] configuration property"
+      )
+    )
+
+  override val eisUpdateCaseApiPath: String =
+    config.getConfString(
+      "eis.cpr.caserequest.route1.update.path",
+      throw new IllegalStateException(
+        "Missing [microservice.services.eis.cpr.caserequest.route1.update.path] configuration property"
+      )
+    )
+
+  override val eisAuthorizationToken: String =
+    config.getConfString(
+      "eis.cpr.caserequest.route1.token",
+      throw new IllegalStateException(
+        "Missing [microservice.services.eis.cpr.caserequest.route1.token] configuration property"
+      )
+    )
+
+  override val eisEnvironment: String =
+    config.getConfString(
+      "eis.cpr.caserequest.route1.environment",
+      throw new IllegalStateException(
+        "Missing [microservice.services.eis.cpr.caserequest.route1.environment] configuration property"
       )
     )
 
