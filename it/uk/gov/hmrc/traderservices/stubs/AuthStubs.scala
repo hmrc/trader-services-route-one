@@ -80,7 +80,7 @@ trait AuthStubs {
     )
   }
 
-  def verifyAuthoriseAttempt(): Unit =
+  def verifyAuthorisationHasHappened(): Unit =
     verify(1, postRequestedFor(urlEqualTo("/auth/authorise")))
 
 }

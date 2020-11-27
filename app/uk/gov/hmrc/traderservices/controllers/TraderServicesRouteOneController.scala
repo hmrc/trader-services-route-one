@@ -29,6 +29,11 @@ import scala.concurrent.ExecutionContext
 import uk.gov.hmrc.traderservices.connectors.PegaCreateCaseRequest
 import java.{util => ju}
 import views.html.defaultpages.error
+import uk.gov.hmrc.traderservices.models.TypeOfAmendment.UploadDocuments
+import uk.gov.hmrc.traderservices.models.TypeOfAmendment.WriteResponse
+import uk.gov.hmrc.traderservices.models.TypeOfAmendment.WriteResponseAndUploadDocuments
+import scala.concurrent.Future
+import uk.gov.hmrc.http.HeaderCarrier
 
 @Singleton
 class TraderServicesRouteOneController @Inject() (
@@ -57,48 +62,7 @@ class TraderServicesRouteOneController @Inject() (
             Content = PegaCreateCaseRequest.Content.from(createCaseRequest)
           )
 
-          createCaseConnector
-            .createCase(pegaCreateCaseRequest, correlationId) map {
-            case success: PegaCaseSuccess =>
-              Created(
-                Json.toJson(
-                  TraderServicesCaseResponse(
-                    correlationId = correlationId,
-                    result = Some(success.CaseID)
-                  )
-                )
-              )
-            // when request to the upstream api returns an error
-            case error: PegaCaseError =>
-              if (error.isDuplicateCaseError)
-                Conflict(
-                  Json.toJson(
-                    TraderServicesCaseResponse(
-                      correlationId = correlationId,
-                      error = Some(
-                        ApiError(
-                          errorCode = "409",
-                          errorMessage = error.duplicateCaseID
-                        )
-                      )
-                    )
-                  )
-                )
-              else
-                BadRequest(
-                  Json.toJson(
-                    TraderServicesCaseResponse(
-                      correlationId = correlationId,
-                      error = Some(
-                        ApiError(
-                          errorCode = error.errorCode.getOrElse("ERROR_UPSTREAM_UNDEFINED"),
-                          errorMessage = error.errorMessage
-                        )
-                      )
-                    )
-                  )
-                )
-          }
+          createCaseInPega(pegaCreateCaseRequest, correlationId)
 
         } {
           // when incoming request's payload validation fails
@@ -125,41 +89,15 @@ class TraderServicesRouteOneController @Inject() (
           .get("x-correlation-id")
           .getOrElse(ju.UUID.randomUUID().toString())
 
-        withPayload[TraderServicesUpdateCaseRequest] { createCaseRequest =>
+        withPayload[TraderServicesUpdateCaseRequest] { updateCaseRequest =>
           val pegaCreateCaseRequest = PegaUpdateCaseRequest(
             AcknowledgementReference = correlationId.replace("-", ""),
             ApplicationType = "Route1",
             OriginatingSystem = "Digital",
-            Content = PegaUpdateCaseRequest.Content.from(createCaseRequest)
+            Content = PegaUpdateCaseRequest.Content.from(updateCaseRequest)
           )
 
-          updateCaseConnector
-            .updateCase(pegaCreateCaseRequest, correlationId) map {
-            case success: PegaCaseSuccess =>
-              Created(
-                Json.toJson(
-                  TraderServicesCaseResponse(
-                    correlationId = correlationId,
-                    result = Some(success.CaseID)
-                  )
-                )
-              )
-            // when request to the upstream api returns an error
-            case error: PegaCaseError =>
-              BadRequest(
-                Json.toJson(
-                  TraderServicesCaseResponse(
-                    correlationId = correlationId,
-                    error = Some(
-                      ApiError(
-                        errorCode = error.errorCode.getOrElse("ERROR_UPSTREAM_UNDEFINED"),
-                        errorMessage = error.errorMessage
-                      )
-                    )
-                  )
-                )
-              )
-          }
+          updateCaseInPega(pegaCreateCaseRequest, correlationId)
 
         } {
           // when incoming request's payload validation fails
@@ -176,5 +114,82 @@ class TraderServicesRouteOneController @Inject() (
             )
         }
       }
+    }
+
+  private def createCaseInPega(pegaCreateCaseRequest: PegaCreateCaseRequest, correlationId: String)(implicit
+    hc: HeaderCarrier
+  ): Future[Result] =
+    createCaseConnector
+      .createCase(pegaCreateCaseRequest, correlationId) map {
+      case success: PegaCaseSuccess =>
+        Created(
+          Json.toJson(
+            TraderServicesCaseResponse(
+              correlationId = correlationId,
+              result = Some(success.CaseID)
+            )
+          )
+        )
+      // when request to the upstream api returns an error
+      case error: PegaCaseError =>
+        if (error.isDuplicateCaseError)
+          Conflict(
+            Json.toJson(
+              TraderServicesCaseResponse(
+                correlationId = correlationId,
+                error = Some(
+                  ApiError(
+                    errorCode = "409",
+                    errorMessage = error.duplicateCaseID
+                  )
+                )
+              )
+            )
+          )
+        else
+          BadRequest(
+            Json.toJson(
+              TraderServicesCaseResponse(
+                correlationId = correlationId,
+                error = Some(
+                  ApiError(
+                    errorCode = error.errorCode.getOrElse("ERROR_UPSTREAM_UNDEFINED"),
+                    errorMessage = error.errorMessage
+                  )
+                )
+              )
+            )
+          )
+    }
+
+  private def updateCaseInPega(pegaCreateCaseRequest: PegaUpdateCaseRequest, correlationId: String)(implicit
+    hc: HeaderCarrier
+  ): Future[Result] =
+    updateCaseConnector
+      .updateCase(pegaCreateCaseRequest, correlationId) map {
+      case success: PegaCaseSuccess =>
+        Created(
+          Json.toJson(
+            TraderServicesCaseResponse(
+              correlationId = correlationId,
+              result = Some(success.CaseID)
+            )
+          )
+        )
+      // when request to the upstream api returns an error
+      case error: PegaCaseError =>
+        BadRequest(
+          Json.toJson(
+            TraderServicesCaseResponse(
+              correlationId = correlationId,
+              error = Some(
+                ApiError(
+                  errorCode = error.errorCode.getOrElse("ERROR_UPSTREAM_UNDEFINED"),
+                  errorMessage = error.errorMessage
+                )
+              )
+            )
+          )
+        )
     }
 }

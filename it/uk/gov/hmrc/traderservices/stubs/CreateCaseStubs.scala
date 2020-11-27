@@ -6,6 +6,8 @@ import uk.gov.hmrc.traderservices.support.WireMockSupport
 trait CreateCaseStubs {
   me: WireMockSupport =>
 
+  val CREATE_CASE_URL = "/cpr/caserequest/route1/create/v1"
+
   def givenPegaCreateCaseRequestSucceeds(): Unit =
     stubForPostWithResponse(
       200,
@@ -36,6 +38,12 @@ trait CreateCaseStubs {
         |}""".stripMargin
     )
 
+  def verifyPegaCreateCaseRequestHasHappened() =
+    verify(1, postRequestedFor(urlEqualTo(CREATE_CASE_URL)))
+
+  def verifyPegaCreateCaseRequestDidNotHappen() =
+    verify(0, postRequestedFor(urlEqualTo(CREATE_CASE_URL)))
+
   def givenPegaCreateCaseRequestFails(status: Int, errorCode: String, errorMessage: String = ""): Unit =
     stubForPostWithResponse(
       status,
@@ -54,7 +62,7 @@ trait CreateCaseStubs {
 
   private def stubForPostWithResponse(status: Int, payload: String, responseBody: String): Unit =
     stubFor(
-      post(urlEqualTo("/cpr/caserequest/route1/create/v1"))
+      post(urlEqualTo(CREATE_CASE_URL))
         .withHeader("x-correlation-id", matching("[A-Za-z0-9-]{36}"))
         .withHeader("CustomProcessesHost", equalTo("Digital"))
         .withHeader("date", matching("[A-Za-z0-9,: ]{29}"))
@@ -73,7 +81,7 @@ trait CreateCaseStubs {
 
   def givenPegaCreateCaseRequestRespondsWithHtml(): Unit =
     stubFor(
-      post(urlEqualTo("/cpr/caserequest/route1/create/v1"))
+      post(urlEqualTo(CREATE_CASE_URL))
         .withHeader("x-correlation-id", matching("[A-Za-z0-9-]{36}"))
         .withHeader("CustomProcessesHost", equalTo("Digital"))
         .withHeader("date", matching("[A-Za-z0-9,: ]{29}"))
@@ -93,7 +101,7 @@ trait CreateCaseStubs {
 
   def givenPegaCreateCaseRequestRespondsWith403WithoutContent(): Unit =
     stubFor(
-      post(urlEqualTo("/cpr/caserequest/route1/create/v1"))
+      post(urlEqualTo(CREATE_CASE_URL))
         .withHeader("x-correlation-id", matching("[A-Za-z0-9-]{36}"))
         .withHeader("CustomProcessesHost", equalTo("Digital"))
         .withHeader("date", matching("[A-Za-z0-9,: ]{29}"))

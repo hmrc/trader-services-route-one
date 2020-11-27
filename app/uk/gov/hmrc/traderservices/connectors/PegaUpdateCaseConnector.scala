@@ -45,7 +45,9 @@ class PegaUpdateCaseConnector @Inject() (val config: AppConfig, val http: HttpPo
         .POST[PegaUpdateCaseRequest, PegaCaseResponse](url, createCaseRequest)(
           implicitly[Writes[PegaUpdateCaseRequest]],
           readFromJsonSuccessOrFailure,
-          HeaderCarrier(authorization = Some(Authorization(s"Bearer ${config.eisAuthorizationToken}")))
+          HeaderCarrier(
+            authorization = Some(Authorization(s"Bearer ${config.eisAuthorizationToken}"))
+          )
             .withExtraHeaders(pegaApiHeaders(correlationId, config.eisEnvironment): _*),
           implicitly[ExecutionContext]
         )
