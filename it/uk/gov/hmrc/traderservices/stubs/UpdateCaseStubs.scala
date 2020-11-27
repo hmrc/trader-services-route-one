@@ -6,18 +6,20 @@ import uk.gov.hmrc.traderservices.support.WireMockSupport
 trait UpdateCaseStubs {
   me: WireMockSupport =>
 
-  def givenPegaUpdateCaseRequestSucceeds(): Unit =
+  val UPDATE_CASE_URL = "/cpr/caserequest/route1/update/v1"
+
+  def givenPegaUpdateCaseRequestSucceeds(description: String = "An example description."): Unit =
     stubForPostWithResponse(
       200,
-      """{
-        |  "ApplicationType" : "Route1",
-        |  "OriginatingSystem" : "Digital",
-        |  "Content": {
-        |    "RequestType": "Additional Information",
-        |    "CaseID": "PCE201103470D2CC8K0NH3",
-        |    "Description": "An example description."
-        |    }
-        |}""".stripMargin,
+      s"""{
+         |  "ApplicationType" : "Route1",
+         |  "OriginatingSystem" : "Digital",
+         |  "Content": {
+         |    "RequestType": "Additional Information",
+         |    "CaseID": "PCE201103470D2CC8K0NH3",
+         |    "Description": "$description"
+         |    }
+         |}""".stripMargin,
       """{
         |    "Status": "Success",
         |    "StatusText": "Case Updated successfully",
@@ -25,6 +27,32 @@ trait UpdateCaseStubs {
         |    "ProcessingDate": "2020-11-03T15:29:28.601Z"
         |}""".stripMargin
     )
+
+  def verifyPegaUpdateCaseRequestHasHappened() =
+    verify(1, postRequestedFor(urlEqualTo(UPDATE_CASE_URL)))
+
+  def verifyPegaUpdateCaseRequestHasHappened(requestType: String, caseId: String, description: String): Unit =
+    verify(
+      1,
+      postRequestedFor(urlEqualTo(UPDATE_CASE_URL))
+        .withRequestBody(
+          equalToJson(
+            s"""{
+               |  "ApplicationType" : "Route1",
+               |  "OriginatingSystem" : "Digital",
+               |  "Content": {
+               |    "RequestType": "$requestType",
+               |    "CaseID": "$caseId",
+               |    "Description": "$description"
+               |}}""".stripMargin,
+            true,
+            true
+          )
+        )
+    )
+
+  def verifyPegaUpdateCaseRequestDidNotHappen() =
+    verify(0, postRequestedFor(urlEqualTo(UPDATE_CASE_URL)))
 
   def givenPegaUpdateCaseRequestFails(status: Int, errorCode: String, errorMessage: String = ""): Unit =
     stubForPostWithResponse(
@@ -44,7 +72,7 @@ trait UpdateCaseStubs {
 
   private def stubForPostWithResponse(status: Int, payload: String, responseBody: String): Unit =
     stubFor(
-      post(urlEqualTo("/cpr/caserequest/route1/update/v1"))
+      post(urlEqualTo(UPDATE_CASE_URL))
         .withHeader("x-correlation-id", matching("[A-Za-z0-9-]{36}"))
         .withHeader("CustomProcessesHost", equalTo("Digital"))
         .withHeader("date", matching("[A-Za-z0-9,: ]{29}"))
@@ -63,7 +91,7 @@ trait UpdateCaseStubs {
 
   def givenPegaUpdateCaseRequestRespondsWithHtml(): Unit =
     stubFor(
-      post(urlEqualTo("/cpr/caserequest/route1/update/v1"))
+      post(urlEqualTo(UPDATE_CASE_URL))
         .withHeader("x-correlation-id", matching("[A-Za-z0-9-]{36}"))
         .withHeader("CustomProcessesHost", equalTo("Digital"))
         .withHeader("date", matching("[A-Za-z0-9,: ]{29}"))
@@ -83,7 +111,7 @@ trait UpdateCaseStubs {
 
   def givenPegaUpdateCaseRequestRespondsWith403WithoutContent(): Unit =
     stubFor(
-      post(urlEqualTo("/cpr/caserequest/route1/update/v1"))
+      post(urlEqualTo(UPDATE_CASE_URL))
         .withHeader("x-correlation-id", matching("[A-Za-z0-9-]{36}"))
         .withHeader("CustomProcessesHost", equalTo("Digital"))
         .withHeader("date", matching("[A-Za-z0-9,: ]{29}"))

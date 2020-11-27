@@ -58,7 +58,10 @@ object PegaUpdateCaseRequest {
       Content(
         CaseID = request.caseReferenceNumber,
         RequestType = "Additional Information",
-        Description = request.responseText.getOrElse(throw new IllegalStateException("Missing response text."))
+        Description = request.responseText
+          .getOrElse(
+            s"The user has attached the following file(s): ${request.fileUploads.map(_.fileName).mkString(", ")}."
+          )
       )
 
     val RequestTypeValidator: Validate[String] =
