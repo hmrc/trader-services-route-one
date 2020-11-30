@@ -24,7 +24,7 @@ case class TraderServicesUpdateCaseRequest(
   caseReferenceNumber: String,
   typeOfAmendment: TypeOfAmendment,
   responseText: Option[String] = None,
-  fileUploads: Seq[UploadedFile] = Seq.empty
+  uploadedFiles: Seq[UploadedFile] = Seq.empty
 )
 
 object TraderServicesUpdateCaseRequest {
@@ -53,9 +53,9 @@ object TraderServicesUpdateCaseRequest {
       check(
         r =>
           r.typeOfAmendment match {
-            case UploadDocuments                 => r.fileUploads.nonEmpty && r.responseText.isEmpty
-            case WriteResponse                   => r.fileUploads.isEmpty && r.responseText.nonEmpty
-            case WriteResponseAndUploadDocuments => r.fileUploads.nonEmpty && r.responseText.nonEmpty
+            case UploadDocuments                 => r.uploadedFiles.nonEmpty && r.responseText.isEmpty
+            case WriteResponse                   => r.uploadedFiles.isEmpty && r.responseText.nonEmpty
+            case WriteResponseAndUploadDocuments => r.uploadedFiles.nonEmpty && r.responseText.nonEmpty
           },
         "Invalid request, responseText and fileUploads must respect typeOfAmendment"
       )
