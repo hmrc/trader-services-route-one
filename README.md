@@ -103,7 +103,7 @@ Example request payload
 
     {
         "caseReferenceNumber": "PCE201103470D2CC8K0NH3",
-        "typeOfAmendment": "WriteResponseAndUploadDocuments"
+        "typeOfAmendment": "WriteResponseAndUploadDocuments",
         "responseText":"An example response.",
         "uploadedFiles" : [ {
             "downloadUrl" : "https://bucketName.s3.eu-west-2.amazonaws.com?1235676",
