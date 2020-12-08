@@ -19,7 +19,6 @@ import play.api.{Configuration, Environment, Logger}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http._
 import uk.gov.hmrc.traderservices.connectors.MicroserviceAuthConnector
-import uk.gov.hmrc.play.bootstrap.http.DefaultHttpClient
 import uk.gov.hmrc.play.audit.http.HttpAuditing
 import com.google.inject.{Inject, Singleton}
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
@@ -50,7 +49,7 @@ class CustomHttpAuditing @Inject() (
 ) extends HttpAuditing {
 
   override val auditDisabledForPattern: Regex =
-    """none""".r
+    """.*?\/auth\/authorise$""".r
 
 }
 
