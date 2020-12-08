@@ -27,7 +27,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.http.logging.{Authorization, RequestId, SessionId}
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.audit.model.DataEvent
-import uk.gov.hmrc.play.test.UnitSpec
+import uk.gov.hmrc.traderservices.support.UnitSpec
 
 import scala.concurrent.ExecutionContext
 
@@ -36,7 +36,7 @@ class AuditServiceSpec extends UnitSpec with MockitoSugar with Eventually {
   override implicit val patienceConfig =
     PatienceConfig(timeout = scaled(Span(500, Millis)), interval = scaled(Span(200, Millis)))
 
-  "auditService" should {
+  "AuditService" should {
 
     "send an TraderServicesSomethingHappened event with the correct fields" in {
       val mockConnector = mock[AuditConnector]
