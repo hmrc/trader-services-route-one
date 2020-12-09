@@ -1,7 +1,6 @@
 package uk.gov.hmrc.traderservices.connectors
 
 import play.api.Application
-import uk.gov.hmrc.traderservices.models._
 import uk.gov.hmrc.traderservices.stubs.UpdateCaseStubs
 import uk.gov.hmrc.traderservices.support.AppBaseISpec
 import uk.gov.hmrc.http._
@@ -14,6 +13,7 @@ class PegaUpdateCaseConnectorISpec extends PegaUpdateCaseConnectorISpecSetup {
     "updateCase" should {
       "return case reference id if success" in {
         givenPegaUpdateCaseRequestSucceeds()
+        givenAuditConnector()
 
         val request = testRequest
 
@@ -30,6 +30,7 @@ class PegaUpdateCaseConnectorISpec extends PegaUpdateCaseConnectorISpecSetup {
 
       "return error code and message if 500" in {
         givenPegaUpdateCaseRequestFails(500, "500", "Foo Bar")
+        givenAuditConnector()
 
         val request = testRequest
 
@@ -48,6 +49,7 @@ class PegaUpdateCaseConnectorISpec extends PegaUpdateCaseConnectorISpecSetup {
 
       "return error code and message if 403" in {
         givenPegaUpdateCaseRequestFails(403, "403", "Bar Foo")
+        givenAuditConnector()
 
         val request = testRequest
 

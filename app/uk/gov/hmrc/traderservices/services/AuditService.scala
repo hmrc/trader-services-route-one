@@ -28,35 +28,86 @@ import scala.concurrent.ExecutionContext
 
 import scala.concurrent.Future
 import scala.util.Try
+import uk.gov.hmrc.traderservices.models.TraderServicesCreateCaseRequest
+import uk.gov.hmrc.traderservices.models.TraderServicesUpdateCaseRequest
+import uk.gov.hmrc.traderservices.connectors.TraderServicesCaseResponse
+import play.api.libs.json._
 
-object TraderServicesEvent extends Enumeration {
-  val TraderServicesSomethingHappened = Value
-  type TraderServicesEvent = Value
+object TraderServicesAuditEvent extends Enumeration {
+  type TraderServicesAuditEvent = Value
+  val CreateCase, UpdateCase = Value
 }
 
 @Singleton
 class AuditService @Inject() (val auditConnector: AuditConnector) {
 
-  import TraderServicesEvent._
+  import TraderServicesAuditEvent._
 
-  def sendTraderServicesSomethingHappened(
-    model: String
-  )(implicit hc: HeaderCarrier, request: Request[Any], ec: ExecutionContext): Unit =
-    auditEvent(
-      TraderServicesEvent.TraderServicesSomethingHappened,
-      "trader-services-route-one-something-happened",
-      Seq.empty
-    )
+  final def auditCreateCaseEvent(createRequest: TraderServicesCreateCaseRequest)(
+    createResponse: TraderServicesCaseResponse
+  )(implicit hc: HeaderCarrier, request: Request[Any], ec: ExecutionContext): Future[Unit] = {
+    val details: Seq[(String, Any)] =
+      pegaResponseToDetails(createResponse, true) ++ AuditService.entityToDetails(createRequest) ++ Seq(
+        "numberOfFilesUploaded" -> createRequest.uploadedFiles.size
+      )
+    auditEvent(CreateCase, "create-case", details)
+  }
 
-  private[services] def auditEvent(
-    event: TraderServicesEvent,
+  final def auditCreateCaseErrorEvent(
+    createResponse: TraderServicesCaseResponse
+  )(implicit hc: HeaderCarrier, request: Request[Any], ec: ExecutionContext): Future[Unit] = {
+    val details: Seq[(String, Any)] = pegaResponseToDetails(createResponse, true)
+    auditEvent(CreateCase, "create-case", details)
+  }
+
+  final def auditUpdateCaseEvent(updateRequest: TraderServicesUpdateCaseRequest)(
+    updateResponse: TraderServicesCaseResponse
+  )(implicit hc: HeaderCarrier, request: Request[Any], ec: ExecutionContext): Future[Unit] = {
+    val details: Seq[(String, Any)] =
+      pegaResponseToDetails(updateResponse, false) ++ AuditService.entityToDetails(updateRequest) ++ Seq(
+        "numberOfFilesUploaded" -> updateRequest.uploadedFiles.size
+      )
+    auditEvent(UpdateCase, "update-case", details)
+  }
+
+  final def auditUpdateCaseErrorEvent(
+    updateResponse: TraderServicesCaseResponse
+  )(implicit hc: HeaderCarrier, request: Request[Any], ec: ExecutionContext): Future[Unit] = {
+    val details: Seq[(String, Any)] = pegaResponseToDetails(updateResponse, false)
+    auditEvent(UpdateCase, "update-case", details)
+  }
+
+  private def pegaResponseToDetails(
+    caseResponse: TraderServicesCaseResponse,
+    reportDuplicate: Boolean
+  ): Seq[(String, Any)] =
+    Seq(
+      "success" -> caseResponse.isSuccess
+    ) ++
+      (if (caseResponse.isSuccess)
+         Seq(
+           "caseReferenceNumber" -> caseResponse.result.get
+         )
+       else
+         (if (reportDuplicate)
+            Seq(
+              "duplicate" -> caseResponse.isDuplicate
+            )
+          else Seq.empty) ++ caseResponse.error.map(e => Seq("errorCode" -> e.errorCode)).getOrElse(Seq.empty) ++
+           caseResponse.error
+             .flatMap(_.errorMessage)
+             .map(m => Seq("errorMessage" -> m))
+             .getOrElse(Seq.empty))
+
+  private def auditEvent(
+    event: TraderServicesAuditEvent,
     transactionName: String,
-    details: Seq[(String, Any)] = Seq.empty
+    details: Seq[(String, Any)]
   )(implicit hc: HeaderCarrier, request: Request[Any], ec: ExecutionContext): Future[Unit] =
     send(createEvent(event, transactionName, details: _*))
 
-  private[services] def createEvent(
-    event: TraderServicesEvent,
+  private def createEvent(
+    event: TraderServicesAuditEvent,
     transactionName: String,
     details: (String, Any)*
   )(implicit hc: HeaderCarrier, request: Request[Any], ec: ExecutionContext): DataEvent = {
@@ -64,20 +115,61 @@ class AuditService @Inject() (val auditConnector: AuditConnector) {
     val detail = hc.toAuditDetails(details.map(pair => pair._1 -> pair._2.toString): _*)
     val tags = hc.toAuditTags(transactionName, request.path)
     DataEvent(
-      auditSource = "trader-services",
+      auditSource = "trader-services-route-one",
       auditType = event.toString,
       tags = tags,
       detail = detail
     )
   }
 
-  private[services] def send(
+  private def send(
     events: DataEvent*
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] =
     Future {
       events.foreach { event =>
         Try(auditConnector.sendEvent(event))
       }
+    }
+
+}
+
+object AuditService {
+
+  /** Represent an entity as a sequence of key to value mappings. */
+  def entityToDetails[T: Writes](enity: T): Seq[(String, Any)] =
+    detailsFromJson(implicitly[Writes[T]].writes(enity))
+
+  /** Flatten JSON structure as a sequence of key to value mappings. */
+  def detailsFromJson(value: JsValue): Seq[(String, Any)] =
+    value match {
+
+      case JsNull          => Seq.empty
+      case JsFalse         => Seq("" -> false)
+      case JsTrue          => Seq("" -> true)
+      case JsNumber(value) => Seq("" -> value)
+      case JsString(value) => Seq("" -> value)
+
+      case o: JsObject =>
+        o.fields.flatMap {
+          case (k, v) =>
+            detailsFromJson(v).map {
+              case (m, n) if m.isEmpty => k        -> n
+              case (m, n)              => s"$k.$m" -> n
+            }
+        }
+
+      case JsArray(values) =>
+        values
+          .map(detailsFromJson)
+          .zipWithIndex
+          .map {
+            case (s, i) =>
+              s.map {
+                case (m, n) if m.isEmpty => s"$i"    -> n
+                case (m, n)              => s"$i.$m" -> n
+              }
+          }
+          .flatten
     }
 
 }
