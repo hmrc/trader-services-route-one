@@ -4,7 +4,7 @@ import org.scalatest.concurrent.Eventually
 import org.scalatest.time.{Millis, Seconds, Span}
 import play.api.libs.json.Json
 import com.github.tomakehurst.wiremock.client.WireMock._
-import uk.gov.hmrc.traderservices.services.TraderServicesEvent.TraderServicesEvent
+import uk.gov.hmrc.traderservices.services.TraderServicesAuditEvent.TraderServicesAuditEvent
 import uk.gov.hmrc.traderservices.support.WireMockSupport
 
 trait DataStreamStubs extends Eventually {
@@ -15,30 +15,30 @@ trait DataStreamStubs extends Eventually {
 
   def verifyAuditRequestSent(
     count: Int,
-    event: TraderServicesEvent,
-    tags: Map[String, String] = Map.empty,
-    detail: Map[String, String] = Map.empty
+    event: TraderServicesAuditEvent,
+    details: Map[String, String] = Map.empty,
+    tags: Map[String, String] = Map.empty
   ): Unit =
     eventually {
       verify(
         count,
         postRequestedFor(urlPathEqualTo(auditUrl))
           .withRequestBody(similarToJson(s"""{
-          |  "auditSource": "trader-services",
+          |  "auditSource": "trader-services-route-one",
           |  "auditType": "$event",
           |  "tags": ${Json.toJson(tags)},
-          |  "detail": ${Json.toJson(detail)}
+          |  "detail": ${Json.toJson(details)}
           |}"""))
       )
     }
 
-  def verifyAuditRequestNotSent(event: TraderServicesEvent): Unit =
+  def verifyAuditRequestNotSent(event: TraderServicesAuditEvent): Unit =
     eventually {
       verify(
         0,
         postRequestedFor(urlPathEqualTo(auditUrl))
           .withRequestBody(similarToJson(s"""{
-          |  "auditSource": "trader-services",
+          |  "auditSource": "trader-services-route-one",
           |  "auditType": "$event"
           |}"""))
       )

@@ -25,7 +25,10 @@ case class TraderServicesCaseResponse(
   error: Option[ApiError] = None,
   // Represents the result
   result: Option[String] = None
-)
+) {
+  def isSuccess: Boolean = error.isEmpty && result.isDefined
+  def isDuplicate: Boolean = error.exists(_.errorCode == "409")
+}
 
 object TraderServicesCaseResponse {
   implicit val formats: Format[TraderServicesCaseResponse] =

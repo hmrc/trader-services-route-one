@@ -14,6 +14,7 @@ class PegaCreateCaseConnectorISpec extends PegaCreateCaseConnectorISpecSetup {
     "createCase" should {
       "return case reference id if success" in {
         givenPegaCreateCaseRequestSucceeds()
+        givenAuditConnector()
 
         val request = testRequest
 
@@ -30,6 +31,7 @@ class PegaCreateCaseConnectorISpec extends PegaCreateCaseConnectorISpecSetup {
 
       "return error code and message if 500" in {
         givenPegaCreateCaseRequestFails(500, "500", "Foo Bar")
+        givenAuditConnector()
 
         val request = testRequest
 
@@ -48,6 +50,7 @@ class PegaCreateCaseConnectorISpec extends PegaCreateCaseConnectorISpecSetup {
 
       "return error code and message if 403" in {
         givenPegaCreateCaseRequestFails(403, "403", "Bar Foo")
+        givenAuditConnector()
 
         val request = testRequest
 
