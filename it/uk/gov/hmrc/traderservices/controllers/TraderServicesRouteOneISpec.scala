@@ -53,8 +53,8 @@ class TraderServicesRouteOneISpec
         verifyAuditRequestSent(
           1,
           TraderServicesAuditEvent.CreateCase,
-          Map(
-            "success"             -> "true",
+          Json.obj(
+            "success"             -> true,
             "caseReferenceNumber" -> "PCE201103470D2CC8K0NH3"
           ) ++ TestData.createRequestDetailsMap
         )
@@ -86,7 +86,7 @@ class TraderServicesRouteOneISpec
         verifyAuditRequestSent(
           1,
           TraderServicesAuditEvent.CreateCase,
-          Map("success" -> "false", "duplicate" -> "false", "errorCode" -> "400")
+          Json.obj("success" -> false, "duplicate" -> false, "errorCode" -> "400")
             ++ TestData.createRequestDetailsMap
         )
       }
@@ -117,7 +117,7 @@ class TraderServicesRouteOneISpec
         verifyAuditRequestSent(
           1,
           TraderServicesAuditEvent.CreateCase,
-          Map("success" -> "false", "duplicate" -> "false", "errorCode" -> "500", "errorMessage" -> "Foo Bar")
+          Json.obj("success" -> false, "duplicate" -> false, "errorCode" -> "500", "errorMessage" -> "Foo Bar")
             ++ TestData.createRequestDetailsMap
         )
       }
@@ -148,9 +148,9 @@ class TraderServicesRouteOneISpec
         verifyAuditRequestSent(
           1,
           TraderServicesAuditEvent.CreateCase,
-          Map(
-            "success"      -> "false",
-            "duplicate"    -> "true",
+          Json.obj(
+            "success"      -> false,
+            "duplicate"    -> true,
             "errorCode"    -> "409",
             "errorMessage" -> "PCE201103470D2CC8K0NH3"
           ) ++ TestData.createRequestDetailsMap
@@ -183,9 +183,9 @@ class TraderServicesRouteOneISpec
         verifyAuditRequestSent(
           1,
           TraderServicesAuditEvent.CreateCase,
-          Map(
-            "success"      -> "false",
-            "duplicate"    -> "false",
+          Json.obj(
+            "success"      -> false,
+            "duplicate"    -> false,
             "errorCode"    -> "403",
             "errorMessage" -> "Error: empty response"
           ) ++ TestData.createRequestDetailsMap
@@ -211,9 +211,9 @@ class TraderServicesRouteOneISpec
         verifyAuditRequestSent(
           1,
           TraderServicesAuditEvent.CreateCase,
-          Map(
-            "success"      -> "false",
-            "duplicate"    -> "false",
+          Json.obj(
+            "success"      -> false,
+            "duplicate"    -> false,
             "errorCode"    -> "500",
             "errorMessage" -> "Unexpected response type of status 400, expected application/json but got text/html with body:\n<html>\\r\\n<head><title>400 Bad Request</title></head>\\r\\n<body bgcolor=\\\"white\\\">\\r\\n<center><h1>400 Bad Request</h1></center>\\r\\n<hr><center>nginx</center>\\r\\n</body>\\r\\n</html>\\r\\n\\"
           )
@@ -232,7 +232,8 @@ class TraderServicesRouteOneISpec
           caseReferenceNumber = "PCE201103470D2CC8K0NH3",
           typeOfAmendment = TypeOfAmendment.WriteResponse,
           responseText = Some("An example description."),
-          Seq()
+          uploadedFiles = Seq(),
+          eori = "GB123456789012345"
         )
 
         val result = wsClient
@@ -256,8 +257,8 @@ class TraderServicesRouteOneISpec
         verifyAuditRequestSent(
           1,
           TraderServicesAuditEvent.UpdateCase,
-          Map(
-            "success"             -> "true",
+          Json.obj(
+            "success"             -> true,
             "typeOfAmendment"     -> "WriteResponse",
             "caseReferenceNumber" -> "PCE201103470D2CC8K0NH3",
             "responseText"        -> "An example description."
@@ -275,7 +276,8 @@ class TraderServicesRouteOneISpec
           caseReferenceNumber = "PCE201103470D2CC8K0NH3",
           typeOfAmendment = TypeOfAmendment.UploadDocuments,
           responseText = None,
-          TestData.testUpdateCaseRequestUploadedFiles
+          uploadedFiles = TestData.testUpdateCaseRequestUploadedFiles,
+          eori = "GB123456789012345"
         )
 
         val result = wsClient
@@ -299,8 +301,8 @@ class TraderServicesRouteOneISpec
         verifyAuditRequestSent(
           1,
           TraderServicesAuditEvent.UpdateCase,
-          Map(
-            "success"             -> "true",
+          Json.obj(
+            "success"             -> true,
             "typeOfAmendment"     -> "UploadDocuments",
             "caseReferenceNumber" -> "PCE201103470D2CC8K0NH3"
           ) ++ TestData.updateRequestFileUploadDetailsMap
@@ -317,7 +319,8 @@ class TraderServicesRouteOneISpec
           caseReferenceNumber = "PCE201103470D2CC8K0NH3",
           typeOfAmendment = TypeOfAmendment.WriteResponseAndUploadDocuments,
           responseText = Some("An example description."),
-          TestData.testUpdateCaseRequestUploadedFiles
+          uploadedFiles = TestData.testUpdateCaseRequestUploadedFiles,
+          eori = "GB123456789012345"
         )
 
         val result = wsClient
@@ -341,8 +344,8 @@ class TraderServicesRouteOneISpec
         verifyAuditRequestSent(
           1,
           TraderServicesAuditEvent.UpdateCase,
-          Map(
-            "success"             -> "true",
+          Json.obj(
+            "success"             -> true,
             "typeOfAmendment"     -> "WriteResponseAndUploadDocuments",
             "responseText"        -> "An example description.",
             "caseReferenceNumber" -> "PCE201103470D2CC8K0NH3"
@@ -376,7 +379,7 @@ class TraderServicesRouteOneISpec
         verifyAuditRequestSent(
           1,
           TraderServicesAuditEvent.UpdateCase,
-          Map("success" -> "false", "errorCode" -> "400") ++ TestData.updateRequestDetailsMap
+          Json.obj("success" -> false, "errorCode" -> "400") ++ TestData.updateRequestDetailsMap
         )
       }
 
@@ -406,8 +409,8 @@ class TraderServicesRouteOneISpec
         verifyAuditRequestSent(
           1,
           TraderServicesAuditEvent.UpdateCase,
-          Map(
-            "success"      -> "false",
+          Json.obj(
+            "success"      -> false,
             "errorCode"    -> "500",
             "errorMessage" -> "Foo Bar"
           ) ++ TestData.updateRequestDetailsMap
@@ -440,8 +443,8 @@ class TraderServicesRouteOneISpec
         verifyAuditRequestSent(
           1,
           TraderServicesAuditEvent.UpdateCase,
-          Map(
-            "success"      -> "false",
+          Json.obj(
+            "success"      -> false,
             "errorCode"    -> "500",
             "errorMessage" -> "999: PCE201103470D2CC8K0NH3"
           ) ++ TestData.updateRequestDetailsMap
@@ -474,8 +477,8 @@ class TraderServicesRouteOneISpec
         verifyAuditRequestSent(
           1,
           TraderServicesAuditEvent.UpdateCase,
-          Map(
-            "success"      -> "false",
+          Json.obj(
+            "success"      -> false,
             "errorCode"    -> "403",
             "errorMessage" -> "Error: empty response"
           ) ++ TestData.updateRequestDetailsMap
@@ -498,7 +501,11 @@ class TraderServicesRouteOneISpec
 
         verifyAuthorisationHasHappened()
         verifyPegaUpdateCaseRequestHasHappened()
-        verifyAuditRequestSent(1, TraderServicesAuditEvent.UpdateCase, Map("success" -> "false", "errorCode" -> "500"))
+        verifyAuditRequestSent(
+          1,
+          TraderServicesAuditEvent.UpdateCase,
+          Json.obj("success" -> false, "errorCode" -> "500")
+        )
       }
     }
   }
@@ -530,41 +537,64 @@ object TestData {
       ),
       Seq(
         UploadedFile(
+          "ref-123",
           downloadUrl = "https://s3.amazonaws.com/bucket/test.png",
           uploadTimestamp = ZonedDateTime.of(2020, 10, 10, 10, 10, 10, 0, ZoneId.of("UTC")),
           checksum = "7612627146267837821637162783612ve7qwdsagjdhjabHSGUY1T31QWGAhjsahdgy1qtwy",
           fileName = "test.png",
           fileMimeType = "image/png"
+        ),
+        UploadedFile(
+          "ref-789",
+          downloadUrl = "https://s3.amazonaws.com/bucket/test.pdf",
+          uploadTimestamp = ZonedDateTime.of(2020, 10, 10, 10, 20, 20, 0, ZoneId.of("UTC")),
+          checksum = "7612627146267837821637162783612ve7qwdsagjdhjabHSGUY1T31QWGAhjsahdgy1qtwy",
+          fileName = "test.pdf",
+          fileMimeType = "application/pdf"
         )
       ),
-      "GB123456789012345"
+      eori = "GB123456789012345"
     )
 
-  val createRequestDetailsMap = Map(
-    "eori"                                                -> "GB123456789012345",
-    "questionsAnswers.import.vesselDetails.dateOfArrival" -> "2020-10-29",
-    "questionsAnswers.import.hasALVS"                     -> "false",
-    "questionsAnswers.import.vesselDetails.timeOfArrival" -> "23:45:00",
-    "questionsAnswers.import.requestType"                 -> "New",
-    "questionsAnswers.import.freightType"                 -> "Maritime",
-    "declarationDetails.epu"                              -> "2",
-    "declarationDetails.entryDate"                        -> "2020-09-02",
-    "questionsAnswers.import.routeType"                   -> "Route1",
-    "questionsAnswers.import.vesselDetails.vesselName"    -> "Vessel Name",
-    "declarationDetails.entryNumber"                      -> "A23456A",
-    "questionsAnswers.import.contactInfo.contactNumber"   -> "07123456789",
-    "questionsAnswers.import.contactInfo.contactEmail"    -> "sampelname@gmail.com",
-    "questionsAnswers.import.contactInfo.contactName"     -> "Full Name",
-    "uploadedFiles.0.fileName"                            -> "test.png",
-    "uploadedFiles.0.checksum"                            -> "7612627146267837821637162783612ve7qwdsagjdhjabHSGUY1T31QWGAhjsahdgy1qtwy",
-    "uploadedFiles.0.fileMimeType"                        -> "image/png",
-    "uploadedFiles.0.uploadTimestamp"                     -> "2020-10-10T10:10:10Z[UTC]",
-    "uploadedFiles.0.downloadUrl"                         -> "https://s3.amazonaws.com/bucket/test.png",
-    "numberOfFilesUploaded"                               -> "1"
+  val createRequestDetailsMap: JsObject = Json.obj(
+    "eori"            -> "GB123456789012345",
+    "declarationType" -> "import",
+    "declarationDetails" -> Json
+      .obj("epu" -> "2", "entryDate" -> "2020-09-02", "entryNumber" -> "A23456A"),
+    "dateOfArrival" -> "2020-10-29",
+    "hasALVS"       -> false,
+    "timeOfArrival" -> "23:45:00",
+    "requestType"   -> "New",
+    "freightType"   -> "Maritime",
+    "routeType"     -> "Route1",
+    "vesselName"    -> "Vessel Name",
+    "contactNumber" -> "07123456789",
+    "contactEmail"  -> "sampelname@gmail.com",
+    "contactName"   -> "Full Name",
+    "uploadedFiles" -> Json.arr(
+      Json.obj(
+        "upscanReference" -> "ref-123",
+        "fileName"        -> "test.png",
+        "checksum"        -> "7612627146267837821637162783612ve7qwdsagjdhjabHSGUY1T31QWGAhjsahdgy1qtwy",
+        "fileMimeType"    -> "image/png",
+        "uploadTimestamp" -> "2020-10-10T10:10:10Z[UTC]",
+        "downloadUrl"     -> "https://s3.amazonaws.com/bucket/test.png"
+      ),
+      Json.obj(
+        "upscanReference" -> "ref-789",
+        "fileName"        -> "test.pdf",
+        "checksum"        -> "7612627146267837821637162783612ve7qwdsagjdhjabHSGUY1T31QWGAhjsahdgy1qtwy",
+        "fileMimeType"    -> "application/pdf",
+        "uploadTimestamp" -> "2020-10-10T10:20:20Z[UTC]",
+        "downloadUrl"     -> "https://s3.amazonaws.com/bucket/test.pdf"
+      )
+    ),
+    "numberOfFilesUploaded" -> 2
   )
 
   val testUpdateCaseRequestUploadedFiles = Seq(
     UploadedFile(
+      "ref-123",
       "https://s3.amazonaws/bucket/12817782718728728",
       ZonedDateTime.now(),
       "A1A2C3445F65",
@@ -573,22 +603,29 @@ object TestData {
     )
   )
 
-  val updateRequestFileUploadDetailsMap = Map(
-    "uploadedFiles.0.fileName"     -> "my.pdf",
-    "uploadedFiles.0.checksum"     -> "A1A2C3445F65",
-    "uploadedFiles.0.fileMimeType" -> "application/pdf",
-    "uploadedFiles.0.downloadUrl"  -> "https://s3.amazonaws/bucket/12817782718728728",
-    "numberOfFilesUploaded"        -> "1"
-  )
+  val updateRequestFileUploadDetailsMap =
+    Json.obj(
+      "uploadedFiles" -> Json.arr(
+        Json.obj(
+          "upscanReference" -> "ref-123",
+          "fileName"        -> "my.pdf",
+          "checksum"        -> "A1A2C3445F65",
+          "fileMimeType"    -> "application/pdf",
+          "downloadUrl"     -> "https://s3.amazonaws/bucket/12817782718728728"
+        )
+      ),
+      "numberOfFilesUploaded" -> 1
+    )
 
   val testUpdateCaseRequest = TraderServicesUpdateCaseRequest(
     caseReferenceNumber = "PCE201103470D2CC8K0NH3",
     typeOfAmendment = TypeOfAmendment.WriteResponseAndUploadDocuments,
     responseText = Some("An example description."),
-    testUpdateCaseRequestUploadedFiles
+    uploadedFiles = testUpdateCaseRequestUploadedFiles,
+    eori = "GB123456789012345"
   )
 
-  val updateRequestDetailsMap = Map(
+  val updateRequestDetailsMap = Json.obj(
     "typeOfAmendment"     -> "WriteResponseAndUploadDocuments",
     "caseReferenceNumber" -> "PCE201103470D2CC8K0NH3",
     "responseText"        -> "An example description."
