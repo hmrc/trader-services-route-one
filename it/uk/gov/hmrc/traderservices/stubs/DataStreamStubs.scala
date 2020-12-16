@@ -6,6 +6,7 @@ import play.api.libs.json.Json
 import com.github.tomakehurst.wiremock.client.WireMock._
 import uk.gov.hmrc.traderservices.services.TraderServicesAuditEvent.TraderServicesAuditEvent
 import uk.gov.hmrc.traderservices.support.WireMockSupport
+import play.api.libs.json.JsObject
 
 trait DataStreamStubs extends Eventually {
   me: WireMockSupport =>
@@ -16,19 +17,21 @@ trait DataStreamStubs extends Eventually {
   def verifyAuditRequestSent(
     count: Int,
     event: TraderServicesAuditEvent,
-    details: Map[String, String] = Map.empty,
+    details: JsObject,
     tags: Map[String, String] = Map.empty
   ): Unit =
     eventually {
       verify(
         count,
         postRequestedFor(urlPathEqualTo(auditUrl))
-          .withRequestBody(similarToJson(s"""{
+          .withRequestBody(
+            similarToJson(s"""{
           |  "auditSource": "trader-services-route-one",
           |  "auditType": "$event",
           |  "tags": ${Json.toJson(tags)},
-          |  "detail": ${Json.toJson(details)}
-          |}"""))
+          |  "detail": ${Json.stringify(details)}
+          |}""")
+          )
       )
     }
 

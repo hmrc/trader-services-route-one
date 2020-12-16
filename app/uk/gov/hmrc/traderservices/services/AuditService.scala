@@ -23,7 +23,6 @@ import play.api.mvc.Request
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.audit.AuditExtensions._
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
-import uk.gov.hmrc.play.audit.model.DataEvent
 import scala.concurrent.ExecutionContext
 
 import scala.concurrent.Future
@@ -32,6 +31,15 @@ import uk.gov.hmrc.traderservices.models.TraderServicesCreateCaseRequest
 import uk.gov.hmrc.traderservices.models.TraderServicesUpdateCaseRequest
 import uk.gov.hmrc.traderservices.connectors.TraderServicesCaseResponse
 import play.api.libs.json._
+import uk.gov.hmrc.play.audit.model.ExtendedDataEvent
+import uk.gov.hmrc.traderservices.models.UploadedFile
+import uk.gov.hmrc.traderservices.models.QuestionsAnswers
+import uk.gov.hmrc.traderservices.models.DeclarationDetails
+import uk.gov.hmrc.traderservices.models.TypeOfAmendment
+import java.time.LocalDate
+import java.time.LocalTime
+import uk.gov.hmrc.traderservices.models.ImportQuestions
+import uk.gov.hmrc.traderservices.models.ExportQuestions
 
 object TraderServicesAuditEvent extends Enumeration {
   type TraderServicesAuditEvent = Value
@@ -42,92 +50,65 @@ object TraderServicesAuditEvent extends Enumeration {
 class AuditService @Inject() (val auditConnector: AuditConnector) {
 
   import TraderServicesAuditEvent._
+  import AuditService._
 
   final def auditCreateCaseEvent(createRequest: TraderServicesCreateCaseRequest)(
     createResponse: TraderServicesCaseResponse
   )(implicit hc: HeaderCarrier, request: Request[Any], ec: ExecutionContext): Future[Unit] = {
-    val details: Seq[(String, Any)] =
-      pegaResponseToDetails(createResponse, true) ++ AuditService.entityToDetails(createRequest) ++ Seq(
-        "numberOfFilesUploaded" -> createRequest.uploadedFiles.size
-      )
-    auditEvent(CreateCase, "create-case", details)
+    val details: JsValue =
+      CreateCaseAuditEventDetails.from(createRequest, createResponse)
+    auditExtendedEvent(CreateCase, "create-case", details)
   }
 
   final def auditCreateCaseErrorEvent(
     createResponse: TraderServicesCaseResponse
   )(implicit hc: HeaderCarrier, request: Request[Any], ec: ExecutionContext): Future[Unit] = {
-    val details: Seq[(String, Any)] = pegaResponseToDetails(createResponse, true)
-    auditEvent(CreateCase, "create-case", details)
+    val details: JsValue = pegaResponseToDetails(createResponse, true)
+    auditExtendedEvent(CreateCase, "create-case", details)
   }
 
   final def auditUpdateCaseEvent(updateRequest: TraderServicesUpdateCaseRequest)(
     updateResponse: TraderServicesCaseResponse
   )(implicit hc: HeaderCarrier, request: Request[Any], ec: ExecutionContext): Future[Unit] = {
-    val details: Seq[(String, Any)] =
-      pegaResponseToDetails(updateResponse, false) ++ AuditService.entityToDetails(updateRequest) ++ Seq(
-        "numberOfFilesUploaded" -> updateRequest.uploadedFiles.size
-      )
-    auditEvent(UpdateCase, "update-case", details)
+    val details: JsValue =
+      UpdateCaseAuditEventDetails.from(updateRequest, updateResponse)
+    auditExtendedEvent(UpdateCase, "update-case", details)
   }
 
   final def auditUpdateCaseErrorEvent(
     updateResponse: TraderServicesCaseResponse
   )(implicit hc: HeaderCarrier, request: Request[Any], ec: ExecutionContext): Future[Unit] = {
-    val details: Seq[(String, Any)] = pegaResponseToDetails(updateResponse, false)
-    auditEvent(UpdateCase, "update-case", details)
+    val details: JsValue = pegaResponseToDetails(updateResponse, false)
+    auditExtendedEvent(UpdateCase, "update-case", details)
   }
 
-  private def pegaResponseToDetails(
-    caseResponse: TraderServicesCaseResponse,
-    reportDuplicate: Boolean
-  ): Seq[(String, Any)] =
-    Seq(
-      "success" -> caseResponse.isSuccess
-    ) ++
-      (if (caseResponse.isSuccess)
-         Seq(
-           "caseReferenceNumber" -> caseResponse.result.get
-         )
-       else
-         (if (reportDuplicate)
-            Seq(
-              "duplicate" -> caseResponse.isDuplicate
-            )
-          else Seq.empty) ++ caseResponse.error.map(e => Seq("errorCode" -> e.errorCode)).getOrElse(Seq.empty) ++
-           caseResponse.error
-             .flatMap(_.errorMessage)
-             .map(m => Seq("errorMessage" -> m))
-             .getOrElse(Seq.empty))
-
-  private def auditEvent(
+  private def auditExtendedEvent(
     event: TraderServicesAuditEvent,
     transactionName: String,
-    details: Seq[(String, Any)]
+    details: JsValue
   )(implicit hc: HeaderCarrier, request: Request[Any], ec: ExecutionContext): Future[Unit] =
-    send(createEvent(event, transactionName, details: _*))
+    sendExtended(createExtendedEvent(event, transactionName, details))
 
-  private def createEvent(
+  private def createExtendedEvent(
     event: TraderServicesAuditEvent,
     transactionName: String,
-    details: (String, Any)*
-  )(implicit hc: HeaderCarrier, request: Request[Any], ec: ExecutionContext): DataEvent = {
-
-    val detail = hc.toAuditDetails(details.map(pair => pair._1 -> pair._2.toString): _*)
+    details: JsValue
+  )(implicit hc: HeaderCarrier, request: Request[Any], ec: ExecutionContext): ExtendedDataEvent = {
     val tags = hc.toAuditTags(transactionName, request.path)
-    DataEvent(
+    ExtendedDataEvent(
       auditSource = "trader-services-route-one",
       auditType = event.toString,
       tags = tags,
-      detail = detail
+      detail = details
     )
   }
 
-  private def send(
-    events: DataEvent*
+  private def sendExtended(
+    events: ExtendedDataEvent*
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] =
     Future {
       events.foreach { event =>
-        Try(auditConnector.sendEvent(event))
+        Try(auditConnector.sendExtendedEvent(event))
       }
     }
 
@@ -135,41 +116,149 @@ class AuditService @Inject() (val auditConnector: AuditConnector) {
 
 object AuditService {
 
-  /** Represent an entity as a sequence of key to value mappings. */
-  def entityToDetails[T: Writes](enity: T): Seq[(String, Any)] =
-    detailsFromJson(implicitly[Writes[T]].writes(enity))
+  case class CreateCaseAuditEventDetails(
+    success: Boolean,
+    eori: String,
+    caseReferenceNumber: Option[String],
+    declarationType: String,
+    declarationDetails: DeclarationDetails,
+    requestType: Option[String],
+    routeType: Option[String],
+    priorityGoods: Option[String],
+    hasALVS: Option[Boolean],
+    freightType: Option[String],
+    vesselName: Option[String],
+    dateOfArrival: Option[LocalDate],
+    timeOfArrival: Option[LocalTime],
+    contactName: Option[String],
+    contactEmail: Option[String],
+    contactNumber: Option[String],
+    numberOfFilesUploaded: Int,
+    uploadedFiles: Seq[UploadedFile]
+  )
 
-  /** Flatten JSON structure as a sequence of key to value mappings. */
-  def detailsFromJson(value: JsValue): Seq[(String, Any)] =
-    value match {
+  object CreateCaseAuditEventDetails {
 
-      case JsNull          => Seq.empty
-      case JsFalse         => Seq("" -> false)
-      case JsTrue          => Seq("" -> true)
-      case JsNumber(value) => Seq("" -> value)
-      case JsString(value) => Seq("" -> value)
+    def from(
+      createRequest: TraderServicesCreateCaseRequest,
+      createResponse: TraderServicesCaseResponse
+    ): JsValue = {
+      val requestDetails: JsObject = Json
+        .toJson(
+          createRequest.questionsAnswers match {
+            case q: ImportQuestions =>
+              CreateCaseAuditEventDetails(
+                success = true,
+                eori = createRequest.eori,
+                caseReferenceNumber = createResponse.result,
+                declarationType = "import",
+                declarationDetails = createRequest.declarationDetails,
+                requestType = Some(q.requestType.toString()),
+                routeType = Some(q.routeType.toString()),
+                priorityGoods = q.priorityGoods.map(_.toString()),
+                hasALVS = Some(q.hasALVS),
+                freightType = Some(q.freightType.toString()),
+                vesselName = q.vesselDetails.flatMap(_.vesselName),
+                dateOfArrival = q.vesselDetails.flatMap(_.dateOfArrival),
+                timeOfArrival = q.vesselDetails.flatMap(_.timeOfArrival),
+                contactName = q.contactInfo.contactName,
+                contactEmail = Some(q.contactInfo.contactEmail),
+                contactNumber = q.contactInfo.contactNumber,
+                numberOfFilesUploaded = createRequest.uploadedFiles.size,
+                uploadedFiles = createRequest.uploadedFiles
+              )
 
-      case o: JsObject =>
-        o.fields.flatMap {
-          case (k, v) =>
-            detailsFromJson(v).map {
-              case (m, n) if m.isEmpty => k        -> n
-              case (m, n)              => s"$k.$m" -> n
-            }
-        }
-
-      case JsArray(values) =>
-        values
-          .map(detailsFromJson)
-          .zipWithIndex
-          .map {
-            case (s, i) =>
-              s.map {
-                case (m, n) if m.isEmpty => s"$i"    -> n
-                case (m, n)              => s"$i.$m" -> n
-              }
+            case q: ExportQuestions =>
+              CreateCaseAuditEventDetails(
+                success = true,
+                eori = createRequest.eori,
+                caseReferenceNumber = createResponse.result,
+                declarationType = "export",
+                declarationDetails = createRequest.declarationDetails,
+                requestType = Some(q.requestType.toString()),
+                routeType = Some(q.routeType.toString()),
+                priorityGoods = Some(q.priorityGoods.toString()),
+                hasALVS = None,
+                freightType = Some(q.freightType.toString()),
+                vesselName = q.vesselDetails.flatMap(_.vesselName),
+                dateOfArrival = q.vesselDetails.flatMap(_.dateOfArrival),
+                timeOfArrival = q.vesselDetails.flatMap(_.timeOfArrival),
+                contactName = q.contactInfo.contactName,
+                contactEmail = Some(q.contactInfo.contactEmail),
+                contactNumber = q.contactInfo.contactNumber,
+                numberOfFilesUploaded = createRequest.uploadedFiles.size,
+                uploadedFiles = createRequest.uploadedFiles
+              )
           }
-          .flatten
+        )
+        .as[JsObject]
+
+      if (createResponse.result.isDefined) requestDetails
+      else
+        (requestDetails ++ pegaResponseToDetails(createResponse, true))
     }
+
+    implicit val formats: Format[CreateCaseAuditEventDetails] =
+      Json.format[CreateCaseAuditEventDetails]
+  }
+
+  case class UpdateCaseAuditEventDetails(
+    success: Boolean,
+    caseReferenceNumber: String,
+    typeOfAmendment: TypeOfAmendment,
+    responseText: Option[String] = None,
+    numberOfFilesUploaded: Int,
+    uploadedFiles: Seq[UploadedFile]
+  )
+
+  object UpdateCaseAuditEventDetails {
+
+    def from(
+      updateRequest: TraderServicesUpdateCaseRequest,
+      updateResponse: TraderServicesCaseResponse
+    ): JsValue = {
+      val requestDetails: JsObject = Json
+        .toJson(
+          UpdateCaseAuditEventDetails(
+            success = true,
+            caseReferenceNumber = updateRequest.caseReferenceNumber,
+            typeOfAmendment = updateRequest.typeOfAmendment,
+            responseText = updateRequest.responseText,
+            numberOfFilesUploaded = updateRequest.uploadedFiles.size,
+            uploadedFiles = updateRequest.uploadedFiles
+          )
+        )
+        .as[JsObject]
+
+      if (updateResponse.result.isDefined) requestDetails
+      else
+        (requestDetails ++ pegaResponseToDetails(updateResponse, false))
+    }
+
+    implicit val formats: Format[UpdateCaseAuditEventDetails] =
+      Json.format[UpdateCaseAuditEventDetails]
+  }
+
+  def pegaResponseToDetails(
+    caseResponse: TraderServicesCaseResponse,
+    reportDuplicate: Boolean
+  ): JsObject =
+    Json.obj(
+      "success" -> caseResponse.isSuccess
+    ) ++
+      (if (caseResponse.isSuccess)
+         Json.obj(
+           "caseReferenceNumber" -> caseResponse.result.get
+         )
+       else
+         (if (reportDuplicate)
+            Json.obj(
+              "duplicate" -> caseResponse.isDuplicate
+            )
+          else Json.obj()) ++ caseResponse.error.map(e => Json.obj("errorCode" -> e.errorCode)).getOrElse(Json.obj()) ++
+           caseResponse.error
+             .flatMap(_.errorMessage)
+             .map(m => Json.obj("errorMessage" -> m))
+             .getOrElse(Json.obj()))
 
 }
