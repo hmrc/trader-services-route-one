@@ -15,7 +15,7 @@
  */
 
 package uk.gov.hmrc.traderservices.controllers
-
+import uk.gov.hmrc.traderservices.utilities.CommonUtils.LocalDateTimeUtils
 import javax.inject.{Inject, Singleton}
 import play.api.libs.json.Json
 import play.api.mvc._
@@ -27,11 +27,16 @@ import uk.gov.hmrc.traderservices.wiring.AppConfig
 
 import scala.concurrent.ExecutionContext
 import uk.gov.hmrc.traderservices.connectors.PegaCreateCaseRequest
+
 import java.{util => ju}
 import views.html.defaultpages.error
+
 import scala.concurrent.Future
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.traderservices.services.AuditService
+
+import java.time.format.DateTimeFormatter
+import java.time.{Clock, LocalDateTime}
 
 @Singleton
 class TraderServicesRouteOneController @Inject() (
@@ -44,7 +49,6 @@ class TraderServicesRouteOneController @Inject() (
   cc: ControllerComponents
 )(implicit val configuration: Configuration, ec: ExecutionContext)
     extends BackendController(cc) with AuthActions with ControllerHelper {
-
   // POST /create-case
   def createCase: Action[String] =
     Action.async(parse.tolerantText) { implicit request =>
@@ -160,7 +164,8 @@ class TraderServicesRouteOneController @Inject() (
         case success: PegaCaseSuccess =>
           val response = TraderServicesCaseResponse(
             correlationId = correlationId,
-            result = Some(success.CaseID)
+            result = Some(success.CaseID),
+            generatedAt = Option(success.ProcessingDate.toLocaDateTime)
           )
           audit(response).map(_ => Created(Json.toJson(response)))
         // when request to the upstream api returns an error
@@ -205,7 +210,8 @@ class TraderServicesRouteOneController @Inject() (
         case success: PegaCaseSuccess =>
           val response = TraderServicesCaseResponse(
             correlationId = correlationId,
-            result = Some(success.CaseID)
+            result = Some(success.CaseID),
+            generatedAt = Option(success.ProcessingDate.toLocaDateTime)
           )
           audit(response)
             .map(_ => Created(Json.toJson(response)))
