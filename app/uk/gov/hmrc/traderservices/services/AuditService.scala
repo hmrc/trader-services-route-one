@@ -150,7 +150,7 @@ object AuditService {
               CreateCaseAuditEventDetails(
                 success = true,
                 eori = createRequest.eori,
-                caseReferenceNumber = createResponse.result,
+                caseReferenceNumber = createResponse.result.map(_.caseId),
                 declarationType = "import",
                 declarationDetails = createRequest.declarationDetails,
                 requestType = Some(q.requestType.toString()),
@@ -172,7 +172,7 @@ object AuditService {
               CreateCaseAuditEventDetails(
                 success = true,
                 eori = createRequest.eori,
-                caseReferenceNumber = createResponse.result,
+                caseReferenceNumber = createResponse.result.map(_.caseId),
                 declarationType = "export",
                 declarationDetails = createRequest.declarationDetails,
                 requestType = Some(q.requestType.toString()),
@@ -248,7 +248,7 @@ object AuditService {
     ) ++
       (if (caseResponse.isSuccess)
          Json.obj(
-           "caseReferenceNumber" -> caseResponse.result.get
+           "caseReferenceNumber" -> caseResponse.result.get.caseId
          )
        else
          (if (reportDuplicate)
