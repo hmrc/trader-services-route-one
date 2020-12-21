@@ -2,7 +2,6 @@ package uk.gov.hmrc.traderservices.controllers
 
 import java.time.LocalDateTime
 import java.time.LocalDate
-
 import org.scalatest.Suite
 import org.scalatestplus.play.ServerProvider
 import play.api.libs.json.Json
@@ -10,12 +9,16 @@ import play.api.libs.ws.WSClient
 import uk.gov.hmrc.traderservices.models._
 import uk.gov.hmrc.traderservices.stubs._
 import uk.gov.hmrc.traderservices.support.ServerBaseISpec
+
 import java.time.LocalTime
 import uk.gov.hmrc.traderservices.support.JsonMatchers
 import play.api.libs.json.JsObject
+import uk.gov.hmrc.traderservices.connectors.TraderServicesResult
+
 import java.{util => ju}
 import java.time.ZonedDateTime
 import uk.gov.hmrc.traderservices.services.TraderServicesAuditEvent
+
 import java.time.ZoneId
 
 class TraderServicesRouteOneISpec
@@ -45,7 +48,7 @@ class TraderServicesRouteOneISpec
         result.status shouldBe 201
         result.json.as[JsObject] should (
           haveProperty[String]("correlationId", be(correlationId)) and
-            haveProperty[String]("result", be("PCE201103470D2CC8K0NH3"))
+            haveProperty[JsObject]("result", haveProperty[String]("caseId", be("PCE201103470D2CC8K0NH3")))
         )
 
         verifyAuthorisationHasHappened()
@@ -245,7 +248,7 @@ class TraderServicesRouteOneISpec
         result.status shouldBe 201
         result.json.as[JsObject] should (
           haveProperty[String]("correlationId", be(correlationId)) and
-            haveProperty[String]("result", be("PCE201103470D2CC8K0NH3"))
+            haveProperty[JsObject]("result", haveProperty[String]("caseId", be("PCE201103470D2CC8K0NH3")))
         )
 
         verifyAuthorisationHasHappened()
@@ -289,7 +292,7 @@ class TraderServicesRouteOneISpec
         result.status shouldBe 201
         result.json.as[JsObject] should (
           haveProperty[String]("correlationId", be(correlationId)) and
-            haveProperty[String]("result", be("PCE201103470D2CC8K0NH3"))
+            haveProperty[JsObject]("result", haveProperty[String]("caseId", be("PCE201103470D2CC8K0NH3")))
         )
 
         verifyAuthorisationHasHappened()
@@ -332,7 +335,7 @@ class TraderServicesRouteOneISpec
         result.status shouldBe 201
         result.json.as[JsObject] should (
           haveProperty[String]("correlationId", be(correlationId)) and
-            haveProperty[String]("result", be("PCE201103470D2CC8K0NH3"))
+            haveProperty[JsObject]("result", haveProperty[String]("caseId", be("PCE201103470D2CC8K0NH3")))
         )
 
         verifyAuthorisationHasHappened()

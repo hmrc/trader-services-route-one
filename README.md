@@ -61,7 +61,10 @@ Example 201 success response payload
 
     {
         "correlationId" : "4327cf1f-5bcc-4c4a-acae-391588567d87",
-        "result" : "330XGBNZJO04"
+        "result" : {
+          "caseId" : "330XGBNZJO04",
+          "generatedAt" : "2020-11-03T15:29:28.601Z"
+          }
     }
 
 Example 400 error response payload
@@ -118,7 +121,10 @@ Example 201 success response payload
 
     {
         "correlationId" : "4327cf1f-5bcc-4c4a-acae-391588567d87",
-        "result" : "330XGBNZJO04"
+        "result" : {
+          "caseId" : "330XGBNZJO04",
+          "generatedAt" : "2020-11-03T15:29:28.601Z"
+          }
     }
 
 Example 400 error response payload
