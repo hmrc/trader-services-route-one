@@ -33,7 +33,6 @@ import uk.gov.hmrc.traderservices.connectors.TraderServicesCaseResponse
 import play.api.libs.json._
 import uk.gov.hmrc.play.audit.model.ExtendedDataEvent
 import uk.gov.hmrc.traderservices.models.UploadedFile
-import uk.gov.hmrc.traderservices.models.QuestionsAnswers
 import uk.gov.hmrc.traderservices.models.DeclarationDetails
 import uk.gov.hmrc.traderservices.models.TypeOfAmendment
 import java.time.LocalDate
