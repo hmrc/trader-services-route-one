@@ -116,9 +116,7 @@ object PegaCreateCaseRequest {
               case ImportFreightType.RORO     => "Road, rail or roll-on, roll-off (RORO)"
             },
             Priority = priorityGoods.map {
-              case ImportPriorityGoods.ClassADrugs           => "Class A drugs"
               case ImportPriorityGoods.ExplosivesOrFireworks => "Explosives/Fireworks"
-              case ImportPriorityGoods.HighValueArt          => "High value art"
               case ImportPriorityGoods.LiveAnimals           => "Live animals"
               case ImportPriorityGoods.HumanRemains          => "Human remains"
             },
@@ -167,9 +165,7 @@ object PegaCreateCaseRequest {
               case ExportFreightType.RORO     => "Road, rail or roll-on, roll-off (RORO)"
             },
             Priority = priorityGoods.map {
-              case ExportPriorityGoods.ClassADrugs           => "Class A drugs"
               case ExportPriorityGoods.ExplosivesOrFireworks => "Explosives/Fireworks"
-              case ExportPriorityGoods.HighValueArt          => "High value art"
               case ExportPriorityGoods.LiveAnimals           => "Live animals"
               case ExportPriorityGoods.HumanRemains          => "Human remains"
             },
