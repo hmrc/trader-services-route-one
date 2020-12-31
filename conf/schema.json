@@ -97,9 +97,7 @@
           "minLength": 0,
           "maxLength": 128,
           "enum": [
-            "Class A drugs",
             "Explosives/Fireworks",
-            "High value art",
             "Live animals",
             "Human remains"
           ]
