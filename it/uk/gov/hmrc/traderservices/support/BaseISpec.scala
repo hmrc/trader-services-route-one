@@ -3,7 +3,6 @@ package uk.gov.hmrc.traderservices.support
 import akka.stream.Materializer
 import play.api.Application
 import play.api.i18n.{Lang, Messages, MessagesApi}
-import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.mvc.Result
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
@@ -15,7 +14,6 @@ import uk.gov.hmrc.play.HeaderCarrierConverter
 abstract class BaseISpec extends UnitSpec with WireMockSupport with DataStreamStubs with MetricsTestSupport {
 
   def app: Application
-  protected def appBuilder: GuiceApplicationBuilder
 
   override def commonStubs(): Unit = {
     givenCleanMetricRegistry()

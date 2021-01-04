@@ -75,7 +75,7 @@ trait PegaCreateCaseConnectorISpecSetup extends AppBaseISpec with CreateCaseStub
 
   implicit val hc: HeaderCarrier = HeaderCarrier()
 
-  override def fakeApplication: Application = appBuilder.build()
+  override def fakeApplication: Application = defaultAppBuilder.build()
 
   lazy val connector: PegaCreateCaseConnector =
     app.injector.instanceOf[PegaCreateCaseConnector]

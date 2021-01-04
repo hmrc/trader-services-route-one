@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,15 @@
 package uk.gov.hmrc.traderservices.connectors
 
 import play.api.libs.json.{Format, Json}
+import uk.gov.hmrc.traderservices.models.FileTransferResult
 
 import java.time.LocalDateTime
 
-case class TraderServicesResult(caseId: String, generatedAt: LocalDateTime)
+case class TraderServicesResult(
+  caseId: String,
+  generatedAt: LocalDateTime,
+  fileTransferResults: Seq[FileTransferResult]
+)
 
 object TraderServicesResult {
   implicit val formats: Format[TraderServicesResult] =

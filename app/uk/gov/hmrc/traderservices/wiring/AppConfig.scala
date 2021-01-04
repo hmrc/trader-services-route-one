@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,11 +31,19 @@ trait AppConfig {
 
   val authorisedIdentifierKey: String
 
+  lazy val fileTransferUrl: String = ""
+
   val eisBaseUrl: String
 
   val eisCreateCaseApiPath: String
 
   val eisUpdateCaseApiPath: String
+
+  val eisFileTransferHost: String
+
+  val eisFileTransferPort: Int
+
+  val eisFileTransferApiPath: String
 
   val eisAuthorizationToken: String
 
@@ -52,6 +60,14 @@ class AppConfigImpl @Inject() (config: ServicesConfig) extends AppConfig {
 
   override val authorisedIdentifierKey: String = config.getString("authorisedIdentifierKey")
 
+  override lazy val fileTransferUrl: String =
+    config.getConfString(
+      "file-transfer.url",
+      throw new IllegalStateException(
+        "Missing [microservice.services.file-transfer.url] configuration property"
+      )
+    )
+
   override val eisBaseUrl: String = config.baseUrl("eis.cpr.caserequest.route1")
 
   override val eisCreateCaseApiPath: String =
@@ -67,6 +83,28 @@ class AppConfigImpl @Inject() (config: ServicesConfig) extends AppConfig {
       "eis.cpr.caserequest.route1.update.path",
       throw new IllegalStateException(
         "Missing [microservice.services.eis.cpr.caserequest.route1.update.path] configuration property"
+      )
+    )
+
+  override val eisFileTransferHost: String = config.getConfString(
+    "eis.cpr.caserequest.route1.host",
+    throw new IllegalStateException(
+      "Missing [microservice.services.eis.cpr.caserequest.route1.host] configuration property"
+    )
+  )
+
+  override val eisFileTransferPort: Int = config.getConfInt(
+    "eis.cpr.caserequest.route1.port",
+    throw new IllegalStateException(
+      "Missing [microservice.services.eis.cpr.caserequest.route1.port] configuration property"
+    )
+  )
+
+  override val eisFileTransferApiPath: String =
+    config.getConfString(
+      "eis.cpr.filetransfer.caseevidence.path",
+      throw new IllegalStateException(
+        "Missing [microservice.services.eis.cpr.filetransfer.caseevidence.path] configuration property"
       )
     )
 
