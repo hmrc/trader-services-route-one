@@ -35,6 +35,8 @@ import uk.gov.hmrc.play.audit.model.ExtendedDataEvent
 import uk.gov.hmrc.traderservices.models.UploadedFile
 import uk.gov.hmrc.traderservices.models.DeclarationDetails
 import uk.gov.hmrc.traderservices.models.TypeOfAmendment
+import uk.gov.hmrc.traderservices.models.FileTransferResult
+import uk.gov.hmrc.traderservices.models.FileTransferAudit
 import java.time.LocalDate
 import java.time.LocalTime
 import uk.gov.hmrc.traderservices.models.ImportQuestions
@@ -133,7 +135,7 @@ object AuditService {
     contactEmail: Option[String],
     contactNumber: Option[String],
     numberOfFilesUploaded: Int,
-    uploadedFiles: Seq[UploadedFile]
+    uploadedFiles: Seq[FileTransferAudit]
   )
 
   object CreateCaseAuditEventDetails {
@@ -164,7 +166,10 @@ object AuditService {
                 contactEmail = Some(q.contactInfo.contactEmail),
                 contactNumber = q.contactInfo.contactNumber,
                 numberOfFilesUploaded = createRequest.uploadedFiles.size,
-                uploadedFiles = createRequest.uploadedFiles
+                uploadedFiles = combineFileUploadAndTransferResults(
+                  createRequest.uploadedFiles,
+                  createResponse.result.map(_.fileTransferResults)
+                )
               )
 
             case q: ExportQuestions =>
@@ -186,7 +191,10 @@ object AuditService {
                 contactEmail = Some(q.contactInfo.contactEmail),
                 contactNumber = q.contactInfo.contactNumber,
                 numberOfFilesUploaded = createRequest.uploadedFiles.size,
-                uploadedFiles = createRequest.uploadedFiles
+                uploadedFiles = combineFileUploadAndTransferResults(
+                  createRequest.uploadedFiles,
+                  createResponse.result.map(_.fileTransferResults)
+                )
               )
           }
         )
@@ -207,7 +215,7 @@ object AuditService {
     typeOfAmendment: TypeOfAmendment,
     responseText: Option[String] = None,
     numberOfFilesUploaded: Int,
-    uploadedFiles: Seq[UploadedFile]
+    uploadedFiles: Seq[FileTransferAudit]
   )
 
   object UpdateCaseAuditEventDetails {
@@ -224,7 +232,10 @@ object AuditService {
             typeOfAmendment = updateRequest.typeOfAmendment,
             responseText = updateRequest.responseText,
             numberOfFilesUploaded = updateRequest.uploadedFiles.size,
-            uploadedFiles = updateRequest.uploadedFiles
+            uploadedFiles = combineFileUploadAndTransferResults(
+              updateRequest.uploadedFiles,
+              updateResponse.result.map(_.fileTransferResults)
+            )
           )
         )
         .as[JsObject]
@@ -259,5 +270,25 @@ object AuditService {
              .flatMap(_.errorMessage)
              .map(m => Json.obj("errorMessage" -> m))
              .getOrElse(Json.obj()))
+
+  def combineFileUploadAndTransferResults(
+    uploadedFiles: Seq[UploadedFile],
+    fileTransferResults: Option[Seq[FileTransferResult]]
+  ): Seq[FileTransferAudit] =
+    uploadedFiles.map { upload =>
+      val transferResultOpt = fileTransferResults.flatMap(_.find(_.upscanReference == upload.upscanReference))
+      FileTransferAudit(
+        upscanReference = upload.upscanReference,
+        downloadUrl = upload.downloadUrl,
+        uploadTimestamp = upload.uploadTimestamp,
+        checksum = upload.checksum,
+        fileName = upload.fileName,
+        fileMimeType = upload.fileMimeType,
+        transferSuccess = transferResultOpt.map(_.success).orElse(Some(false)),
+        transferHttpStatus = transferResultOpt.map(_.httpStatus),
+        transferredAt = transferResultOpt.map(_.transferredAt),
+        transferError = transferResultOpt.flatMap(_.error)
+      )
+    }
 
 }

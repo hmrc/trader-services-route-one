@@ -64,7 +64,7 @@ class CreateUpdateCaseControllerISpec
           Json.obj(
             "success"             -> true,
             "caseReferenceNumber" -> "PCE201103470D2CC8K0NH3"
-          ) ++ TestData.createRequestDetailsMap(wireMockBaseUrlAsString)
+          ) ++ TestData.createRequestDetailsMap(wireMockBaseUrlAsString, transferSuccess = true)
         )
       }
 
@@ -95,7 +95,7 @@ class CreateUpdateCaseControllerISpec
           1,
           TraderServicesAuditEvent.CreateCase,
           Json.obj("success" -> false, "duplicate" -> false, "errorCode" -> "400")
-            ++ TestData.createRequestDetailsMap(wireMockBaseUrlAsString)
+            ++ TestData.createRequestDetailsMap(wireMockBaseUrlAsString, transferSuccess = false)
         )
       }
 
@@ -126,7 +126,7 @@ class CreateUpdateCaseControllerISpec
           1,
           TraderServicesAuditEvent.CreateCase,
           Json.obj("success" -> false, "duplicate" -> false, "errorCode" -> "500", "errorMessage" -> "Foo Bar")
-            ++ TestData.createRequestDetailsMap(wireMockBaseUrlAsString)
+            ++ TestData.createRequestDetailsMap(wireMockBaseUrlAsString, transferSuccess = false)
         )
       }
 
@@ -161,7 +161,7 @@ class CreateUpdateCaseControllerISpec
             "duplicate"    -> true,
             "errorCode"    -> "409",
             "errorMessage" -> "PCE201103470D2CC8K0NH3"
-          ) ++ TestData.createRequestDetailsMap(wireMockBaseUrlAsString)
+          ) ++ TestData.createRequestDetailsMap(wireMockBaseUrlAsString, transferSuccess = false)
         )
       }
 
@@ -196,7 +196,7 @@ class CreateUpdateCaseControllerISpec
             "duplicate"    -> false,
             "errorCode"    -> "403",
             "errorMessage" -> "Error: empty response"
-          ) ++ TestData.createRequestDetailsMap(wireMockBaseUrlAsString)
+          ) ++ TestData.createRequestDetailsMap(wireMockBaseUrlAsString, transferSuccess = false)
         )
       }
 
@@ -312,7 +312,7 @@ class CreateUpdateCaseControllerISpec
             "success"             -> true,
             "typeOfAmendment"     -> "UploadDocuments",
             "caseReferenceNumber" -> "PCE201103470D2CC8K0NH3"
-          ) ++ TestData.updateRequestFileUploadDetailsMap(wireMockBaseUrlAsString)
+          ) ++ TestData.updateRequestFileUploadDetailsMap(wireMockBaseUrlAsString, transferSuccess = true)
         )
       }
 
@@ -356,7 +356,7 @@ class CreateUpdateCaseControllerISpec
             "typeOfAmendment"     -> "WriteResponseAndUploadDocuments",
             "responseText"        -> "An example description.",
             "caseReferenceNumber" -> "PCE201103470D2CC8K0NH3"
-          ) ++ TestData.updateRequestFileUploadDetailsMap(wireMockBaseUrlAsString)
+          ) ++ TestData.updateRequestFileUploadDetailsMap(wireMockBaseUrlAsString, transferSuccess = true)
         )
       }
 
@@ -387,7 +387,8 @@ class CreateUpdateCaseControllerISpec
           1,
           TraderServicesAuditEvent.UpdateCase,
           Json.obj("success" -> false, "errorCode" -> "400") ++ TestData.updateRequestDetailsMap(
-            wireMockBaseUrlAsString
+            wireMockBaseUrlAsString,
+            transferSuccess = false
           )
         )
       }
@@ -422,7 +423,7 @@ class CreateUpdateCaseControllerISpec
             "success"      -> false,
             "errorCode"    -> "500",
             "errorMessage" -> "Foo Bar"
-          ) ++ TestData.updateRequestDetailsMap(wireMockBaseUrlAsString)
+          ) ++ TestData.updateRequestDetailsMap(wireMockBaseUrlAsString, transferSuccess = false)
         )
       }
 
@@ -456,7 +457,7 @@ class CreateUpdateCaseControllerISpec
             "success"      -> false,
             "errorCode"    -> "500",
             "errorMessage" -> "999: PCE201103470D2CC8K0NH3"
-          ) ++ TestData.updateRequestDetailsMap(wireMockBaseUrlAsString)
+          ) ++ TestData.updateRequestDetailsMap(wireMockBaseUrlAsString, transferSuccess = false)
         )
       }
 
@@ -490,7 +491,7 @@ class CreateUpdateCaseControllerISpec
             "success"      -> false,
             "errorCode"    -> "403",
             "errorMessage" -> "Error: empty response"
-          ) ++ TestData.updateRequestDetailsMap(wireMockBaseUrlAsString)
+          ) ++ TestData.updateRequestDetailsMap(wireMockBaseUrlAsString, transferSuccess = false)
         )
       }
 
@@ -565,7 +566,7 @@ object TestData {
       eori = "GB123456789012345"
     )
 
-  def createRequestDetailsMap(baseUrl: String): JsObject =
+  def createRequestDetailsMap(baseUrl: String, transferSuccess: Boolean): JsObject =
     Json.obj(
       "eori"            -> "GB123456789012345",
       "declarationType" -> "import",
@@ -588,7 +589,8 @@ object TestData {
           "checksum"        -> "f55a741917d512ab4c547ea97bdfdd8df72bed5fe51b6a248e0a5a0ae58061c8",
           "fileMimeType"    -> "image/jpeg",
           "uploadTimestamp" -> "2020-10-10T10:10:10Z[UTC]",
-          "downloadUrl"     -> (baseUrl + "/bucket/test1.jpeg")
+          "downloadUrl"     -> (baseUrl + "/bucket/test1.jpeg"),
+          "transferSuccess" -> transferSuccess
         ),
         Json.obj(
           "upscanReference" -> "ref-789",
@@ -596,7 +598,8 @@ object TestData {
           "checksum"        -> "f1198e91e6fe05ccf6788b2f871f0fa90e9fab98252e81ca20238cf26119e616",
           "fileMimeType"    -> "application/routes",
           "uploadTimestamp" -> "2020-10-10T10:20:20Z[UTC]",
-          "downloadUrl"     -> (baseUrl + "/bucket/app.routes")
+          "downloadUrl"     -> (baseUrl + "/bucket/app.routes"),
+          "transferSuccess" -> transferSuccess
         )
       ),
       "numberOfFilesUploaded" -> 2
@@ -614,7 +617,7 @@ object TestData {
       )
     )
 
-  def updateRequestFileUploadDetailsMap(baseUrl: String) =
+  def updateRequestFileUploadDetailsMap(baseUrl: String, transferSuccess: Boolean) =
     Json.obj(
       "uploadedFiles" -> Json.arr(
         Json.obj(
@@ -622,7 +625,8 @@ object TestData {
           "fileName"        -> "test1.jpeg",
           "checksum"        -> "f55a741917d512ab4c547ea97bdfdd8df72bed5fe51b6a248e0a5a0ae58061c8",
           "fileMimeType"    -> "image/jpeg",
-          "downloadUrl"     -> (baseUrl + "/bucket/test1.jpeg")
+          "downloadUrl"     -> (baseUrl + "/bucket/test1.jpeg"),
+          "transferSuccess" -> transferSuccess
         )
       ),
       "numberOfFilesUploaded" -> 1
@@ -637,11 +641,11 @@ object TestData {
       eori = "GB123456789012345"
     )
 
-  def updateRequestDetailsMap(baseUrl: String) =
+  def updateRequestDetailsMap(baseUrl: String, transferSuccess: Boolean) =
     Json.obj(
       "typeOfAmendment"     -> "WriteResponseAndUploadDocuments",
       "caseReferenceNumber" -> "PCE201103470D2CC8K0NH3",
       "responseText"        -> "An example description."
-    ) ++ updateRequestFileUploadDetailsMap(baseUrl)
+    ) ++ updateRequestFileUploadDetailsMap(baseUrl, transferSuccess)
 
 }
