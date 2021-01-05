@@ -87,14 +87,14 @@ trait FileTransferFlow {
         case (Success(fileDownloadResponse), fileTransferRequest) =>
           if (fileDownloadResponse.status.isSuccess()) {
 
-            val fileEncodeAndWrapSource: Source[ByteString, Future[FileMetadata]] =
+            val fileEncodeAndWrapSource: Source[ByteString, Future[FileSizeAndChecksum]] =
               fileDownloadResponse.entity.dataBytes
                 .viaMat(EncodeFileBase64)(Keep.right)
-                .via(new WrapInEnvelope(s"""{
-                                           |    "CaseReferenceNumber":"${fileTransferRequest.caseReferenceNumber}",
-                                           |    "ApplicationType":"Route1",
-                                           |    "OriginatingSystem":"Digital",
-                                           |    "Content":"""".stripMargin, "\"\n}"))
+                .viaMat(new WrapInEnvelope(s"""{
+                                              |    "CaseReferenceNumber":"${fileTransferRequest.caseReferenceNumber}",
+                                              |    "ApplicationType":"Route1",
+                                              |    "OriginatingSystem":"Digital",
+                                              |    "Content":"""".stripMargin, "\"\n}"))(Keep.left)
 
             val eisUploadRequest = HttpRequest(
               method = HttpMethods.POST,
@@ -126,18 +126,23 @@ trait FileTransferFlow {
               entity = HttpEntity.apply(ContentTypes.`application/json`, fileEncodeAndWrapSource)
             )
 
-            Source
-              .single((eisUploadRequest, fileTransferRequest))
-              .via(uploadPool)
-          } else
-            Source.failed(
-              new Exception(
-                s"File download request [${fileTransferRequest.downloadUrl}] failed with status [${fileDownloadResponse.status.intValue()}]."
-              )
+            val source: Source[(Try[HttpResponse], TraderServicesFileTransferRequest), NotUsed] =
+              Source
+                .single((eisUploadRequest, fileTransferRequest))
+                .via(uploadPool)
+
+            source
+          } else {
+            val error = new Exception(
+              s"File download request [${fileTransferRequest.downloadUrl}] failed with status [${fileDownloadResponse.status.intValue()}]."
             )
+            Source
+              .failed(error)
+          }
 
         case (Failure(fileDownloadError), fileTransferRequest) =>
-          Source.failed(fileDownloadError)
+          Source
+            .failed(fileDownloadError)
       }
 
   final def executeSingleFileTransfer(

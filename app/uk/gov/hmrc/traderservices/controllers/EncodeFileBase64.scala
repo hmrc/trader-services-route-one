@@ -34,7 +34,7 @@ import java.security.MessageDigest
 import scala.util.Success
 import java.nio.ByteBuffer
 
-case class FileMetadata(fileSize: Int, checkumSHA256: String)
+case class FileSizeAndChecksum(fileSize: Int, checkumSHA256: String)
 
 /**
   * Custom Akka Stream stage encoding stream as base64
@@ -42,7 +42,7 @@ case class FileMetadata(fileSize: Int, checkumSHA256: String)
   */
 object EncodeFileBase64
     extends GraphStageWithMaterializedValue[FlowShape[ByteString, ByteString], Future[
-      FileMetadata
+      FileSizeAndChecksum
     ]] {
 
   val in = Inlet[ByteString]("EncodeFileBase64.in")
@@ -52,9 +52,9 @@ object EncodeFileBase64
 
   override def createLogicAndMaterializedValue(
     attr: Attributes
-  ): (GraphStageLogic, Future[FileMetadata]) = {
+  ): (GraphStageLogic, Future[FileSizeAndChecksum]) = {
 
-    val promise = Promise[FileMetadata]()
+    val promise = Promise[FileSizeAndChecksum]()
 
     val stageLogic =
       new GraphStageLogic(shape) with StageLogging {
@@ -80,7 +80,7 @@ object EncodeFileBase64
               if (!promise.isCompleted) {
                 val checksum = convertBytesToHex(digest.digest())
                 promise.complete(
-                  Success(FileMetadata(fileSize, checksum))
+                  Success(FileSizeAndChecksum(fileSize, checksum))
                 )
               }
               super.onUpstreamFinish()
