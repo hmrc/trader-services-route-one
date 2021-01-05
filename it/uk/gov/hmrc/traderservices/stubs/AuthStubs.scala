@@ -81,6 +81,6 @@ trait AuthStubs {
   }
 
   def verifyAuthorisationHasHappened(): Unit =
-    verify(1, postRequestedFor(urlEqualTo("/auth/authorise")))
+    verify(moreThanOrExactly(1), postRequestedFor(urlEqualTo("/auth/authorise")))
 
 }

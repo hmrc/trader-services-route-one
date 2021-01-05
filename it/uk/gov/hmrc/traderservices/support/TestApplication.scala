@@ -1,14 +1,11 @@
 package uk.gov.hmrc.traderservices.support
 
-import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 
 trait TestApplication {
   _: BaseISpec =>
 
-  override implicit lazy val app: Application = appBuilder.build()
-
-  protected override def appBuilder: GuiceApplicationBuilder =
+  def defaultAppBuilder =
     new GuiceApplicationBuilder()
       .configure(
         "microservice.services.auth.port"                              -> wireMockPort,
@@ -19,7 +16,7 @@ trait TestApplication {
         "metrics.enabled"                                              -> true,
         "auditing.enabled"                                             -> true,
         "auditing.consumer.baseUri.host"                               -> wireMockHost,
-        "auditing.consumer.baseUri.port"                               -> wireMockPort
+        "auditing.consumer.baseUri.port"                               -> wireMockPort,
+        "microservice.services.file-transfer.url"                      -> s"$wireMockBaseUrlAsString/transfer-file"
       )
-
 }

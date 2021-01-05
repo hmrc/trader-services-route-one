@@ -137,6 +137,36 @@ Example 400 error response payload
         }
     } 
 
+### Transfer File
+
+Method | Path | Description | Authorization
+---|---|---|---
+`POST` | `/transfer-file` | transfer file to the PEGA system | any GovernmentGateway authorized user
+
+Header | Description
+---|---
+`x-correlation-id` | message correlation UUID (optional)
+
+Response status | Description
+---|---
+202| when file transfer successful
+
+Example request payload:
+
+    {
+        "conversationId":"074c3823-c941-417e-a08b-e47b08e9a9b7",
+        "caseReferenceNumber":"Risk-123",
+        "applicationName":"Route1",
+        "upscanReference":"XYZ0123456789",
+        "downloadUrl":"https://s3.amazonaws.com/bucket/9d9e1444-2555-422e-b251-44fd2e85530a",
+        "fileName":"test.jpeg",
+        "fileMimeType":"image/jpeg",
+        "checksum":"a38d7dd155b1ec9703e5f19f839922ad5a1b0aa4f255c6c2b03e61535997d757",
+        "batchSize": 1,
+        "batchCount": 1
+    }
+
+
 ## Running the tests
 
     sbt test it:test

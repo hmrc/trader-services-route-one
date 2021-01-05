@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,9 +34,9 @@ class PegaUpdateCaseConnector @Inject() (val config: AppConfig, val http: HttpPo
 
   override val kenshooRegistry: MetricRegistry = metrics.defaultRegistry
 
-  val url = config.eisBaseUrl + config.eisUpdateCaseApiPath
+  final val url = config.eisBaseUrl + config.eisUpdateCaseApiPath
 
-  def updateCase(createCaseRequest: PegaUpdateCaseRequest, correlationId: String)(implicit
+  final def updateCase(createCaseRequest: PegaUpdateCaseRequest, correlationId: String)(implicit
     hc: HeaderCarrier,
     ec: ExecutionContext
   ): Future[PegaCaseResponse] =
