@@ -39,6 +39,7 @@ import scala.concurrent.Future
 import play.api.mvc.Result
 import play.api.mvc.Results._
 import akka.util.ByteString
+import play.api.Logger
 
 trait FileTransferFlow {
 
@@ -89,11 +90,11 @@ trait FileTransferFlow {
             val fileEncodeAndWrapSource: Source[ByteString, Future[FileMetadata]] =
               fileDownloadResponse.entity.dataBytes
                 .viaMat(EncodeFileBase64)(Keep.right)
-                .viaMat(new WrapInEnvelope(s"""{
-                                              |    "CaseReferenceNumber":"${fileTransferRequest.caseReferenceNumber}",
-                                              |    "ApplicationType":"Route1",
-                                              |    "OriginatingSystem":"Digital",
-                                              |    "Content":"""".stripMargin, "\"\n}"))(Keep.left)
+                .via(new WrapInEnvelope(s"""{
+                                           |    "CaseReferenceNumber":"${fileTransferRequest.caseReferenceNumber}",
+                                           |    "ApplicationType":"Route1",
+                                           |    "OriginatingSystem":"Digital",
+                                           |    "Content":"""".stripMargin, "\"\n}"))
 
             val eisUploadRequest = HttpRequest(
               method = HttpMethods.POST,
@@ -139,7 +140,7 @@ trait FileTransferFlow {
           Source.failed(fileDownloadError)
       }
 
-  final def executeFileTransfer(
+  final def executeSingleFileTransfer(
     fileTransferRequest: TraderServicesFileTransferRequest
   ): Future[Result] =
     Source
@@ -148,9 +149,13 @@ trait FileTransferFlow {
       .runFold[Result](Ok) {
         case (_, (Success(uploadResponse), fileTransferRequest)) =>
           uploadResponse.discardEntityBytes()
+          Logger(getClass).info(s"Successful transfer of [${fileTransferRequest.upscanReference}].")
           Status(uploadResponse.status.intValue())
 
         case (_, (Failure(uploadError), fileTransferRequest)) =>
+          Logger(getClass).error(
+            s"Transfer of [${fileTransferRequest.upscanReference}] failed because of [${uploadError.getMessage()}]."
+          )
           InternalServerError
       }
 

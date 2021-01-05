@@ -42,7 +42,7 @@ class FileTransferController @Inject() (
     Action.async(parse.tolerantText) { implicit request =>
       withAuthorised {
         withPayload[TraderServicesFileTransferRequest] { fileTransferRequest =>
-          executeFileTransfer(
+          executeSingleFileTransfer(
             fileTransferRequest
               .copy(correlationId =
                 fileTransferRequest.correlationId
