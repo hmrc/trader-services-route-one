@@ -38,6 +38,7 @@ import akka.stream.scaladsl.Source
 import scala.concurrent.Future
 import play.api.mvc.Result
 import play.api.mvc.Results._
+import akka.util.ByteString
 
 trait FileTransferFlow {
 
@@ -85,13 +86,14 @@ trait FileTransferFlow {
         case (Success(fileDownloadResponse), fileTransferRequest) =>
           if (fileDownloadResponse.status.isSuccess()) {
 
-            val fileEncodeAndWrapSource = fileDownloadResponse.entity.dataBytes
-              .viaMat(EncodeFileBase64)(Keep.right)
-              .via(new WrapInEnvelope(s"""{
-                                         |    "CaseReferenceNumber":"${fileTransferRequest.caseReferenceNumber}",
-                                         |    "ApplicationType":"Route1",
-                                         |    "OriginatingSystem":"Digital",
-                                         |    "Content":"""".stripMargin, "\"\n}"))
+            val fileEncodeAndWrapSource: Source[ByteString, Future[FileMetadata]] =
+              fileDownloadResponse.entity.dataBytes
+                .viaMat(EncodeFileBase64)(Keep.right)
+                .viaMat(new WrapInEnvelope(s"""{
+                                              |    "CaseReferenceNumber":"${fileTransferRequest.caseReferenceNumber}",
+                                              |    "ApplicationType":"Route1",
+                                              |    "OriginatingSystem":"Digital",
+                                              |    "Content":"""".stripMargin, "\"\n}"))(Keep.left)
 
             val eisUploadRequest = HttpRequest(
               method = HttpMethods.POST,
