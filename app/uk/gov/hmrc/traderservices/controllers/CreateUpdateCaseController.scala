@@ -29,6 +29,7 @@ import java.{util => ju}
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 import java.time.LocalDateTime
+import java.util.UUID
 
 @Singleton
 class CreateUpdateCaseController @Inject() (
@@ -244,7 +245,15 @@ class CreateUpdateCaseController @Inject() (
         .map {
           case (file, index) =>
             TraderServicesFileTransferRequest
-              .fromUploadedFile(caseReferenceNumber, conversationId, "Route1", uploadedFiles.size, file, index)
+              .fromUploadedFile(
+                caseReferenceNumber,
+                conversationId,
+                correlationId = UUID.randomUUID().toString(),
+                applicationName = "Route1",
+                batchSize = uploadedFiles.size,
+                batchCount = index + 1,
+                uploadedFile = file
+              )
         }
         .map(fileTransferConnector.transferFile(_, conversationId))
     )

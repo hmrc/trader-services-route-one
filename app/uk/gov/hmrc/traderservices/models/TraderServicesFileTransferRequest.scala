@@ -39,10 +39,11 @@ object TraderServicesFileTransferRequest {
   def fromUploadedFile(
     caseReferenceNumber: String,
     conversationId: String,
+    correlationId: String,
     applicationName: String,
     batchSize: Int,
-    uploadedFile: UploadedFile,
-    batchCount: Int
+    batchCount: Int,
+    uploadedFile: UploadedFile
   ): TraderServicesFileTransferRequest =
     TraderServicesFileTransferRequest(
       conversationId = conversationId,
@@ -55,7 +56,7 @@ object TraderServicesFileTransferRequest {
       fileMimeType = uploadedFile.fileMimeType,
       batchSize = batchSize,
       batchCount = batchCount,
-      correlationId = Some(UUID.randomUUID().toString())
+      correlationId = Some(correlationId)
     )
 
   implicit val formats: Format[TraderServicesFileTransferRequest] =
