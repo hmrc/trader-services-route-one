@@ -58,11 +58,11 @@ trait FileTransferFlow {
     .superPool[TraderServicesFileTransferRequest]()
 
   final val uploadPool: Flow[
-    (HttpRequest, TraderServicesFileTransferRequest),
-    (Try[HttpResponse], TraderServicesFileTransferRequest),
+    (HttpRequest, (TraderServicesFileTransferRequest, HttpRequest)),
+    (Try[HttpResponse], (TraderServicesFileTransferRequest, HttpRequest)),
     Http.HostConnectionPool
   ] = Http()
-    .cachedHostConnectionPool[TraderServicesFileTransferRequest](
+    .cachedHostConnectionPool[(TraderServicesFileTransferRequest, HttpRequest)](
       appConfig.eisFileTransferHost,
       appConfig.eisFileTransferPort
     )
@@ -74,8 +74,11 @@ trait FileTransferFlow {
     * - wraps base64 content in a json payload,
     * - forwards to the upstream endpoint.
     */
-  final val fileTransferFlow
-    : Flow[TraderServicesFileTransferRequest, (Try[HttpResponse], TraderServicesFileTransferRequest), NotUsed] =
+  final val fileTransferFlow: Flow[
+    TraderServicesFileTransferRequest,
+    (Try[HttpResponse], (TraderServicesFileTransferRequest, HttpRequest)),
+    NotUsed
+  ] =
     Flow[TraderServicesFileTransferRequest]
       .map { request =>
         (
@@ -130,9 +133,9 @@ trait FileTransferFlow {
               entity = HttpEntity.apply(ContentTypes.`application/json`, fileEncodeAndWrapSource)
             )
 
-            val source: Source[(Try[HttpResponse], TraderServicesFileTransferRequest), NotUsed] =
+            val source: Source[(Try[HttpResponse], (TraderServicesFileTransferRequest, HttpRequest)), NotUsed] =
               Source
-                .single((eisUploadRequest, fileTransferRequest))
+                .single((eisUploadRequest, (fileTransferRequest, eisUploadRequest)))
                 .via(uploadPool)
 
             source
@@ -166,7 +169,7 @@ trait FileTransferFlow {
       .single(fileTransferRequest)
       .via(fileTransferFlow)
       .runFold[Result](Ok) {
-        case (_, (Success(fileUploadResponse), fileTransferRequest)) =>
+        case (_, (Success(fileUploadResponse), (fileTransferRequest, eisUploadRequest))) =>
           if (fileUploadResponse.status.isSuccess()) {
             fileUploadResponse.discardEntityBytes()
             Logger(getClass).info(s"Successful transfer of [${fileTransferRequest.downloadUrl}].")
@@ -175,7 +178,7 @@ trait FileTransferFlow {
               .toStrict(FiniteDuration(10000, "ms"))
               .foreach { entity =>
                 Logger(getClass).error(
-                  s"Upload request of [${fileTransferRequest.downloadUrl}] failed with status [${fileUploadResponse.status
+                  s"Upload of [${fileTransferRequest.downloadUrl}] to [${eisUploadRequest.uri}] failed with status [${fileUploadResponse.status
                     .intValue()}], reason [${fileUploadResponse.status.reason}] and response body [${entity.data
                     .take(1024)
                     .decodeString(StandardCharsets.UTF_8)}]."
@@ -184,17 +187,17 @@ trait FileTransferFlow {
 
           Status(fileUploadResponse.status.intValue())
 
-        case (_, (Failure(error: FileDownloadException), fileTransferRequest)) =>
+        case (_, (Failure(error: FileDownloadException), _)) =>
           Logger(getClass).error(error.getMessage())
           InternalServerError
 
-        case (_, (Failure(error: FileDownloadFailure), fileTransferRequest)) =>
+        case (_, (Failure(error: FileDownloadFailure), _)) =>
           Logger(getClass).error(error.getMessage())
           InternalServerError
 
-        case (_, (Failure(uploadError), fileTransferRequest)) =>
+        case (_, (Failure(uploadError), (fileTransferRequest, eisUploadRequest))) =>
           Logger(getClass).error(
-            s"Upload of [${fileTransferRequest.downloadUrl}] failed because of [${uploadError.getMessage()}]."
+            s"Upload of [${fileTransferRequest.downloadUrl}] to [${eisUploadRequest.uri}] failed because of [${uploadError.getMessage()}]."
           )
           InternalServerError
       }
