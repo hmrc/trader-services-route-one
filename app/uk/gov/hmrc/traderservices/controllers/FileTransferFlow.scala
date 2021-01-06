@@ -94,14 +94,19 @@ trait FileTransferFlow {
         case (Success(fileDownloadResponse), fileTransferRequest) =>
           if (fileDownloadResponse.status.isSuccess()) {
 
+            val jsonHeader = s"""{
+                                |    "CaseReferenceNumber":"${fileTransferRequest.caseReferenceNumber}",
+                                |    "ApplicationType":"Route1",
+                                |    "OriginatingSystem":"Digital",
+                                |    "Content":"""".stripMargin
+
+            val jsonFooter = "\"\n}"
+
             val fileEncodeAndWrapSource: Source[ByteString, Future[FileSizeAndChecksum]] =
               fileDownloadResponse.entity.dataBytes
                 .viaMat(EncodeFileBase64)(Keep.right)
-                .viaMat(new WrapInEnvelope(s"""{
-                                              |    "CaseReferenceNumber":"${fileTransferRequest.caseReferenceNumber}",
-                                              |    "ApplicationType":"Route1",
-                                              |    "OriginatingSystem":"Digital",
-                                              |    "Content":"""".stripMargin, "\"\n}"))(Keep.left)
+                .prepend(Source.single(ByteString(jsonHeader, StandardCharsets.UTF_8)))
+                .concat(Source.single(ByteString(jsonFooter, StandardCharsets.UTF_8)))
 
             val eisUploadRequest = HttpRequest(
               method = HttpMethods.POST,
