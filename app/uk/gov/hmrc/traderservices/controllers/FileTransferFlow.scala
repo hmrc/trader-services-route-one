@@ -40,10 +40,14 @@ import play.api.mvc.Result
 import play.api.mvc.Results._
 import akka.util.ByteString
 import play.api.Logger
+import akka.stream.Materializer
+import scala.concurrent.duration.FiniteDuration
+import java.nio.charset.StandardCharsets
 
 trait FileTransferFlow {
 
   val appConfig: AppConfig
+  implicit val materializer: Materializer
   implicit val actorSystem: ActorSystem
 
   final val downloadPool: Flow[
@@ -132,17 +136,27 @@ trait FileTransferFlow {
                 .via(uploadPool)
 
             source
-          } else {
-            val error = new Exception(
-              s"File download request [${fileTransferRequest.downloadUrl}] failed with status [${fileDownloadResponse.status.intValue()}]."
-            )
+          } else
             Source
-              .failed(error)
-          }
+              .fromFuture(
+                fileDownloadResponse.entity
+                  .toStrict(FiniteDuration(10000, "ms"))
+                  .map(_.data.take(1024).decodeString(StandardCharsets.UTF_8))(actorSystem.dispatcher)
+              )
+              .flatMapConcat(responseBody =>
+                Source.failed(
+                  FileDownloadFailure(
+                    fileTransferRequest.downloadUrl,
+                    fileDownloadResponse.status.intValue(),
+                    fileDownloadResponse.status.reason(),
+                    responseBody
+                  )
+                )
+              )
 
         case (Failure(fileDownloadError), fileTransferRequest) =>
           Source
-            .failed(fileDownloadError)
+            .failed(FileDownloadException(fileTransferRequest.downloadUrl, fileDownloadError))
       }
 
   final def executeSingleFileTransfer(
@@ -152,16 +166,46 @@ trait FileTransferFlow {
       .single(fileTransferRequest)
       .via(fileTransferFlow)
       .runFold[Result](Ok) {
-        case (_, (Success(uploadResponse), fileTransferRequest)) =>
-          uploadResponse.discardEntityBytes()
-          Logger(getClass).info(s"Successful transfer of [${fileTransferRequest.upscanReference}].")
-          Status(uploadResponse.status.intValue())
+        case (_, (Success(fileUploadResponse), fileTransferRequest)) =>
+          if (fileUploadResponse.status.isSuccess()) {
+            fileUploadResponse.discardEntityBytes()
+            Logger(getClass).info(s"Successful transfer of [${fileTransferRequest.downloadUrl}].")
+          } else
+            fileUploadResponse.entity
+              .toStrict(FiniteDuration(10000, "ms"))
+              .foreach { entity =>
+                Logger(getClass).error(
+                  s"Upload request of [${fileTransferRequest.downloadUrl}] failed with status [${fileUploadResponse.status
+                    .intValue()}], reason [${fileUploadResponse.status.reason}] and response body [${entity.data
+                    .take(1024)
+                    .decodeString(StandardCharsets.UTF_8)}]."
+                )
+              }(actorSystem.dispatcher)
+
+          Status(fileUploadResponse.status.intValue())
+
+        case (_, (Failure(error: FileDownloadException), fileTransferRequest)) =>
+          Logger(getClass).error(error.getMessage())
+          InternalServerError
+
+        case (_, (Failure(error: FileDownloadFailure), fileTransferRequest)) =>
+          Logger(getClass).error(error.getMessage())
+          InternalServerError
 
         case (_, (Failure(uploadError), fileTransferRequest)) =>
           Logger(getClass).error(
-            s"Transfer of [${fileTransferRequest.upscanReference}] failed because of [${uploadError.getMessage()}]."
+            s"Upload of [${fileTransferRequest.downloadUrl}] failed because of [${uploadError.getMessage()}]."
           )
           InternalServerError
       }
 
 }
+
+final case class FileDownloadException(downloadUrl: String, exception: Throwable)
+    extends Exception(
+      s"Download request of [$downloadUrl] failed because of [${exception.getMessage()}]."
+    )
+final case class FileDownloadFailure(downloadUrl: String, status: Int, reason: String, responseBody: String)
+    extends Exception(
+      s"Download request of [$downloadUrl] failed with status [$status $reason] and response body [$responseBody]."
+    )

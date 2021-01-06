@@ -112,14 +112,14 @@ trait FileTransferStubs {
     status: Int,
     caseReferenceNumber: String,
     fileName: String,
-    bytes: Array[Byte],
+    responseBody: String,
     base64Content: String,
     checksum: String,
     fileSize: Int,
     xmlMetadataHeader: String
   ): String = {
     val downloadUrl =
-      stubForFileDownload(status, bytes, fileName)
+      stubForFileDownload(status, responseBody.getBytes(StandardCharsets.UTF_8), fileName)
 
     stubForFileUpload(
       202,

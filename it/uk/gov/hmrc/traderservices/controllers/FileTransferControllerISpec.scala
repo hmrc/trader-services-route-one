@@ -88,7 +88,7 @@ class FileTransferControllerISpec extends ServerBaseISpec with AuthStubs with Fi
           status,
           "Risk-123",
           fileName,
-          bytes,
+          s"This is an expected error requested by the test, no worries.",
           base64Content,
           checksum,
           fileSize,

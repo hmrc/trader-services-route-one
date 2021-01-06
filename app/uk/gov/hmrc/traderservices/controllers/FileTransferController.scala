@@ -26,6 +26,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import uk.gov.hmrc.traderservices.connectors.MicroserviceAuthConnector
 import akka.actor.ActorSystem
 import java.util.UUID
+import akka.stream.Materializer
 
 @Singleton
 class FileTransferController @Inject() (
@@ -34,8 +35,12 @@ class FileTransferController @Inject() (
   val appConfig: AppConfig,
   val auditService: AuditService,
   cc: ControllerComponents
-)(implicit val configuration: Configuration, ec: ExecutionContext, val actorSystem: ActorSystem)
-    extends BackendController(cc) with AuthActions with ControllerHelper with FileTransferFlow {
+)(implicit
+  val configuration: Configuration,
+  ec: ExecutionContext,
+  val actorSystem: ActorSystem,
+  val materializer: Materializer
+) extends BackendController(cc) with AuthActions with ControllerHelper with FileTransferFlow {
 
   // POST /transfer-file
   final val transferFile: Action[String] =
