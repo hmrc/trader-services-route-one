@@ -33,6 +33,7 @@ import scala.util.Failure
 import java.security.MessageDigest
 import scala.util.Success
 import java.nio.ByteBuffer
+import play.api.Logger
 
 case class FileSizeAndChecksum(fileSize: Int, checkumSHA256: String)
 
@@ -59,6 +60,9 @@ object EncodeFileBase64
     val stageLogic =
       new GraphStageLogic(shape) with StageLogging {
 
+        Logger(getClass).info("New file transfer is starting ...")
+        val t0 = System.nanoTime()
+
         val encoder = Base64.getEncoder()
         val digest = MessageDigest.getInstance("SHA-256")
         var fileSize: Int = 0
@@ -79,6 +83,10 @@ object EncodeFileBase64
               encodeAndPush(ByteString.empty)
               if (!promise.isCompleted) {
                 val checksum = convertBytesToHex(digest.digest())
+                Logger(getClass).info(
+                  s"Successful encoding of the file, size $fileSize bytes, SHA-256 checksum $checksum, time ${(System
+                    .nanoTime() - t0) / 10e6} ms."
+                )
                 promise.complete(
                   Success(FileSizeAndChecksum(fileSize, checksum))
                 )
@@ -100,10 +108,12 @@ object EncodeFileBase64
             }
 
             final override def onUpstreamFailure(ex: Throwable): Unit = {
-              if (!promise.isCompleted)
+              if (!promise.isCompleted) {
+                Logger(getClass).error(s"Failure of the file transfer because of ${ex.getMessage()}.")
                 promise.complete(
                   Failure(ex)
                 )
+              }
               super.onUpstreamFailure(ex)
             }
           }

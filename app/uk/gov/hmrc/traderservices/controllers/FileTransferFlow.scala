@@ -177,13 +177,13 @@ trait FileTransferFlow {
         case (_, (Success(fileUploadResponse), (fileTransferRequest, eisUploadRequest))) =>
           if (fileUploadResponse.status.isSuccess()) {
             fileUploadResponse.discardEntityBytes()
-            Logger(getClass).info(s"Successful transfer of [${fileTransferRequest.downloadUrl}].")
+            Logger(getClass).info(s"Transfer of the file [${fileTransferRequest.downloadUrl}] succeeded.")
           } else
             fileUploadResponse.entity
               .toStrict(FiniteDuration(10000, "ms"))
               .foreach { entity =>
                 Logger(getClass).error(
-                  s"Upload of [${fileTransferRequest.downloadUrl}] to [${eisUploadRequest.uri}] failed with status [${fileUploadResponse.status
+                  s"Upload request of the file [${fileTransferRequest.downloadUrl}] to [${eisUploadRequest.uri}] failed with status [${fileUploadResponse.status
                     .intValue()}], reason [${fileUploadResponse.status.reason}] and response body [${entity.data
                     .take(1024)
                     .decodeString(StandardCharsets.UTF_8)}]."
@@ -202,7 +202,7 @@ trait FileTransferFlow {
 
         case (_, (Failure(uploadError), (fileTransferRequest, eisUploadRequest))) =>
           Logger(getClass).error(
-            s"Upload of [${fileTransferRequest.downloadUrl}] to [${eisUploadRequest.uri}] failed because of [${uploadError.getMessage()}]."
+            s"Upload request of the file [${fileTransferRequest.downloadUrl}] to [${eisUploadRequest.uri}] failed because of [${uploadError.getMessage()}]."
           )
           InternalServerError
       }
@@ -211,9 +211,9 @@ trait FileTransferFlow {
 
 final case class FileDownloadException(downloadUrl: String, exception: Throwable)
     extends Exception(
-      s"Download request of [$downloadUrl] failed because of [${exception.getMessage()}]."
+      s"Download request of the file [$downloadUrl] failed because of [${exception.getMessage()}]."
     )
 final case class FileDownloadFailure(downloadUrl: String, status: Int, reason: String, responseBody: String)
     extends Exception(
-      s"Download request of [$downloadUrl] failed with status [$status $reason] and response body [$responseBody]."
+      s"Download request of the file [$downloadUrl] failed with status [$status $reason] and response body [$responseBody]."
     )
