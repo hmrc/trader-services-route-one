@@ -80,20 +80,16 @@ trait FileTransferFlow {
     NotUsed
   ] =
     Flow[TraderServicesFileTransferRequest]
-      .map { request =>
-        (
-          HttpRequest(
-            method = HttpMethods.GET,
-            uri = request.downloadUrl
-          ),
-          request
-        )
-      }
+      .map(request => (HttpRequest(method = HttpMethods.GET, uri = request.downloadUrl), request))
       .via(downloadPool)
       .flatMapConcat {
         case (Success(fileDownloadResponse), fileTransferRequest) =>
           if (fileDownloadResponse.status.isSuccess()) {
-
+            Logger(getClass).info(
+              s"Starting transfer of the file [${fileTransferRequest.downloadUrl}] with status ${fileDownloadResponse.status} and headers ${fileDownloadResponse.headers
+                .map(_.toString())
+                .mkString("[", "] [", "]")} ..."
+            )
             val jsonHeader = s"""{
                                 |    "CaseReferenceNumber":"${fileTransferRequest.caseReferenceNumber}",
                                 |    "ApplicationType":"Route1",

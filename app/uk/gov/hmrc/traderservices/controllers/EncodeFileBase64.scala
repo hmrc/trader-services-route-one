@@ -60,7 +60,7 @@ object EncodeFileBase64
     val stageLogic =
       new GraphStageLogic(shape) with StageLogging {
 
-        Logger(getClass).info("New file transfer is starting ...")
+        Logger(getClass).info("New stream encoding is starting ...")
         val t0 = System.nanoTime()
 
         val encoder = Base64.getEncoder()
@@ -84,7 +84,7 @@ object EncodeFileBase64
               if (!promise.isCompleted) {
                 val checksum = convertBytesToHex(digest.digest())
                 Logger(getClass).info(
-                  s"Successful encoding of the file, size $fileSize bytes, SHA-256 checksum $checksum, time ${(System
+                  s"Stream encoding success, size $fileSize bytes, SHA-256 checksum $checksum, time ${(System
                     .nanoTime() - t0) / 10e6} ms."
                 )
                 promise.complete(
@@ -109,7 +109,7 @@ object EncodeFileBase64
 
             final override def onUpstreamFailure(ex: Throwable): Unit = {
               if (!promise.isCompleted) {
-                Logger(getClass).error(s"Failure of the file transfer because of ${ex.getMessage()}.")
+                Logger(getClass).error(s"Stream encoding failed because of ${ex.getMessage()}.")
                 promise.complete(
                   Failure(ex)
                 )
