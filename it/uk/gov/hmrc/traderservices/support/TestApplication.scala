@@ -17,6 +17,7 @@ trait TestApplication {
         "auditing.enabled"                                             -> true,
         "auditing.consumer.baseUri.host"                               -> wireMockHost,
         "auditing.consumer.baseUri.port"                               -> wireMockPort,
-        "microservice.services.file-transfer.url"                      -> s"$wireMockBaseUrlAsString/transfer-file"
+        "microservice.services.file-transfer.url"                      -> s"$wireMockBaseUrlAsString/transfer-file",
+        "microservice.services.file-download-proxy.url"                -> s"$wireMockBaseUrlAsString/get-file"
       )
 }

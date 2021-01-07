@@ -43,8 +43,6 @@ import play.api.Logger
 import akka.stream.Materializer
 import scala.concurrent.duration.FiniteDuration
 import java.nio.charset.StandardCharsets
-import java.io.Writer
-import java.io.BufferedWriter
 import java.io.StringWriter
 import java.io.PrintWriter
 
@@ -84,7 +82,18 @@ trait FileTransferFlow {
     NotUsed
   ] =
     Flow[TraderServicesFileTransferRequest]
-      .map(request => (HttpRequest(method = HttpMethods.GET, uri = request.downloadUrl), request))
+      .map { request =>
+        (
+          HttpRequest(
+            method = HttpMethods.POST,
+            uri = appConfig.fileDownloadProxyUrl,
+            entity = HttpEntity(ContentTypes.`application/json`, s"""{"url":"${request.downloadUrl}"}"""),
+            headers =
+              request.headers.getOrElse(Seq.empty).map { case (k, v) => RawHeader(k, v) }.to[collection.immutable.Seq]
+          ),
+          request
+        )
+      }
       .via(downloadPool)
       .flatMapConcat {
         case (Success(fileDownloadResponse), fileTransferRequest) =>

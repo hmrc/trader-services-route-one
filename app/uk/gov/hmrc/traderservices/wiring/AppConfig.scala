@@ -31,7 +31,11 @@ trait AppConfig {
 
   val authorisedIdentifierKey: String
 
+  /** The absolute URL of a backend endpoint accepting FileTransferRequest, i.e. /transfer-file. */
   lazy val fileTransferUrl: String = ""
+
+  /** The URL of a frontend endpoint acting as a proxy for dowl=nloading files from the Upscan bucket. */
+  val fileDownloadProxyUrl: String
 
   val eisBaseUrl: String
 
@@ -65,6 +69,14 @@ class AppConfigImpl @Inject() (config: ServicesConfig) extends AppConfig {
       "file-transfer.url",
       throw new IllegalStateException(
         "Missing [microservice.services.file-transfer.url] configuration property"
+      )
+    )
+
+  override lazy val fileDownloadProxyUrl: String =
+    config.getConfString(
+      "file-download-proxy.url",
+      throw new IllegalStateException(
+        "Missing [microservice.services.file-download-proxy.url] configuration property"
       )
     )
 

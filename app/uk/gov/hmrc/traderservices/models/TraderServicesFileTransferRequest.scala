@@ -18,7 +18,6 @@ package uk.gov.hmrc.traderservices.models
 
 import play.api.libs.json.Json
 import play.api.libs.json.Format
-import java.util.UUID
 
 case class TraderServicesFileTransferRequest(
   conversationId: String,
@@ -31,7 +30,8 @@ case class TraderServicesFileTransferRequest(
   fileMimeType: String,
   batchSize: Int,
   batchCount: Int,
-  correlationId: Option[String] = None
+  correlationId: Option[String] = None,
+  headers: Option[Seq[(String, String)]] = None
 )
 
 object TraderServicesFileTransferRequest {

@@ -30,6 +30,7 @@ class AuthActionsISpec extends AppBaseISpec {
       override val eisFileTransferPort: Int = -1
       override val eisFileTransferApiPath: String = "???"
       override lazy val fileTransferUrl: String = "???"
+      override val fileDownloadProxyUrl: String = "???"
     }
 
     implicit val hc = HeaderCarrier()

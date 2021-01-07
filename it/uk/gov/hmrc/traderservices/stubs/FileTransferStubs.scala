@@ -200,7 +200,9 @@ trait FileTransferStubs {
     val url = s"/bucket/$fileName"
 
     stubFor(
-      get(urlEqualTo(url))
+      post(urlEqualTo("/get-file"))
+        .withRequestBody(equalToJson(s"""{"url":"$wireMockBaseUrlAsString$url"}"""))
+        .withHeader("Authorization", containing("Bearer "))
         .willReturn(
           aResponse()
             .withStatus(status)
@@ -216,7 +218,8 @@ trait FileTransferStubs {
     val url = s"/bucket/${UUID.randomUUID().toString()}"
 
     stubFor(
-      get(urlEqualTo(url))
+      post(urlEqualTo("/get-file"))
+        .withRequestBody(equalToJson(s"""{"url":"$wireMockBaseUrlAsString$url"}"""))
         .willReturn(
           aResponse()
             .withStatus(status)

@@ -42,7 +42,7 @@ class CreateUpdateCaseControllerISpec
 
         val result = wsClient
           .url(s"$baseUrl/create-case")
-          .withHttpHeaders("X-Correlation-ID" -> correlationId)
+          .withHttpHeaders("X-Correlation-ID" -> correlationId, "Authorization" -> "Bearer ABC0123456789")
           .post(Json.toJson(TestData.testCreateCaseRequest(wireMockBaseUrlAsString)))
           .futureValue
 
@@ -76,7 +76,7 @@ class CreateUpdateCaseControllerISpec
 
         val result = wsClient
           .url(s"$baseUrl/create-case")
-          .withHttpHeaders("X-Correlation-ID" -> correlationId)
+          .withHttpHeaders("X-Correlation-ID" -> correlationId, "Authorization" -> "Bearer ABC0123456789")
           .post(Json.toJson(TestData.testCreateCaseRequest(wireMockBaseUrlAsString)))
           .futureValue
 
@@ -107,7 +107,7 @@ class CreateUpdateCaseControllerISpec
 
         val result = wsClient
           .url(s"$baseUrl/create-case")
-          .withHttpHeaders("X-Correlation-ID" -> correlationId)
+          .withHttpHeaders("X-Correlation-ID" -> correlationId, "Authorization" -> "Bearer ABC0123456789")
           .post(Json.toJson(TestData.testCreateCaseRequest(wireMockBaseUrlAsString)))
           .futureValue
 
@@ -138,7 +138,7 @@ class CreateUpdateCaseControllerISpec
 
         val result = wsClient
           .url(s"$baseUrl/create-case")
-          .withHttpHeaders("X-Correlation-ID" -> correlationId)
+          .withHttpHeaders("X-Correlation-ID" -> correlationId, "Authorization" -> "Bearer ABC0123456789")
           .post(Json.toJson(TestData.testCreateCaseRequest(wireMockBaseUrlAsString)))
           .futureValue
 
@@ -173,7 +173,7 @@ class CreateUpdateCaseControllerISpec
 
         val result = wsClient
           .url(s"$baseUrl/create-case")
-          .withHttpHeaders("X-Correlation-ID" -> correlationId)
+          .withHttpHeaders("X-Correlation-ID" -> correlationId, "Authorization" -> "Bearer ABC0123456789")
           .post(Json.toJson(TestData.testCreateCaseRequest(wireMockBaseUrlAsString)))
           .futureValue
 
@@ -208,7 +208,7 @@ class CreateUpdateCaseControllerISpec
 
         val result = wsClient
           .url(s"$baseUrl/create-case")
-          .withHttpHeaders("X-Correlation-ID" -> correlationId)
+          .withHttpHeaders("X-Correlation-ID" -> correlationId, "Authorization" -> "Bearer ABC0123456789")
           .post(Json.toJson(TestData.testCreateCaseRequest(wireMockBaseUrlAsString)))
           .futureValue
 
@@ -245,7 +245,7 @@ class CreateUpdateCaseControllerISpec
 
         val result = wsClient
           .url(s"$baseUrl/update-case")
-          .withHttpHeaders("X-Correlation-ID" -> correlationId)
+          .withHttpHeaders("X-Correlation-ID" -> correlationId, "Authorization" -> "Bearer ABC0123456789")
           .post(Json.toJson(payload))
           .futureValue
 
@@ -289,7 +289,7 @@ class CreateUpdateCaseControllerISpec
 
         val result = wsClient
           .url(s"$baseUrl/update-case")
-          .withHttpHeaders("X-Correlation-ID" -> correlationId)
+          .withHttpHeaders("X-Correlation-ID" -> correlationId, "Authorization" -> "Bearer ABC0123456789")
           .post(Json.toJson(payload))
           .futureValue
 
@@ -332,7 +332,7 @@ class CreateUpdateCaseControllerISpec
 
         val result = wsClient
           .url(s"$baseUrl/update-case")
-          .withHttpHeaders("X-Correlation-ID" -> correlationId)
+          .withHttpHeaders("X-Correlation-ID" -> correlationId, "Authorization" -> "Bearer ABC0123456789")
           .post(Json.toJson(payload))
           .futureValue
 
@@ -368,7 +368,7 @@ class CreateUpdateCaseControllerISpec
 
         val result = wsClient
           .url(s"$baseUrl/update-case")
-          .withHttpHeaders("X-Correlation-ID" -> correlationId)
+          .withHttpHeaders("X-Correlation-ID" -> correlationId, "Authorization" -> "Bearer ABC0123456789")
           .post(Json.toJson(TestData.testUpdateCaseRequest(wireMockBaseUrlAsString)))
           .futureValue
 
@@ -401,7 +401,7 @@ class CreateUpdateCaseControllerISpec
 
         val result = wsClient
           .url(s"$baseUrl/update-case")
-          .withHttpHeaders("X-Correlation-ID" -> correlationId)
+          .withHttpHeaders("X-Correlation-ID" -> correlationId, "Authorization" -> "Bearer ABC0123456789")
           .post(Json.toJson(TestData.testUpdateCaseRequest(wireMockBaseUrlAsString)))
           .futureValue
 
@@ -435,7 +435,7 @@ class CreateUpdateCaseControllerISpec
 
         val result = wsClient
           .url(s"$baseUrl/update-case")
-          .withHttpHeaders("X-Correlation-ID" -> correlationId)
+          .withHttpHeaders("X-Correlation-ID" -> correlationId, "Authorization" -> "Bearer ABC0123456789")
           .post(Json.toJson(TestData.testUpdateCaseRequest(wireMockBaseUrlAsString)))
           .futureValue
 
@@ -469,7 +469,7 @@ class CreateUpdateCaseControllerISpec
 
         val result = wsClient
           .url(s"$baseUrl/update-case")
-          .withHttpHeaders("X-Correlation-ID" -> correlationId)
+          .withHttpHeaders("X-Correlation-ID" -> correlationId, "Authorization" -> "Bearer ABC0123456789")
           .post(Json.toJson(TestData.testUpdateCaseRequest(wireMockBaseUrlAsString)))
           .futureValue
 
@@ -503,7 +503,7 @@ class CreateUpdateCaseControllerISpec
 
         val result = wsClient
           .url(s"$baseUrl/update-case")
-          .withHttpHeaders("X-Correlation-ID" -> correlationId)
+          .withHttpHeaders("X-Correlation-ID" -> correlationId, "Authorization" -> "Bearer ABC0123456789")
           .post(Json.toJson(TestData.testUpdateCaseRequest(wireMockBaseUrlAsString)))
           .futureValue
 

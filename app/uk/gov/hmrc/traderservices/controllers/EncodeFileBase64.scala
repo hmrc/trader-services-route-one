@@ -79,20 +79,16 @@ object EncodeFileBase64
               encodeAndPush(input)
             }
 
-            final override def onUpstreamFinish(): Unit = {
-              encodeAndPush(ByteString.empty)
-              if (!promise.isCompleted) {
-                val checksum = convertBytesToHex(digest.digest())
-                Logger(getClass).info(
-                  s"Stream encoding success, size $fileSize bytes, SHA-256 checksum $checksum, time ${(System
-                    .nanoTime() - t0) / 10e6} ms."
+            final override def onUpstreamFinish(): Unit =
+              if (isAvailable(out)) finish()
+              else
+                setHandler(
+                  out,
+                  new OutHandler {
+                    override def onPull(): Unit =
+                      finish()
+                  }
                 )
-                promise.complete(
-                  Success(FileSizeAndChecksum(fileSize, checksum))
-                )
-              }
-              super.onUpstreamFinish()
-            }
 
             private def encodeAndPush(input: ByteString): Unit = {
               val bytes = (if (previous.remaining > 0) (ByteString(previous) ++ input) else input).toByteBuffer
@@ -105,6 +101,21 @@ object EncodeFileBase64
               val message = encoder.encode(chunk)
               previous = bytes
               push(out, ByteString(message))
+            }
+
+            def finish(): Unit = {
+              encodeAndPush(ByteString.empty)
+              if (!promise.isCompleted) {
+                val checksum = convertBytesToHex(digest.digest())
+                Logger(getClass).info(
+                  s"Stream encoding success, size $fileSize bytes, SHA-256 checksum $checksum, time ${(System
+                    .nanoTime() - t0) / 10e6} ms."
+                )
+                promise.complete(
+                  Success(FileSizeAndChecksum(fileSize, checksum))
+                )
+              }
+              super.onUpstreamFinish()
             }
 
             final override def onUpstreamFailure(ex: Throwable): Unit = {

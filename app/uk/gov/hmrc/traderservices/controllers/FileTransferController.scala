@@ -49,10 +49,11 @@ class FileTransferController @Inject() (
         withPayload[TraderServicesFileTransferRequest] { fileTransferRequest =>
           executeSingleFileTransfer(
             fileTransferRequest
-              .copy(correlationId =
-                fileTransferRequest.correlationId
+              .copy(
+                correlationId = fileTransferRequest.correlationId
                   .orElse(request.headers.get("X-Correlation-Id"))
-                  .orElse(Some(UUID.randomUUID().toString()))
+                  .orElse(Some(UUID.randomUUID().toString())),
+                headers = Some(hc.headers)
               )
           )
         } {

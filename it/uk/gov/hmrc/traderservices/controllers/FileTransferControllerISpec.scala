@@ -54,7 +54,7 @@ class FileTransferControllerISpec extends ServerBaseISpec with AuthStubs with Fi
 
       val result = wsClient
         .url(s"$url/transfer-file")
-        .withHttpHeaders("x-correlation-id" -> correlationId)
+        .withHttpHeaders("X-Correlation-ID" -> correlationId, "Authorization" -> "Bearer ABC0123456789")
         .post(Json.parse(jsonPayload))
         .futureValue
 
@@ -71,7 +71,7 @@ class FileTransferControllerISpec extends ServerBaseISpec with AuthStubs with Fi
 
       val result = wsClient
         .url(s"$url/transfer-file")
-        .withHttpHeaders("x-correlation-id" -> correlationId)
+        .withHttpHeaders("X-Correlation-ID" -> correlationId, "Authorization" -> "Bearer ABC0123456789")
         .post(Json.parse(jsonPayload))
         .futureValue
 
@@ -97,7 +97,7 @@ class FileTransferControllerISpec extends ServerBaseISpec with AuthStubs with Fi
 
       val result = wsClient
         .url(s"$url/transfer-file")
-        .withHttpHeaders("x-correlation-id" -> correlationId)
+        .withHttpHeaders("X-Correlation-ID" -> correlationId, "Authorization" -> "Bearer ABC0123456789")
         .post(Json.parse(jsonPayload))
         .futureValue
 
@@ -124,7 +124,7 @@ class FileTransferControllerISpec extends ServerBaseISpec with AuthStubs with Fi
 
       val result = wsClient
         .url(s"$url/transfer-file")
-        .withHttpHeaders("x-correlation-id" -> correlationId)
+        .withHttpHeaders("X-Correlation-ID" -> correlationId, "Authorization" -> "Bearer ABC0123456789")
         .post(Json.parse(jsonPayload))
         .futureValue
 
