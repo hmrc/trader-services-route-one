@@ -43,6 +43,10 @@ import play.api.Logger
 import akka.stream.Materializer
 import scala.concurrent.duration.FiniteDuration
 import java.nio.charset.StandardCharsets
+import java.io.Writer
+import java.io.BufferedWriter
+import java.io.StringWriter
+import java.io.PrintWriter
 
 trait FileTransferFlow {
 
@@ -197,10 +201,12 @@ trait FileTransferFlow {
           InternalServerError
 
         case (_, (Failure(uploadError), (fileTransferRequest, eisUploadRequest))) =>
+          val writer = new StringWriter()
+          uploadError.printStackTrace(new PrintWriter(writer))
+          val stackTrace = writer.getBuffer().toString()
           Logger(getClass).error(
             s"Upload request of the file [${fileTransferRequest.downloadUrl}] to [${eisUploadRequest.uri}] failed because of [${uploadError.getClass
-              .getName()}: ${uploadError.getMessage()}].",
-            uploadError
+              .getName()}: ${uploadError.getMessage()}].\n$stackTrace"
           )
           InternalServerError
       }
@@ -209,7 +215,7 @@ trait FileTransferFlow {
 
 final case class FileDownloadException(downloadUrl: String, exception: Throwable)
     extends Exception(
-      s"Download request of the file [$downloadUrl] failed because of [${exception.getMessage()}]."
+      s"Download request of the file [$downloadUrl] failed because of [${exception.getClass.getName}: ${exception.getMessage()}]."
     )
 final case class FileDownloadFailure(downloadUrl: String, status: Int, reason: String, responseBody: String)
     extends Exception(
