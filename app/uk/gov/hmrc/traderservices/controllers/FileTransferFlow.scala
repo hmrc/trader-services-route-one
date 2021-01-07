@@ -86,7 +86,7 @@ trait FileTransferFlow {
         case (Success(fileDownloadResponse), fileTransferRequest) =>
           if (fileDownloadResponse.status.isSuccess()) {
             Logger(getClass).info(
-              s"Starting transfer of the file [${fileTransferRequest.downloadUrl}] with status ${fileDownloadResponse.status} and headers ${fileDownloadResponse.headers
+              s"Starting transfer of the file [${fileTransferRequest.downloadUrl}], expected SHA-256 checksum is ${fileTransferRequest.checksum}, received http response status is ${fileDownloadResponse.status} with headers ${fileDownloadResponse.headers
                 .map(_.toString())
                 .mkString("[", "] [", "]")} ..."
             )
@@ -189,7 +189,7 @@ trait FileTransferFlow {
           Status(fileUploadResponse.status.intValue())
 
         case (_, (Failure(error: FileDownloadException), _)) =>
-          Logger(getClass).error(error.getMessage())
+          Logger(getClass).error(error.getMessage(), error.exception)
           InternalServerError
 
         case (_, (Failure(error: FileDownloadFailure), _)) =>
@@ -198,7 +198,9 @@ trait FileTransferFlow {
 
         case (_, (Failure(uploadError), (fileTransferRequest, eisUploadRequest))) =>
           Logger(getClass).error(
-            s"Upload request of the file [${fileTransferRequest.downloadUrl}] to [${eisUploadRequest.uri}] failed because of [${uploadError.getMessage()}]."
+            s"Upload request of the file [${fileTransferRequest.downloadUrl}] to [${eisUploadRequest.uri}] failed because of [${uploadError.getClass
+              .getName()}: ${uploadError.getMessage()}].",
+            uploadError
           )
           InternalServerError
       }
