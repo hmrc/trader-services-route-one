@@ -43,8 +43,6 @@ import play.api.Logger
 import akka.stream.Materializer
 import scala.concurrent.duration.FiniteDuration
 import java.nio.charset.StandardCharsets
-import java.io.Writer
-import java.io.BufferedWriter
 import java.io.StringWriter
 import java.io.PrintWriter
 
@@ -54,22 +52,12 @@ trait FileTransferFlow {
   implicit val materializer: Materializer
   implicit val actorSystem: ActorSystem
 
-  final val downloadPool: Flow[
-    (HttpRequest, TraderServicesFileTransferRequest),
-    (Try[HttpResponse], TraderServicesFileTransferRequest),
-    NotUsed
-  ] = Http()
-    .superPool[TraderServicesFileTransferRequest]()
-
-  final val uploadPool: Flow[
+  final val connectionPool: Flow[
     (HttpRequest, (TraderServicesFileTransferRequest, HttpRequest)),
     (Try[HttpResponse], (TraderServicesFileTransferRequest, HttpRequest)),
-    Http.HostConnectionPool
+    NotUsed
   ] = Http()
-    .cachedHostConnectionPool[(TraderServicesFileTransferRequest, HttpRequest)](
-      appConfig.eisFileTransferHost,
-      appConfig.eisFileTransferPort
-    )
+    .superPool[(TraderServicesFileTransferRequest, HttpRequest)]()
 
   /**
     * Akka Stream flow:
@@ -84,10 +72,13 @@ trait FileTransferFlow {
     NotUsed
   ] =
     Flow[TraderServicesFileTransferRequest]
-      .map(request => (HttpRequest(method = HttpMethods.GET, uri = request.downloadUrl), request))
-      .via(downloadPool)
+      .map { request =>
+        val httpRequest = HttpRequest(method = HttpMethods.GET, uri = request.downloadUrl)
+        (httpRequest, (request, httpRequest))
+      }
+      .via(connectionPool)
       .flatMapConcat {
-        case (Success(fileDownloadResponse), fileTransferRequest) =>
+        case (Success(fileDownloadResponse), (fileTransferRequest, _)) =>
           if (fileDownloadResponse.status.isSuccess()) {
             Logger(getClass).info(
               s"Starting transfer of the file [${fileTransferRequest.downloadUrl}], expected SHA-256 checksum is ${fileTransferRequest.checksum}, received http response status is ${fileDownloadResponse.status} with headers ${fileDownloadResponse.headers
@@ -141,7 +132,7 @@ trait FileTransferFlow {
             val source: Source[(Try[HttpResponse], (TraderServicesFileTransferRequest, HttpRequest)), NotUsed] =
               Source
                 .single((eisUploadRequest, (fileTransferRequest, eisUploadRequest)))
-                .via(uploadPool)
+                .via(connectionPool)
 
             source
           } else
@@ -162,7 +153,7 @@ trait FileTransferFlow {
                 )
               )
 
-        case (Failure(fileDownloadError), fileTransferRequest) =>
+        case (Failure(fileDownloadError), (fileTransferRequest, _)) =>
           Source
             .failed(FileDownloadException(fileTransferRequest.downloadUrl, fileDownloadError))
       }
