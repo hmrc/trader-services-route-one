@@ -81,7 +81,8 @@ trait FileTransferFlow {
         case (Success(fileDownloadResponse), (fileTransferRequest, _)) =>
           if (fileDownloadResponse.status.isSuccess()) {
             Logger(getClass).info(
-              s"Starting transfer of the file [${fileTransferRequest.downloadUrl}], expected SHA-256 checksum is ${fileTransferRequest.checksum}, received http response status is ${fileDownloadResponse.status} with headers ${fileDownloadResponse.headers
+              s"Starting transfer with [conversationId=${fileTransferRequest.conversationId}] [correlationId=${fileTransferRequest.correlationId
+                .getOrElse("")}] of the file [${fileTransferRequest.downloadUrl}], expected SHA-256 checksum is ${fileTransferRequest.checksum}, received http response status is ${fileDownloadResponse.status} with headers ${fileDownloadResponse.headers
                 .map(_.toString())
                 .mkString("[", "] [", "]")} ..."
             )
@@ -145,6 +146,8 @@ trait FileTransferFlow {
               .flatMapConcat(responseBody =>
                 Source.failed(
                   FileDownloadFailure(
+                    fileTransferRequest.conversationId,
+                    fileTransferRequest.correlationId.getOrElse(""),
                     fileTransferRequest.downloadUrl,
                     fileDownloadResponse.status.intValue(),
                     fileDownloadResponse.status.reason(),
@@ -155,7 +158,15 @@ trait FileTransferFlow {
 
         case (Failure(fileDownloadError), (fileTransferRequest, _)) =>
           Source
-            .failed(FileDownloadException(fileTransferRequest.downloadUrl, fileDownloadError))
+            .failed(
+              FileDownloadException(
+                fileTransferRequest.conversationId,
+                fileTransferRequest.correlationId
+                  .getOrElse(""),
+                fileTransferRequest.downloadUrl,
+                fileDownloadError
+              )
+            )
       }
 
   final def executeSingleFileTransfer(
@@ -168,13 +179,17 @@ trait FileTransferFlow {
         case (_, (Success(fileUploadResponse), (fileTransferRequest, eisUploadRequest))) =>
           if (fileUploadResponse.status.isSuccess()) {
             fileUploadResponse.discardEntityBytes()
-            Logger(getClass).info(s"Transfer of the file [${fileTransferRequest.downloadUrl}] succeeded.")
+            Logger(getClass).info(
+              s"Transfer [conversationId=${fileTransferRequest.conversationId}] [correlationId=${fileTransferRequest.correlationId
+                .getOrElse("")}] of the file [${fileTransferRequest.downloadUrl}] succeeded."
+            )
           } else
             fileUploadResponse.entity
               .toStrict(FiniteDuration(10000, "ms"))
               .foreach { entity =>
                 Logger(getClass).error(
-                  s"Upload request of the file [${fileTransferRequest.downloadUrl}] to [${eisUploadRequest.uri}] failed with status [${fileUploadResponse.status
+                  s"Upload request with [conversationId=${fileTransferRequest.conversationId}] [correlationId=${fileTransferRequest.correlationId
+                    .getOrElse("")}] of the file [${fileTransferRequest.downloadUrl}] to [${eisUploadRequest.uri}] failed with status [${fileUploadResponse.status
                     .intValue()}], reason [${fileUploadResponse.status.reason}] and response body [${entity.data
                     .take(1024)
                     .decodeString(StandardCharsets.UTF_8)}]."
@@ -196,7 +211,8 @@ trait FileTransferFlow {
           uploadError.printStackTrace(new PrintWriter(writer))
           val stackTrace = writer.getBuffer().toString()
           Logger(getClass).error(
-            s"Upload request of the file [${fileTransferRequest.downloadUrl}] to [${eisUploadRequest.uri}] failed because of [${uploadError.getClass
+            s"Upload request with [conversationId=${fileTransferRequest.conversationId}] [correlationId=${fileTransferRequest.correlationId
+              .getOrElse("")}] of the file [${fileTransferRequest.downloadUrl}] to [${eisUploadRequest.uri}] failed because of [${uploadError.getClass
               .getName()}: ${uploadError.getMessage()}].\n$stackTrace"
           )
           InternalServerError
@@ -204,11 +220,21 @@ trait FileTransferFlow {
 
 }
 
-final case class FileDownloadException(downloadUrl: String, exception: Throwable)
-    extends Exception(
-      s"Download request of the file [$downloadUrl] failed because of [${exception.getClass.getName}: ${exception.getMessage()}]."
+final case class FileDownloadException(
+  conversationId: String,
+  correlationId: String,
+  downloadUrl: String,
+  exception: Throwable
+) extends Exception(
+      s"Download request with [conversationId=$conversationId] [correlationId=$correlationId] of the file [$downloadUrl] failed because of [${exception.getClass.getName}: ${exception.getMessage()}]."
     )
-final case class FileDownloadFailure(downloadUrl: String, status: Int, reason: String, responseBody: String)
-    extends Exception(
-      s"Download request of the file [$downloadUrl] failed with status [$status $reason] and response body [$responseBody]."
+final case class FileDownloadFailure(
+  conversationId: String,
+  correlationId: String,
+  downloadUrl: String,
+  status: Int,
+  reason: String,
+  responseBody: String
+) extends Exception(
+      s"Download request with [conversationId=$conversationId] [correlationId=$correlationId] of the file [$downloadUrl] failed with status [$status $reason] and response body [$responseBody]."
     )
