@@ -45,7 +45,7 @@ class CreateUpdateCaseController @Inject() (
     extends BackendController(cc) with AuthActions with ControllerHelper {
   // POST /create-case
   def createCase: Action[String] =
-    Action.async(parse.tolerantText) { implicit request =>
+    Action.async(parseTolerantTextUtf8) { implicit request =>
       val correlationId = request.headers
         .get("x-correlation-id")
         .getOrElse(ju.UUID.randomUUID().toString())
@@ -89,7 +89,7 @@ class CreateUpdateCaseController @Inject() (
 
   // POST /update-case
   def updateCase: Action[String] =
-    Action.async(parse.tolerantText) { implicit request =>
+    Action.async(parseTolerantTextUtf8) { implicit request =>
       val correlationId = request.headers
         .get("x-correlation-id")
         .getOrElse(ju.UUID.randomUUID().toString())

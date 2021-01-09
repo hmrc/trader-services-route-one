@@ -11,6 +11,7 @@ import scala.util.Try
 import java.nio.charset.StandardCharsets
 import java.{util => ju}
 import uk.gov.hmrc.traderservices.models.FileTransferMetadataHeader
+import java.net.URLEncoder
 
 trait FileTransferStubs {
   me: WireMockSupport =>
@@ -197,7 +198,8 @@ trait FileTransferStubs {
     )
 
   private def stubForFileDownload(status: Int, bytes: Array[Byte], fileName: String): String = {
-    val url = s"/bucket/$fileName"
+
+    val url = s"/bucket/${URLEncoder.encode(fileName, "UTF-8")}"
 
     stubFor(
       get(urlEqualTo(url))

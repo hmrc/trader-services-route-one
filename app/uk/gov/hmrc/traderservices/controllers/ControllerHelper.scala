@@ -30,10 +30,25 @@ import uk.gov.hmrc.traderservices.models.Validator
 import cats.data.Validated.Invalid
 import cats.data.Validated.Valid
 import play.api.libs.json.Json
+import play.api.mvc.BodyParser
+import akka.util.ByteString
+import play.api.libs.streams.Accumulator
+import akka.stream.scaladsl.Sink
+import java.nio.charset.StandardCharsets
 
 trait ControllerHelper {
 
   type HandleError = (String, String) => Future[Result]
+
+  protected val parseTolerantTextUtf8: BodyParser[String] =
+    BodyParser("parseTolerantTextUtf8") { request =>
+      val decodeAsUtf8: Sink[ByteString, Future[Either[Result, String]]] =
+        Sink
+          .fold[Either[Result, String], ByteString](Right("")) {
+            case (a, b) => a.map(_ + (b.decodeString(StandardCharsets.UTF_8)))
+          }
+      Accumulator(decodeAsUtf8)
+    }
 
   protected def withPayload[T](
     f: T => Future[Result]

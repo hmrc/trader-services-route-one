@@ -26,6 +26,7 @@ class FileTransferControllerISpec extends ServerBaseISpec with AuthStubs with Fi
       testFileTransferSuccess("schema.json")
       testFileTransferSuccess("logback.xml")
       testFileTransferSuccess("test1.jpeg")
+      testFileTransferSuccess("test✱2.txt")
 
       testFileUploadFailure("prod.routes", 500)
       testFileUploadFailure("app.routes", 404)
