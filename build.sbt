@@ -16,7 +16,7 @@ lazy val scoverageSettings = {
 
 lazy val compileDeps = Seq(
   ws,
-  "uk.gov.hmrc"   %% "bootstrap-backend-play-27" % "3.2.0",
+  "uk.gov.hmrc"   %% "bootstrap-backend-play-27" % "3.3.0",
   "uk.gov.hmrc"   %% "auth-client"               % "3.2.0-play-27",
   "com.kenshoo"   %% "metrics-play"              % "2.7.3_0.8.2",
   "org.typelevel" %% "cats-core"                 % "2.3.1",
@@ -61,7 +61,7 @@ lazy val root = (project in file("."))
     scalafmtOnCompile in IntegrationTest := true,
     majorVersion := 0
   )
-  .enablePlugins(PlayScala, SbtAutoBuildPlugin, SbtGitVersioning, SbtDistributablesPlugin, SbtArtifactory)
+  .enablePlugins(PlayScala, SbtAutoBuildPlugin, SbtGitVersioning, SbtDistributablesPlugin)
 
 inConfig(IntegrationTest)(org.scalafmt.sbt.ScalafmtPlugin.scalafmtConfigSettings)
 
