@@ -58,8 +58,12 @@ class FileTransferController @Inject() (
         } {
           // when incoming request's payload validation fails
           case (errorCode, errorMessage) =>
-            Future.successful(InternalServerError)
+            Future.successful(BadRequest)
         }
       }
+        .recover {
+          // last resort fallback when request processing collapses
+          case e => InternalServerError
+        }
     }
 }

@@ -22,10 +22,7 @@ case class ContactInfo(
   contactName: Option[String],
   contactEmail: String,
   contactNumber: Option[String] = None
-) {
-
-  def isEmpty = contactEmail.isEmpty && contactNumber.isEmpty
-}
+)
 
 object ContactInfo {
   implicit val formats: Format[ContactInfo] = Json.format[ContactInfo]

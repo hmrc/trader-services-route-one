@@ -17,10 +17,7 @@
 package uk.gov.hmrc.traderservices.connectors
 
 import play.api.libs.json.{Format, Json}
-import play.api.libs.json.Reads
-import play.api.libs.json.Writes
 import play.api.libs.json.JsObject
-import play.api.libs.json.JsValue
 
 sealed trait PegaCaseResponse
 
@@ -52,14 +49,6 @@ case class PegaCaseError(
 }
 
 object PegaCaseError {
-
-  def apply(
-    timestamp: String,
-    correlationId: String,
-    errorCode: String,
-    errorMessage: String
-  ): PegaCaseError =
-    PegaCaseError(errorDetail = ErrorDetail(Some(correlationId), Some(timestamp), Some(errorCode), Some(errorMessage)))
 
   def fromStatusAndMessage(status: Int, message: String): PegaCaseError =
     PegaCaseError(errorDetail = ErrorDetail(None, None, Some(status.toString), Some(message)))
@@ -93,28 +82,5 @@ object PegaCaseError {
 
   implicit val formats: Format[PegaCaseError] =
     Json.format[PegaCaseError]
-
-}
-
-object PegaCreateCaseResponse {
-
-  implicit def reads: Reads[PegaCaseResponse] =
-    Reads {
-      case jsObject: JsObject if (jsObject \ "CaseID").isDefined =>
-        PegaCaseSuccess.formats.reads(jsObject)
-      case jsValue =>
-        PegaCaseError.formats.reads(jsValue)
-    }
-
-  implicit def writes: Writes[PegaCaseResponse] =
-    new Writes[PegaCaseResponse] {
-      override def writes(o: PegaCaseResponse): JsValue =
-        o match {
-          case s: PegaCaseSuccess =>
-            PegaCaseSuccess.formats.writes(s)
-          case e: PegaCaseError =>
-            PegaCaseError.formats.writes(e)
-        }
-    }
 
 }

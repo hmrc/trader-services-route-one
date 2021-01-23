@@ -150,6 +150,7 @@ Header | Description
 Response status | Description
 ---|---
 202| when file transfer successful
+400| when payload invalid or has not passed the validation
 
 Example request payload:
 

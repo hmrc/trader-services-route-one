@@ -50,6 +50,18 @@ class FileTransferControllerISpec extends ServerBaseISpec with AuthStubs with Fi
       testFileDownloadFault("test2.txt", 500, Fault.CONNECTION_RESET_BY_PEER)
       testFileDownloadFault("test1.jpeg", 200, Fault.EMPTY_RESPONSE)
       testFileDownloadFault("test2.txt", 500, Fault.EMPTY_RESPONSE)
+
+      "return 400 when empty payload" in {
+        givenAuthorised()
+
+        val result = wsClient
+          .url(s"$url/transfer-file")
+          .post(Json.obj())
+          .futureValue
+
+        result.status shouldBe 400
+        verifyAuthorisationHasHappened()
+      }
     }
   }
 
@@ -131,7 +143,6 @@ class FileTransferControllerISpec extends ServerBaseISpec with AuthStubs with Fi
 
       val result = wsClient
         .url(s"$url/transfer-file")
-        .withHttpHeaders("x-correlation-id" -> correlationId)
         .post(Json.parse(jsonPayload))
         .futureValue
 

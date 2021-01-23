@@ -13,10 +13,10 @@ class PegaCreateCaseConnectorISpec extends PegaCreateCaseConnectorISpecSetup {
   "PegaCreateCaseConnector" when {
     "createCase" should {
       "return case reference id if success" in {
-        givenPegaCreateCaseRequestSucceeds()
+        givenPegaCreateImportCaseRequestSucceeds()
         givenAuditConnector()
 
-        val request = testRequest
+        val request = testCreateImportCaseRequest
 
         val result = await(connector.createCase(request, correlationId))
 
@@ -33,7 +33,7 @@ class PegaCreateCaseConnectorISpec extends PegaCreateCaseConnectorISpecSetup {
         givenPegaCreateCaseRequestFails(500, "500", "Foo Bar")
         givenAuditConnector()
 
-        val request = testRequest
+        val request = testCreateImportCaseRequest
 
         val result = await(connector.createCase(request, correlationId))
 
@@ -52,7 +52,7 @@ class PegaCreateCaseConnectorISpec extends PegaCreateCaseConnectorISpecSetup {
         givenPegaCreateCaseRequestFails(403, "403", "Bar Foo")
         givenAuditConnector()
 
-        val request = testRequest
+        val request = testCreateImportCaseRequest
 
         val result = await(connector.createCase(request, correlationId))
 
@@ -82,7 +82,7 @@ trait PegaCreateCaseConnectorISpecSetup extends AppBaseISpec with CreateCaseStub
 
   val correlationId = java.util.UUID.randomUUID().toString()
 
-  val testRequest = PegaCreateCaseRequest(
+  val testCreateImportCaseRequest = PegaCreateCaseRequest(
     AcknowledgementReference = "XYZ123",
     ApplicationType = "Route1",
     OriginatingSystem = "Digital",
@@ -91,7 +91,7 @@ trait PegaCreateCaseConnectorISpecSetup extends AppBaseISpec with CreateCaseStub
       RequestType = "New",
       EntryProcessingUnit = "002",
       Route = "Route 1",
-      EntryNumber = "A23456A",
+      EntryNumber = "223456A",
       VesselName = Some("Vessel Name"),
       EntryDate = "20200902",
       VesselEstimatedDate = Some("20201029"),
