@@ -27,12 +27,14 @@ class FileTransferControllerISpec extends ServerBaseISpec with AuthStubs with Fi
       testFileTransferSuccess("logback.xml")
       testFileTransferSuccess("test1.jpeg")
       testFileTransferSuccess("test2.txt")
+      testFileTransferSuccess("empty.pdf")
 
       testFileUploadFailure("prod.routes", 500)
       testFileUploadFailure("app.routes", 404)
       testFileUploadFailure("schema.json", 501)
       testFileUploadFailure("logback.xml", 409)
       testFileUploadFailure("test1.jpeg", 403)
+      testFileUploadFailure("empty.pdf", 404)
 
       testFileDownloadFailure("prod.routes", 400)
       testFileDownloadFailure("app.routes", 403)
@@ -41,9 +43,13 @@ class FileTransferControllerISpec extends ServerBaseISpec with AuthStubs with Fi
       testFileDownloadFailure("test1.jpeg", 404)
 
       testFileDownloadFault("test1.jpeg", 200, Fault.RANDOM_DATA_THEN_CLOSE)
+      testFileDownloadFault("test2.txt", 500, Fault.RANDOM_DATA_THEN_CLOSE)
       testFileDownloadFault("test1.jpeg", 200, Fault.MALFORMED_RESPONSE_CHUNK)
+      testFileDownloadFault("test2.txt", 500, Fault.MALFORMED_RESPONSE_CHUNK)
       testFileDownloadFault("test1.jpeg", 200, Fault.CONNECTION_RESET_BY_PEER)
+      testFileDownloadFault("test2.txt", 500, Fault.CONNECTION_RESET_BY_PEER)
       testFileDownloadFault("test1.jpeg", 200, Fault.EMPTY_RESPONSE)
+      testFileDownloadFault("test2.txt", 500, Fault.EMPTY_RESPONSE)
     }
   }
 
@@ -108,7 +114,7 @@ class FileTransferControllerISpec extends ServerBaseISpec with AuthStubs with Fi
   }
 
   def testFileDownloadFault(fileName: String, status: Int, fault: Fault) {
-    s"return 500 when downloading $fileName fails because of $fault" in new FileTransferTest(fileName) {
+    s"return 500 when downloading $fileName fails because of $status with $fault" in new FileTransferTest(fileName) {
       givenAuthorised()
       val fileUrl =
         givenFileDownloadFault(

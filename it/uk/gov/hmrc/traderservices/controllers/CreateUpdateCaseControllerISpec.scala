@@ -19,6 +19,7 @@ import java.time.ZonedDateTime
 import uk.gov.hmrc.traderservices.services.TraderServicesAuditEvent
 
 import java.time.ZoneId
+import uk.gov.hmrc.traderservices.connectors.ApiError
 
 class CreateUpdateCaseControllerISpec
     extends ServerBaseISpec with AuthStubs with CreateCaseStubs with UpdateCaseStubs with FileTransferStubs
@@ -68,6 +69,47 @@ class CreateUpdateCaseControllerISpec
         )
       }
 
+      "return 400 if empty payload" in {
+        val correlationId = ju.UUID.randomUUID().toString()
+        givenAuthorised()
+
+        val result = wsClient
+          .url(s"$baseUrl/create-case")
+          .withHttpHeaders("X-Correlation-ID" -> correlationId)
+          .post(Json.obj())
+          .futureValue
+
+        val errorMessage =
+          "Invalid payload: Parsing failed due to at path /eori with error.path.missing, and at path /uploadedFiles with error.path.missing, and at path /questionsAnswers with error.path.missing, and at path /declarationDetails with error.path.missing."
+
+        result.status shouldBe 400
+        result.json.as[JsObject] should (
+          haveProperty[String]("correlationId", be(correlationId)) and
+            haveProperty[JsObject](
+              "error",
+              haveProperty[String]("errorCode", be("ERROR_JSON")) and
+                haveProperty[String](
+                  "errorMessage",
+                  be(errorMessage)
+                )
+            )
+        )
+
+        verifyAuthorisationHasHappened()
+        verifyPegaCreateCaseRequestDidNotHappen()
+        verifyAuditRequestSent(
+          1,
+          TraderServicesAuditEvent.CreateCase,
+          TestData.errorDetails(
+            wireMockBaseUrlAsString,
+            ApiError(
+              "ERROR_JSON",
+              Some(errorMessage)
+            )
+          ) ++ Json.obj("duplicate" -> false)
+        )
+      }
+
       "return 400 with error code 400 and message if PEGA API call fails with 403" in {
         givenAuthorised()
         givenPegaCreateCaseRequestFails(403, "400")
@@ -103,11 +145,8 @@ class CreateUpdateCaseControllerISpec
         givenAuthorised()
         givenPegaCreateCaseRequestFails(500, "500", "Foo Bar")
 
-        val correlationId = ju.UUID.randomUUID().toString()
-
         val result = wsClient
           .url(s"$baseUrl/create-case")
-          .withHttpHeaders("X-Correlation-ID" -> correlationId)
           .post(Json.toJson(TestData.testCreateCaseRequest(wireMockBaseUrlAsString)))
           .futureValue
 
@@ -360,6 +399,47 @@ class CreateUpdateCaseControllerISpec
         )
       }
 
+      "return 400 if empty payload" in {
+        val correlationId = ju.UUID.randomUUID().toString()
+        givenAuthorised()
+
+        val result = wsClient
+          .url(s"$baseUrl/update-case")
+          .withHttpHeaders("X-Correlation-ID" -> correlationId)
+          .post(Json.obj())
+          .futureValue
+
+        val errorMessage =
+          "Invalid payload: Parsing failed due to at path /eori with error.path.missing, and at path /uploadedFiles with error.path.missing, and at path /caseReferenceNumber with error.path.missing, and at path /typeOfAmendment with error.path.missing."
+
+        result.status shouldBe 400
+        result.json.as[JsObject] should (
+          haveProperty[String]("correlationId", be(correlationId)) and
+            haveProperty[JsObject](
+              "error",
+              haveProperty[String]("errorCode", be("ERROR_JSON")) and
+                haveProperty[String](
+                  "errorMessage",
+                  be(errorMessage)
+                )
+            )
+        )
+
+        verifyAuthorisationHasHappened()
+        verifyPegaUpdateCaseRequestDidNotHappen()
+        verifyAuditRequestSent(
+          1,
+          TraderServicesAuditEvent.UpdateCase,
+          TestData.errorDetails(
+            wireMockBaseUrlAsString,
+            ApiError(
+              "ERROR_JSON",
+              Some(errorMessage)
+            )
+          )
+        )
+      }
+
       "return 400 with error code 400 and message if PEGA API call fails with 403" in {
         givenAuthorised()
         givenPegaUpdateCaseRequestFails(403, "400")
@@ -397,11 +477,8 @@ class CreateUpdateCaseControllerISpec
         givenAuthorised()
         givenPegaUpdateCaseRequestFails(500, "500", "Foo Bar")
 
-        val correlationId = ju.UUID.randomUUID().toString()
-
         val result = wsClient
           .url(s"$baseUrl/update-case")
-          .withHttpHeaders("X-Correlation-ID" -> correlationId)
           .post(Json.toJson(TestData.testUpdateCaseRequest(wireMockBaseUrlAsString)))
           .futureValue
 
@@ -604,6 +681,13 @@ object TestData {
       ),
       "numberOfFilesUploaded" -> 2
     )
+
+  def errorDetails(baseUrl: String, error: ApiError): JsObject =
+    Json.obj(
+      "success"   -> false,
+      "errorCode" -> s"${error.errorCode}"
+    ) ++
+      (error.errorMessage.map(m => Json.obj("errorMessage" -> s"$m")).getOrElse(Json.obj()))
 
   def testUpdateCaseRequestUploadedFiles(baseUrl: String) =
     Seq(
