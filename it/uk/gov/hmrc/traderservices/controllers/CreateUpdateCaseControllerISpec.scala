@@ -20,6 +20,10 @@ import uk.gov.hmrc.traderservices.services.TraderServicesAuditEvent
 
 import java.time.ZoneId
 import uk.gov.hmrc.traderservices.connectors.ApiError
+import play.api.libs.ws.InMemoryBody
+import akka.util.ByteString
+import java.nio.charset.StandardCharsets
+import play.api.libs.ws.BodyWritable
 
 class CreateUpdateCaseControllerISpec
     extends ServerBaseISpec with AuthStubs with CreateCaseStubs with UpdateCaseStubs with FileTransferStubs
@@ -140,6 +144,55 @@ class CreateUpdateCaseControllerISpec
             ApiError(
               "ERROR_JSON",
               Some(errorMessage)
+            )
+          ) ++ Json.obj("duplicate" -> false)
+        )
+      }
+
+      "return 400 if malformed payload" in {
+        val correlationId = ju.UUID.randomUUID().toString()
+        givenAuthorised()
+
+        val jsonBodyWritable =
+          BodyWritable
+            .apply[String](s => InMemoryBody(ByteString.fromString(s, StandardCharsets.UTF_8)), "application/json")
+
+        val jsonPayload =
+          Json.prettyPrint(Json.toJson(TestData.testCreateExportCaseRequest(wireMockBaseUrlAsString)))
+
+        val result = wsClient
+          .url(s"$baseUrl/create-case")
+          .withHttpHeaders("X-Correlation-ID" -> correlationId)
+          .post(jsonPayload.take(13))(jsonBodyWritable)
+          .futureValue
+
+        result.status shouldBe 400
+        result.json.as[JsObject] should (
+          haveProperty[String]("correlationId", be(correlationId)) and
+            haveProperty[JsObject](
+              "error",
+              haveProperty[String]("errorCode", be("ERROR_UNKNOWN")) and
+                haveProperty[String](
+                  "errorMessage",
+                  be(
+                    "Could not parse payload due to Unexpected end-of-input in field name\n at [Source: (String)\"{\n  \"declarat\"; line: 2, column: 12]."
+                  )
+                )
+            )
+        )
+
+        verifyAuthorisationHasHappened()
+        verifyPegaCreateCaseRequestDidNotHappen()
+        verifyAuditRequestSent(
+          1,
+          TraderServicesAuditEvent.CreateCase,
+          TestData.errorDetails(
+            wireMockBaseUrlAsString,
+            ApiError(
+              "ERROR_UNKNOWN",
+              Some(
+                "Could not parse payload due to Unexpected end-of-input in field name\n at [Source: (String)\"{\n  \"declarat\"; line: 2, column: 12]."
+              )
             )
           ) ++ Json.obj("duplicate" -> false)
         )
@@ -469,6 +522,59 @@ class CreateUpdateCaseControllerISpec
             wireMockBaseUrlAsString,
             ApiError(
               "ERROR_JSON",
+              Some(errorMessage)
+            )
+          )
+        )
+      }
+
+      "return 400 if malformed payload" in {
+        val correlationId = ju.UUID.randomUUID().toString()
+        givenAuthorised()
+
+        val jsonBodyWritable =
+          BodyWritable
+            .apply[String](s => InMemoryBody(ByteString.fromString(s, StandardCharsets.UTF_8)), "application/json")
+
+        val payload = TraderServicesUpdateCaseRequest(
+          caseReferenceNumber = "PCE201103470D2CC8K0NH3",
+          typeOfAmendment = TypeOfAmendment.WriteResponseAndUploadDocuments,
+          responseText = Some("An example description."),
+          uploadedFiles = TestData.testUpdateCaseRequestUploadedFiles(wireMockBaseUrlAsString),
+          eori = "GB123456789012345"
+        )
+
+        val result = wsClient
+          .url(s"$baseUrl/update-case")
+          .withHttpHeaders("X-Correlation-ID" -> correlationId)
+          .post(Json.prettyPrint(Json.toJson(payload)).take(21))(jsonBodyWritable)
+          .futureValue
+
+        val errorMessage =
+          "Could not parse payload due to Unexpected end-of-input in field name\n at [Source: (String)\"{\n  \"caseReferenceNum\"; line: 2, column: 20]."
+
+        result.status shouldBe 400
+        result.json.as[JsObject] should (
+          haveProperty[String]("correlationId", be(correlationId)) and
+            haveProperty[JsObject](
+              "error",
+              haveProperty[String]("errorCode", be("ERROR_UNKNOWN")) and
+                haveProperty[String](
+                  "errorMessage",
+                  be(errorMessage)
+                )
+            )
+        )
+
+        verifyAuthorisationHasHappened()
+        verifyPegaUpdateCaseRequestDidNotHappen()
+        verifyAuditRequestSent(
+          1,
+          TraderServicesAuditEvent.UpdateCase,
+          TestData.errorDetails(
+            wireMockBaseUrlAsString,
+            ApiError(
+              "ERROR_UNKNOWN",
               Some(errorMessage)
             )
           )

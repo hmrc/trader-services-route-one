@@ -12,6 +12,9 @@ import java.nio.charset.StandardCharsets
 import java.{util => ju}
 import uk.gov.hmrc.traderservices.models.FileTransferMetadataHeader
 import java.net.URLEncoder
+import org.xmlunit.builder.Input
+import java.io.InputStream
+import java.io.ByteArrayInputStream
 
 trait FileTransferStubs {
   me: WireMockSupport =>
@@ -239,10 +242,16 @@ trait FileTransferStubs {
         )
     )
 
-  abstract class FileTransferTest(fileName: String) {
+  abstract class FileTransferTest(fileName: String, bytesOpt: Option[Array[Byte]] = None) {
     val correlationId = ju.UUID.randomUUID().toString()
     val conversationId = ju.UUID.randomUUID().toString()
-    val (bytes, base64Content, checksum, fileSize) = load(s"/$fileName")
+    val (bytes, base64Content, checksum, fileSize) = bytesOpt match {
+      case Some(bytes) =>
+        read(new ByteArrayInputStream(bytes))
+
+      case None =>
+        load(s"/$fileName")
+    }
     val xmlMetadataHeader = FileTransferMetadataHeader(
       caseReferenceNumber = "Risk-123",
       applicationName = "Route1",
@@ -281,45 +290,48 @@ trait FileTransferStubs {
       .get(resource)
       .getOrElse(
         Try {
-          val digest = MessageDigest.getInstance("SHA-256")
-          val chunk = Array.ofDim[Byte](chunkSize)
           val io = getClass.getResourceAsStream(resource)
-          val encoder = Base64.getEncoder()
-          var hasNext = true
-          val rawBuffer = ByteBuffer.allocate(10 * 1024 * 1024)
-          val encodedBuffer = ByteBuffer.allocate(14 * 1024 * 1024)
-          var fileSize = 0
-          while (hasNext) {
-            for (i <- 0 until chunkSize) chunk.update(i, 0)
-            val readLength = io.read(chunk)
-            hasNext = readLength != -1
-            if (readLength >= 0) {
-              fileSize = fileSize + readLength
-              val chunkBytes =
-                if (readLength == chunk.length) chunk
-                else chunk.take(readLength)
-              digest.update(chunkBytes)
-              val encoded = encoder.encode(chunkBytes)
-              encodedBuffer.put(encoded)
-              rawBuffer.put(chunkBytes)
-            }
-          }
-          val bytes = Array.ofDim[Byte](rawBuffer.position())
-          rawBuffer.clear()
-          rawBuffer.get(bytes)
-          val encoded = Array.ofDim[Byte](encodedBuffer.position())
-          encodedBuffer.clear()
-          encodedBuffer.get(encoded)
-          io.close()
-          val checksum = digest.digest()
-          val contentBase64 = new String(encoded, StandardCharsets.UTF_8)
-          val result =
-            (bytes, contentBase64, convertBytesToHex(checksum), fileSize)
+          val result = read(io)
           cache.update(resource, result)
           result
         }
           .fold(e => throw new RuntimeException(s"Could not load $resource file", e), identity)
       )
+
+  final def read(io: InputStream): (Array[Byte], String, String, Int) = {
+    val digest = MessageDigest.getInstance("SHA-256")
+    val chunk = Array.ofDim[Byte](chunkSize)
+    val encoder = Base64.getEncoder()
+    var hasNext = true
+    val rawBuffer = ByteBuffer.allocate(10 * 1024 * 1024)
+    val encodedBuffer = ByteBuffer.allocate(14 * 1024 * 1024)
+    var fileSize = 0
+    while (hasNext) {
+      for (i <- 0 until chunkSize) chunk.update(i, 0)
+      val readLength = io.read(chunk)
+      hasNext = readLength != -1
+      if (readLength >= 0) {
+        fileSize = fileSize + readLength
+        val chunkBytes =
+          if (readLength == chunk.length) chunk
+          else chunk.take(readLength)
+        digest.update(chunkBytes)
+        val encoded = encoder.encode(chunkBytes)
+        encodedBuffer.put(encoded)
+        rawBuffer.put(chunkBytes)
+      }
+    }
+    val bytes = Array.ofDim[Byte](rawBuffer.position())
+    rawBuffer.clear()
+    rawBuffer.get(bytes)
+    val encoded = Array.ofDim[Byte](encodedBuffer.position())
+    encodedBuffer.clear()
+    encodedBuffer.get(encoded)
+    io.close()
+    val checksum = digest.digest()
+    val contentBase64 = new String(encoded, StandardCharsets.UTF_8)
+    (bytes, contentBase64, convertBytesToHex(checksum), fileSize)
+  }
 
   private def convertBytesToHex(bytes: Array[Byte]): String = {
     val sb = new StringBuilder

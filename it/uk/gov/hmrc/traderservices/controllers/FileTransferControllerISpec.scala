@@ -9,6 +9,10 @@ import uk.gov.hmrc.traderservices.stubs._
 import uk.gov.hmrc.traderservices.support.ServerBaseISpec
 import uk.gov.hmrc.traderservices.support.JsonMatchers
 import com.github.tomakehurst.wiremock.http.Fault
+import play.api.libs.ws.BodyWritable
+import java.nio.charset.StandardCharsets
+import play.api.libs.ws.InMemoryBody
+import akka.util.ByteString
 
 class FileTransferControllerISpec extends ServerBaseISpec with AuthStubs with FileTransferStubs with JsonMatchers {
   this: Suite with ServerProvider =>
@@ -19,23 +23,38 @@ class FileTransferControllerISpec extends ServerBaseISpec with AuthStubs with Fi
 
   val wsClient = app.injector.instanceOf[WSClient]
 
+  val emptyArray = Array.emptyByteArray
+  val oneByteArray = Array.fill[Byte](1)(255.toByte)
+  val twoBytesArray = Array.fill[Byte](2)(255.toByte)
+  val threeBytesArray = Array.fill[Byte](3)(255.toByte)
+
   "FileTransferController" when {
     "POST /transfer-file" should {
+      testFileTransferSuccess("emptyArray", Some(emptyArray))
+      testFileTransferSuccess("oneByteArray", Some(oneByteArray))
+      testFileTransferSuccess("twoBytesArray", Some(twoBytesArray))
+      testFileTransferSuccess("threeBytesArray", Some(threeBytesArray))
       testFileTransferSuccess("prod.routes")
       testFileTransferSuccess("app.routes")
       testFileTransferSuccess("schema.json")
       testFileTransferSuccess("logback.xml")
       testFileTransferSuccess("test1.jpeg")
       testFileTransferSuccess("test2.txt")
-      testFileTransferSuccess("empty.pdf")
 
+      testFileUploadFailure("emptyArray", 404, Some(emptyArray))
+      testFileUploadFailure("oneByteArray", 404, Some(oneByteArray))
+      testFileUploadFailure("twoBytesArray", 404, Some(twoBytesArray))
+      testFileUploadFailure("threeBytesArray", 404, Some(threeBytesArray))
       testFileUploadFailure("prod.routes", 500)
       testFileUploadFailure("app.routes", 404)
       testFileUploadFailure("schema.json", 501)
       testFileUploadFailure("logback.xml", 409)
       testFileUploadFailure("test1.jpeg", 403)
-      testFileUploadFailure("empty.pdf", 404)
 
+      testFileDownloadFailure("emptyArray", 404, Some(emptyArray))
+      testFileDownloadFailure("oneByteArray", 404, Some(oneByteArray))
+      testFileDownloadFailure("twoBytesArray", 404, Some(twoBytesArray))
+      testFileDownloadFailure("threeBytesArray", 404, Some(threeBytesArray))
       testFileDownloadFailure("prod.routes", 400)
       testFileDownloadFailure("app.routes", 403)
       testFileDownloadFailure("schema.json", 500)
@@ -62,11 +81,34 @@ class FileTransferControllerISpec extends ServerBaseISpec with AuthStubs with Fi
         result.status shouldBe 400
         verifyAuthorisationHasHappened()
       }
+
+      "return 400 when malformed payload" in {
+        givenAuthorised()
+        val conversationId = java.util.UUID.randomUUID().toString()
+
+        val jsonBodyWritable =
+          BodyWritable
+            .apply[String](s => InMemoryBody(ByteString.fromString(s, StandardCharsets.UTF_8)), "application/json")
+
+        val result = wsClient
+          .url(s"$url/transfer-file")
+          .post(s"""{
+                         |"conversationId":"$conversationId",
+                         |"caseReferenceNumber":"Risk-123",
+                         |"applicationName":"Route1",
+                         |"upscanReference":"XYZ0123456789",
+                         |"fileName":"foo",
+                         |"fileMimeType":"image/""")(jsonBodyWritable)
+          .futureValue
+
+        result.status shouldBe 400
+        verifyAuthorisationHasHappened()
+      }
     }
   }
 
-  def testFileTransferSuccess(fileName: String) {
-    s"return 202 when transferring $fileName succeeds" in new FileTransferTest(fileName) {
+  def testFileTransferSuccess(fileName: String, bytesOpt: Option[Array[Byte]] = None) {
+    s"return 202 when transferring $fileName succeeds" in new FileTransferTest(fileName, bytesOpt) {
       givenAuthorised()
       val fileUrl =
         givenFileTransferSucceeds("Risk-123", fileName, bytes, base64Content, checksum, fileSize, xmlMetadataHeader)
@@ -82,8 +124,8 @@ class FileTransferControllerISpec extends ServerBaseISpec with AuthStubs with Fi
     }
   }
 
-  def testFileUploadFailure(fileName: String, status: Int) {
-    s"return 500 when uploading $fileName fails because of $status" in new FileTransferTest(fileName) {
+  def testFileUploadFailure(fileName: String, status: Int, bytesOpt: Option[Array[Byte]] = None) {
+    s"return 500 when uploading $fileName fails because of $status" in new FileTransferTest(fileName, bytesOpt) {
       givenAuthorised()
       val fileUrl =
         givenFileUploadFails(status, "Risk-123", fileName, bytes, base64Content, checksum, fileSize, xmlMetadataHeader)
@@ -99,8 +141,8 @@ class FileTransferControllerISpec extends ServerBaseISpec with AuthStubs with Fi
     }
   }
 
-  def testFileDownloadFailure(fileName: String, status: Int) {
-    s"return 500 when downloading $fileName fails because of $status" in new FileTransferTest(fileName) {
+  def testFileDownloadFailure(fileName: String, status: Int, bytesOpt: Option[Array[Byte]] = None) {
+    s"return 500 when downloading $fileName fails because of $status" in new FileTransferTest(fileName, bytesOpt) {
       givenAuthorised()
       val fileUrl =
         givenFileDownloadFails(
