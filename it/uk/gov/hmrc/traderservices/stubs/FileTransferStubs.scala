@@ -12,7 +12,6 @@ import java.nio.charset.StandardCharsets
 import java.{util => ju}
 import uk.gov.hmrc.traderservices.models.FileTransferMetadataHeader
 import java.net.URLEncoder
-import org.xmlunit.builder.Input
 import java.io.InputStream
 import java.io.ByteArrayInputStream
 

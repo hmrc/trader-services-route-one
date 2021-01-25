@@ -181,7 +181,7 @@ object AuditService {
                 declarationDetails = createRequest.declarationDetails,
                 requestType = Some(q.requestType.toString()),
                 routeType = Some(q.routeType.toString()),
-                priorityGoods = Some(q.priorityGoods.toString()),
+                priorityGoods = q.priorityGoods.map(_.toString()),
                 hasALVS = None,
                 freightType = Some(q.freightType.toString()),
                 vesselName = q.vesselDetails.flatMap(_.vesselName),

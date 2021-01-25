@@ -487,6 +487,57 @@ class CreateUpdateCaseControllerISpec
         )
       }
 
+      "return 400 if invalid payload" in {
+        val correlationId = ju.UUID.randomUUID().toString()
+        givenAuthorised()
+
+        val payload = TraderServicesUpdateCaseRequest(
+          caseReferenceNumber = "fooooooooooooooooooooooooooooooooooooooooo",
+          typeOfAmendment = TypeOfAmendment.WriteResponseAndUploadDocuments,
+          responseText = Some("An example description."),
+          uploadedFiles = TestData.testUpdateCaseRequestUploadedFiles(wireMockBaseUrlAsString),
+          eori = "GB123456789012345"
+        )
+
+        val result = wsClient
+          .url(s"$baseUrl/update-case")
+          .withHttpHeaders("X-Correlation-ID" -> correlationId)
+          .post(Json.toJson(payload))
+          .futureValue
+
+        val errorMessage =
+          s"""Invalid payload: Validation failed due to "Invalid caseReferenceNumber, should be between 1 and 32 (inclusive) character long. in ${payload
+            .toString()
+            .replaceAllLiterally("List", "Vector")}."""
+
+        result.status shouldBe 400
+        result.json.as[JsObject] should (
+          haveProperty[String]("correlationId", be(correlationId)) and
+            haveProperty[JsObject](
+              "error",
+              haveProperty[String]("errorCode", be("ERROR_VALIDATION")) and
+                haveProperty[String](
+                  "errorMessage",
+                  be(errorMessage)
+                )
+            )
+        )
+
+        verifyAuthorisationHasHappened()
+        verifyPegaUpdateCaseRequestDidNotHappen()
+        verifyAuditRequestSent(
+          1,
+          TraderServicesAuditEvent.UpdateCase,
+          TestData.errorDetails(
+            wireMockBaseUrlAsString,
+            ApiError(
+              "ERROR_VALIDATION",
+              Some(errorMessage)
+            )
+          )
+        )
+      }
+
       "return 400 if empty payload" in {
         val correlationId = ju.UUID.randomUUID().toString()
         givenAuthorised()
@@ -876,7 +927,7 @@ object TestData {
       "requestType"   -> "New",
       "freightType"   -> "Maritime",
       "routeType"     -> "Route1",
-      "priorityGoods" -> "Some(LiveAnimals)",
+      "priorityGoods" -> "LiveAnimals",
       "vesselName"    -> "Vessel Name",
       "contactNumber" -> "07123456789",
       "contactEmail"  -> "sampelname@gmail.com",
