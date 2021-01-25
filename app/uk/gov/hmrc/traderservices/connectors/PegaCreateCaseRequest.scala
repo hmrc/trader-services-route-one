@@ -95,36 +95,18 @@ object PegaCreateCaseRequest {
             ) =>
           Content(
             EntryType = "Import",
-            RequestType = requestType match {
-              case ImportRequestType.New          => "New"
-              case ImportRequestType.Cancellation => "Cancellation"
-            },
+            RequestType = importRequestTypeToPegaValue(requestType),
             EntryNumber = request.declarationDetails.entryNumber.value,
-            Route = routeType match {
-              case ImportRouteType.Route1    => "Route 1"
-              case ImportRouteType.Route1Cap => "Route 1 CAP"
-              case ImportRouteType.Route2    => "Route 2"
-              case ImportRouteType.Route3    => "Route 3"
-              case ImportRouteType.Route6    => "Route 6"
-              case ImportRouteType.Hold      => "Hold"
-            },
+            Route = importRouteTypeToPegaValue(routeType),
             EntryProcessingUnit = f"${request.declarationDetails.epu.value}%03d",
             EntryDate = dateFormat.format(request.declarationDetails.entryDate),
-            FreightOption = freightType match {
-              case ImportFreightType.Maritime => "Maritime"
-              case ImportFreightType.Air      => "Air"
-              case ImportFreightType.RORO     => "Road, rail or roll-on, roll-off (RORO)"
-            },
-            Priority = priorityGoods.map {
-              case ImportPriorityGoods.ExplosivesOrFireworks => "Explosives/Fireworks"
-              case ImportPriorityGoods.LiveAnimals           => "Live animals"
-              case ImportPriorityGoods.HumanRemains          => "Human remains"
-            },
+            FreightOption = importFreightTypeToPegaValue(freightType),
+            Priority = priorityGoods.map(importPriorityGoodsToPegaValue),
             VesselName = vesselDetails.flatMap(_.vesselName),
             VesselEstimatedDate = vesselDetails.flatMap(_.dateOfArrival.map(dateFormat.format)),
             VesselEstimatedTime = vesselDetails.flatMap(_.timeOfArrival.map(timeFormat.format)),
             IsALVS = Some(if (hasALVS) "true" else "false"),
-            EORI = Some(request.eori),
+            EORI = request.eori,
             TelephoneNumber = contactInfo.contactNumber,
             EmailAddress = contactInfo.contactEmail,
             MUCR = None,
@@ -140,40 +122,18 @@ object PegaCreateCaseRequest {
             ) =>
           Content(
             EntryType = "Export",
-            RequestType = requestType match {
-              case ExportRequestType.New                => "New"
-              case ExportRequestType.Cancellation       => "Cancellation"
-              case ExportRequestType.C1601              => "C1601"
-              case ExportRequestType.C1602              => "C1602"
-              case ExportRequestType.C1603              => "C1603"
-              case ExportRequestType.WithdrawalOrReturn => "Withdrawal or return of goods"
-            },
+            RequestType = exportRequestTypeToPegaValue(requestType),
             EntryNumber = request.declarationDetails.entryNumber.value,
-            Route = routeType match {
-              case ExportRouteType.Route1    => "Route 1"
-              case ExportRouteType.Route1Cap => "Route 1 CAP"
-              case ExportRouteType.Route2    => "Route 2"
-              case ExportRouteType.Route3    => "Route 3"
-              case ExportRouteType.Route6    => "Route 6"
-              case ExportRouteType.Hold      => "Hold"
-            },
+            Route = exportRouteTypeToPegaValue(routeType),
             EntryProcessingUnit = f"${request.declarationDetails.epu.value}%03d",
             EntryDate = dateFormat.format(request.declarationDetails.entryDate),
-            FreightOption = freightType match {
-              case ExportFreightType.Maritime => "Maritime"
-              case ExportFreightType.Air      => "Air"
-              case ExportFreightType.RORO     => "Road, rail or roll-on, roll-off (RORO)"
-            },
-            Priority = priorityGoods.map {
-              case ExportPriorityGoods.ExplosivesOrFireworks => "Explosives/Fireworks"
-              case ExportPriorityGoods.LiveAnimals           => "Live animals"
-              case ExportPriorityGoods.HumanRemains          => "Human remains"
-            },
+            FreightOption = exportFreightTypeToPegaValue(freightType),
+            Priority = priorityGoods.map(exportPriorityGoodsToPegaValue),
             VesselName = vesselDetails.flatMap(_.vesselName),
             VesselEstimatedDate = vesselDetails.flatMap(_.dateOfArrival.map(dateFormat.format)),
             VesselEstimatedTime = vesselDetails.flatMap(_.timeOfArrival.map(timeFormat.format)),
             IsALVS = None,
-            EORI = Some(request.eori),
+            EORI = request.eori,
             TelephoneNumber = contactInfo.contactNumber,
             EmailAddress = contactInfo.contactEmail,
             MUCR = None,
@@ -183,4 +143,60 @@ object PegaCreateCaseRequest {
   }
 
   implicit val formats: Format[PegaCreateCaseRequest] = Json.format[PegaCreateCaseRequest]
+
+  val importRequestTypeToPegaValue: ImportRequestType => String = {
+    case ImportRequestType.New          => "New"
+    case ImportRequestType.Cancellation => "Cancellation"
+  }
+
+  val importRouteTypeToPegaValue: ImportRouteType => String = {
+    case ImportRouteType.Route1    => "Route 1"
+    case ImportRouteType.Route1Cap => "Route 1 CAP"
+    case ImportRouteType.Route2    => "Route 2"
+    case ImportRouteType.Route3    => "Route 3"
+    case ImportRouteType.Route6    => "Route 6"
+    case ImportRouteType.Hold      => "Hold"
+  }
+
+  val importFreightTypeToPegaValue: ImportFreightType => String = {
+    case ImportFreightType.Maritime => "Maritime"
+    case ImportFreightType.Air      => "Air"
+    case ImportFreightType.RORO     => "Road, rail or roll-on, roll-off (RORO)"
+  }
+
+  val importPriorityGoodsToPegaValue: ImportPriorityGoods => String = {
+    case ImportPriorityGoods.ExplosivesOrFireworks => "Explosives/Fireworks"
+    case ImportPriorityGoods.LiveAnimals           => "Live animals"
+    case ImportPriorityGoods.HumanRemains          => "Human remains"
+  }
+
+  val exportRequestTypeToPegaValue: ExportRequestType => String = {
+    case ExportRequestType.New                => "New"
+    case ExportRequestType.Cancellation       => "Cancellation"
+    case ExportRequestType.C1601              => "C1601"
+    case ExportRequestType.C1602              => "C1602"
+    case ExportRequestType.C1603              => "C1603"
+    case ExportRequestType.WithdrawalOrReturn => "Withdrawal or return of goods"
+  }
+
+  val exportRouteTypeToPegaValue: ExportRouteType => String = {
+    case ExportRouteType.Route1    => "Route 1"
+    case ExportRouteType.Route1Cap => "Route 1 CAP"
+    case ExportRouteType.Route2    => "Route 2"
+    case ExportRouteType.Route3    => "Route 3"
+    case ExportRouteType.Route6    => "Route 6"
+    case ExportRouteType.Hold      => "Hold"
+  }
+
+  val exportFreightTypeToPegaValue: ExportFreightType => String = {
+    case ExportFreightType.Maritime => "Maritime"
+    case ExportFreightType.Air      => "Air"
+    case ExportFreightType.RORO     => "Road, rail or roll-on, roll-off (RORO)"
+  }
+
+  val exportPriorityGoodsToPegaValue: ExportPriorityGoods => String = {
+    case ExportPriorityGoods.ExplosivesOrFireworks => "Explosives/Fireworks"
+    case ExportPriorityGoods.LiveAnimals           => "Live animals"
+    case ExportPriorityGoods.HumanRemains          => "Human remains"
+  }
 }

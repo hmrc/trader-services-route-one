@@ -119,7 +119,7 @@ object AuditService {
 
   case class CreateCaseAuditEventDetails(
     success: Boolean,
-    eori: String,
+    eori: Option[String],
     caseReferenceNumber: Option[String],
     declarationType: String,
     declarationDetails: DeclarationDetails,
@@ -211,6 +211,7 @@ object AuditService {
 
   case class UpdateCaseAuditEventDetails(
     success: Boolean,
+    eori: Option[String],
     caseReferenceNumber: String,
     typeOfAmendment: TypeOfAmendment,
     responseText: Option[String] = None,
@@ -228,6 +229,7 @@ object AuditService {
         .toJson(
           UpdateCaseAuditEventDetails(
             success = true,
+            eori = updateRequest.eori,
             caseReferenceNumber = updateRequest.caseReferenceNumber,
             typeOfAmendment = updateRequest.typeOfAmendment,
             responseText = updateRequest.responseText,

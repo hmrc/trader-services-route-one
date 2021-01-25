@@ -119,7 +119,7 @@ class CreateUpdateCaseControllerISpec
           .futureValue
 
         val errorMessage =
-          "Invalid payload: Parsing failed due to at path /eori with error.path.missing, and at path /uploadedFiles with error.path.missing, and at path /questionsAnswers with error.path.missing, and at path /declarationDetails with error.path.missing."
+          "Invalid payload: Parsing failed due to at path /uploadedFiles with error.path.missing, and at path /questionsAnswers with error.path.missing, and at path /declarationDetails with error.path.missing."
 
         result.status shouldBe 400
         result.json.as[JsObject] should (
@@ -367,7 +367,7 @@ class CreateUpdateCaseControllerISpec
           typeOfAmendment = TypeOfAmendment.WriteResponse,
           responseText = Some("An example description."),
           uploadedFiles = Seq(),
-          eori = "GB123456789012345"
+          eori = Some("GB123456789012345")
         )
 
         val result = wsClient
@@ -411,7 +411,7 @@ class CreateUpdateCaseControllerISpec
           typeOfAmendment = TypeOfAmendment.UploadDocuments,
           responseText = None,
           uploadedFiles = TestData.testUpdateCaseRequestUploadedFiles(wireMockBaseUrlAsString),
-          eori = "GB123456789012345"
+          eori = Some("GB123456789012345")
         )
 
         val result = wsClient
@@ -454,7 +454,7 @@ class CreateUpdateCaseControllerISpec
           typeOfAmendment = TypeOfAmendment.WriteResponseAndUploadDocuments,
           responseText = Some("An example description."),
           uploadedFiles = TestData.testUpdateCaseRequestUploadedFiles(wireMockBaseUrlAsString),
-          eori = "GB123456789012345"
+          eori = Some("GB123456789012345")
         )
 
         val result = wsClient
@@ -496,7 +496,7 @@ class CreateUpdateCaseControllerISpec
           typeOfAmendment = TypeOfAmendment.WriteResponseAndUploadDocuments,
           responseText = Some("An example description."),
           uploadedFiles = TestData.testUpdateCaseRequestUploadedFiles(wireMockBaseUrlAsString),
-          eori = "GB123456789012345"
+          eori = Some("GB123456789012345")
         )
 
         val result = wsClient
@@ -549,7 +549,7 @@ class CreateUpdateCaseControllerISpec
           .futureValue
 
         val errorMessage =
-          "Invalid payload: Parsing failed due to at path /eori with error.path.missing, and at path /uploadedFiles with error.path.missing, and at path /caseReferenceNumber with error.path.missing, and at path /typeOfAmendment with error.path.missing."
+          "Invalid payload: Parsing failed due to at path /uploadedFiles with error.path.missing, and at path /caseReferenceNumber with error.path.missing, and at path /typeOfAmendment with error.path.missing."
 
         result.status shouldBe 400
         result.json.as[JsObject] should (
@@ -592,7 +592,7 @@ class CreateUpdateCaseControllerISpec
           typeOfAmendment = TypeOfAmendment.WriteResponseAndUploadDocuments,
           responseText = Some("An example description."),
           uploadedFiles = TestData.testUpdateCaseRequestUploadedFiles(wireMockBaseUrlAsString),
-          eori = "GB123456789012345"
+          eori = Some("GB123456789012345")
         )
 
         val result = wsClient
@@ -832,7 +832,7 @@ object TestData {
           fileMimeType = "application/routes"
         )
       ),
-      eori = "GB123456789012345"
+      eori = Some("GB123456789012345")
     )
 
   def testCreateExportCaseRequest(baseUrl: String) =
@@ -874,7 +874,7 @@ object TestData {
           fileMimeType = "application/routes"
         )
       ),
-      eori = "GB123456789012345"
+      eori = Some("GB123456789012345")
     )
 
   def createImportRequestDetails(baseUrl: String, transferSuccess: Boolean): JsObject =
@@ -995,7 +995,7 @@ object TestData {
       typeOfAmendment = TypeOfAmendment.WriteResponseAndUploadDocuments,
       responseText = Some("An example description."),
       uploadedFiles = testUpdateCaseRequestUploadedFiles(baseUrl),
-      eori = "GB123456789012345"
+      eori = Some("GB123456789012345")
     )
 
   def updateRequestDetailsMap(baseUrl: String, transferSuccess: Boolean) =

@@ -23,7 +23,7 @@ case class TraderServicesCreateCaseRequest(
   declarationDetails: DeclarationDetails,
   questionsAnswers: QuestionsAnswers,
   uploadedFiles: Seq[UploadedFile],
-  eori: String
+  eori: Option[String]
 )
 
 object TraderServicesCreateCaseRequest {

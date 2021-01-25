@@ -18,7 +18,6 @@ package uk.gov.hmrc.traderservices.models
 
 import play.api.libs.json.Json
 import play.api.libs.json.Format
-import java.util.UUID
 
 case class TraderServicesFileTransferRequest(
   conversationId: String,

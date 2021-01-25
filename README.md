@@ -54,7 +54,7 @@ Example request payload
             "fileName" : "test.pdf",
             "fileMimeType" : "application/pdf"
         } ],
-        "eori" : "GB123456789012345"
+        "eori" : "GB123456789012345" <- optional
     }
 
 Example 201 success response payload
@@ -114,7 +114,8 @@ Example request payload
             "checksum" : "396f101dd52e8b2ace0dcf5ed09b1d1f030e608938510ce46e7a5c7a4e775100",
             "fileName" : "test.pdf",
             "fileMimeType" : "application/pdf"
-        } ]
+        } ],
+        "eori" : "GB123456789012345" <- optional
     }
 
 Example 201 success response payload
@@ -166,6 +167,16 @@ Example request payload:
         "batchSize": 1,
         "batchCount": 1
     }
+
+Example 400 error response payload
+
+    {
+        "correlationId" : "7fedc2d5-1bba-434b-87e6-4d4ec1757e31",
+        "error" : {
+            "errorCode" : "400",
+            "errorMessage" : "invalid case reference number"
+        }
+    }     
 
 
 ## Running the tests
