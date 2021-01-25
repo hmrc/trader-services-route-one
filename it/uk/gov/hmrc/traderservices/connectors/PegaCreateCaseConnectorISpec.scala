@@ -12,21 +12,19 @@ class PegaCreateCaseConnectorISpec extends PegaCreateCaseConnectorISpecSetup {
 
   "PegaCreateCaseConnector" when {
     "createCase" should {
-      "return case reference id if success" in {
-        givenPegaCreateImportCaseRequestSucceeds()
+      "return case reference ID if success" in {
+        givenPegaCreateImportCaseRequestSucceeds(200)
         givenAuditConnector()
 
         val request = testCreateImportCaseRequest
 
         val result = await(connector.createCase(request, correlationId))
-
         result shouldBe PegaCaseSuccess(
           "PCE201103470D2CC8K0NH3",
           "2020-11-03T15:29:28.601Z",
           "Success",
           "Case created successfully"
         )
-
       }
 
       "return error code and message if 500" in {
@@ -65,6 +63,72 @@ class PegaCreateCaseConnectorISpec extends PegaCreateCaseConnectorISpecSetup {
               errorMessage = Some("Bar Foo")
             )
         )
+      }
+
+      "return error code and message if empty content-type" in {
+        givenPegaCreateImportCaseRespondsWithoutContentType(200)
+        givenAuditConnector()
+
+        val request = testCreateImportCaseRequest
+
+        val result = await(connector.createCase(request, correlationId))
+
+        result shouldBe PegaCaseError(errorDetail =
+          PegaCaseError
+            .ErrorDetail(
+              errorCode = Some("200"),
+              errorMessage = Some("Error: missing content-type header")
+            )
+        )
+      }
+
+      "return error code and message if 200 with invalid success response content" in {
+        givenPegaCreateImportRespondsWithInvalidSuccessMessage
+        givenAuditConnector()
+
+        val request = testCreateImportCaseRequest
+
+        val result = await(connector.createCase(request, correlationId))
+
+        result shouldBe PegaCaseError(errorDetail =
+          PegaCaseError
+            .ErrorDetail(
+              errorCode = Some("200"),
+              errorMessage = Some(
+                s"POST of '$wireMockBaseUrlAsString/cpr/caserequest/route1/create/v1' returned invalid json. Attempting to convert to uk.gov.hmrc.traderservices.connectors.PegaCaseResponse gave errors: List((/Status,List(JsonValidationError(List(error.path.missing),WrappedArray()))), (/CaseID,List(JsonValidationError(List(error.path.missing),WrappedArray()))))"
+              )
+            )
+        )
+      }
+
+      "return error code and message if 403 with invalid error response content" in {
+        givenPegaCreateImportRespondsWithInvalidErrorMessage()
+        givenAuditConnector()
+
+        val request = testCreateImportCaseRequest
+
+        val result = await(connector.createCase(request, correlationId))
+
+        result shouldBe PegaCaseError(errorDetail =
+          PegaCaseError
+            .ErrorDetail(
+              errorCode = Some("403"),
+              errorMessage = Some(
+                s"POST of '$wireMockBaseUrlAsString/cpr/caserequest/route1/create/v1' returned invalid json. Attempting to convert to uk.gov.hmrc.traderservices.connectors.PegaCaseResponse gave errors: List((/errorDetail,List(JsonValidationError(List(error.path.missing),WrappedArray()))))"
+              )
+            )
+        )
+      }
+
+      "throw an error if strange response status" in {
+        givenPegaCreateImportCaseRequestSucceeds(300)
+        givenAuditConnector()
+
+        val request = testCreateImportCaseRequest
+
+        an[Upstream5xxResponse] shouldBe thrownBy {
+          await(connector.createCase(request, correlationId))
+        }
       }
     }
   }

@@ -41,7 +41,7 @@ class CreateUpdateCaseControllerISpec
       "return 201 with CaseID as a result if successful PEGA API call for import case" in {
         val correlationId = ju.UUID.randomUUID().toString()
         givenAuthorised()
-        givenPegaCreateImportCaseRequestSucceeds()
+        givenPegaCreateImportCaseRequestSucceeds(200)
         givenFileTransferSucceeds("PCE201103470D2CC8K0NH3", "test1.jpeg", correlationId)
         givenFileTransferSucceeds("PCE201103470D2CC8K0NH3", "app.routes", correlationId)
 

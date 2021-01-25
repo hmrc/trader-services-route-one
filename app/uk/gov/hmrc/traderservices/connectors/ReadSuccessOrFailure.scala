@@ -48,9 +48,10 @@ abstract class ReadSuccessOrFailure[A, S <: A: Reads, F <: A: Reads](fallback: (
                 Try[HttpReads[A]](implicitly[Reads[S]].reads(response.json) match {
                   case JsSuccess(value, path) => HttpReads.pure(value)
                   case JsError(errors) =>
-                    HttpReads.ask.map {
+                    HttpReads.ask.flatMap {
                       case (method, url, response) =>
-                        throw new JsValidationException(method, url, mf.runtimeClass, errors.toString)
+                        val e = new JsValidationException(method, url, mf.runtimeClass, errors.toString)
+                        HttpReads.pure(fallback(status, e.getMessage()))
                     }
                 })
                   .fold(e => HttpReads.pure(fallback(status, e.getMessage())), identity)
@@ -58,9 +59,10 @@ abstract class ReadSuccessOrFailure[A, S <: A: Reads, F <: A: Reads](fallback: (
                 Try[HttpReads[A]](implicitly[Reads[F]].reads(response.json) match {
                   case JsSuccess(value, path) => HttpReads.pure(value)
                   case JsError(errors) =>
-                    HttpReads.ask.map {
+                    HttpReads.ask.flatMap {
                       case (method, url, response) =>
-                        throw new JsValidationException(method, url, mf.runtimeClass, errors.toString)
+                        val e = new JsValidationException(method, url, mf.runtimeClass, errors.toString)
+                        HttpReads.pure(fallback(status, e.getMessage()))
                     }
                 })
                   .fold(e => HttpReads.pure(fallback(status, e.getMessage())), identity)
