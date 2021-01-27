@@ -104,7 +104,6 @@ trait FileTransferFlow {
               method = HttpMethods.POST,
               uri = appConfig.eisBaseUrl + appConfig.eisFileTransferApiPath,
               headers = collection.immutable.Seq(
-                RawHeader("User-Agent", appConfig.appName),
                 RawHeader("x-conversation-id", fileTransferRequest.conversationId),
                 RawHeader("x-correlation-id", fileTransferRequest.correlationId.getOrElse("")),
                 RawHeader("customprocesseshost", "Digital"),
