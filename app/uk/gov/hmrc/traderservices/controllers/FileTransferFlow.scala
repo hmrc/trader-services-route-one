@@ -45,7 +45,6 @@ import scala.concurrent.duration.FiniteDuration
 import java.nio.charset.StandardCharsets
 import java.io.StringWriter
 import java.io.PrintWriter
-import java.util.UUID
 
 trait FileTransferFlow {
 
