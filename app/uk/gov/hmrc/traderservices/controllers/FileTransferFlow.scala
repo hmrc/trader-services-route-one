@@ -72,19 +72,30 @@ trait FileTransferFlow {
     NotUsed
   ] =
     Flow[TraderServicesFileTransferRequest]
-      .map { request =>
-        val httpRequest = HttpRequest(method = HttpMethods.GET, uri = request.downloadUrl)
-        (httpRequest, (request, httpRequest))
+      .map { fileTransferRequest =>
+        val httpRequest = HttpRequest(
+          method = HttpMethods.GET,
+          uri = fileTransferRequest.downloadUrl,
+          headers = collection.immutable.Seq(
+            RawHeader("x-request-id", fileTransferRequest.requestId.getOrElse("-")),
+            RawHeader("x-conversation-id", fileTransferRequest.conversationId),
+            RawHeader(
+              "x-correlation-id",
+              fileTransferRequest.correlationId.getOrElse(
+                throw new IllegalArgumentException("Missing correlationId argument of FileTransferRequest")
+              )
+            )
+          )
+        )
+        (httpRequest, (fileTransferRequest, httpRequest))
       }
       .via(connectionPool)
       .flatMapConcat {
         case (Success(fileDownloadResponse), (fileTransferRequest, _)) =>
           if (fileDownloadResponse.status.isSuccess()) {
             Logger(getClass).info(
-              s"Starting transfer with [conversationId=${fileTransferRequest.conversationId}] [correlationId=${fileTransferRequest.correlationId
-                .getOrElse("")}] of the file [${fileTransferRequest.downloadUrl}], expected SHA-256 checksum is ${fileTransferRequest.checksum}, received http response status is ${fileDownloadResponse.status} with headers ${fileDownloadResponse.headers
-                .map(_.toString())
-                .mkString("[", "] [", "]")} ..."
+              s"Starting transfer with [conversationId=${fileTransferRequest.conversationId}] and [correlationId=${fileTransferRequest.correlationId
+                .getOrElse("")}] of the file [${fileTransferRequest.upscanReference}], expected SHA-256 checksum is ${fileTransferRequest.checksum}, received http response status is ${fileDownloadResponse.status} ..."
             )
             val jsonHeader = s"""{
                                 |    "CaseReferenceNumber":"${fileTransferRequest.caseReferenceNumber}",
@@ -104,8 +115,14 @@ trait FileTransferFlow {
               method = HttpMethods.POST,
               uri = appConfig.eisBaseUrl + appConfig.eisFileTransferApiPath,
               headers = collection.immutable.Seq(
+                RawHeader("x-request-id", fileTransferRequest.requestId.getOrElse("-")),
                 RawHeader("x-conversation-id", fileTransferRequest.conversationId),
-                RawHeader("x-correlation-id", fileTransferRequest.correlationId.getOrElse("")),
+                RawHeader(
+                  "x-correlation-id",
+                  fileTransferRequest.correlationId.getOrElse(
+                    throw new IllegalArgumentException("Missing correlationId argument of FileTransferRequest")
+                  )
+                ),
                 RawHeader("customprocesseshost", "Digital"),
                 RawHeader("accept", "application/json"),
                 RawHeader("authorization", s"Bearer ${appConfig.eisAuthorizationToken}"),
@@ -148,7 +165,7 @@ trait FileTransferFlow {
                   FileDownloadFailure(
                     fileTransferRequest.conversationId,
                     fileTransferRequest.correlationId.getOrElse(""),
-                    fileTransferRequest.downloadUrl,
+                    fileTransferRequest.upscanReference,
                     fileDownloadResponse.status.intValue(),
                     fileDownloadResponse.status.reason(),
                     responseBody
@@ -163,7 +180,7 @@ trait FileTransferFlow {
                 fileTransferRequest.conversationId,
                 fileTransferRequest.correlationId
                   .getOrElse(""),
-                fileTransferRequest.downloadUrl,
+                fileTransferRequest.upscanReference,
                 fileDownloadError
               )
             )
@@ -180,16 +197,16 @@ trait FileTransferFlow {
           if (fileUploadResponse.status.isSuccess()) {
             fileUploadResponse.discardEntityBytes()
             Logger(getClass).info(
-              s"Transfer [conversationId=${fileTransferRequest.conversationId}] [correlationId=${fileTransferRequest.correlationId
-                .getOrElse("")}] of the file [${fileTransferRequest.downloadUrl}] succeeded."
+              s"Transfer [conversationId=${fileTransferRequest.conversationId}] and [correlationId=${fileTransferRequest.correlationId
+                .getOrElse("")}] of the file [${fileTransferRequest.upscanReference}] succeeded."
             )
           } else
             fileUploadResponse.entity
               .toStrict(FiniteDuration(10000, "ms"))
               .foreach { entity =>
                 Logger(getClass).error(
-                  s"Upload request with [conversationId=${fileTransferRequest.conversationId}] [correlationId=${fileTransferRequest.correlationId
-                    .getOrElse("")}] of the file [${fileTransferRequest.downloadUrl}] to [${eisUploadRequest.uri}] failed with status [${fileUploadResponse.status
+                  s"Upload request with [conversationId=${fileTransferRequest.conversationId}] and [correlationId=${fileTransferRequest.correlationId
+                    .getOrElse("")}] of the file [${fileTransferRequest.upscanReference}] to [${eisUploadRequest.uri}] failed with status [${fileUploadResponse.status
                     .intValue()}], reason [${fileUploadResponse.status.reason}] and response body [${entity.data
                     .take(1024)
                     .decodeString(StandardCharsets.UTF_8)}]."
@@ -211,8 +228,8 @@ trait FileTransferFlow {
           uploadError.printStackTrace(new PrintWriter(writer))
           val stackTrace = writer.getBuffer().toString()
           Logger(getClass).error(
-            s"Upload request with [conversationId=${fileTransferRequest.conversationId}] [correlationId=${fileTransferRequest.correlationId
-              .getOrElse("")}] of the file [${fileTransferRequest.downloadUrl}] to [${eisUploadRequest.uri}] failed because of [${uploadError.getClass
+            s"Upload request with [conversationId=${fileTransferRequest.conversationId}] and [correlationId=${fileTransferRequest.correlationId
+              .getOrElse("")}] of the file [${fileTransferRequest.upscanReference}] to [${eisUploadRequest.uri}] failed because of [${uploadError.getClass
               .getName()}: ${uploadError.getMessage()}].\n$stackTrace"
           )
           InternalServerError
@@ -223,18 +240,18 @@ trait FileTransferFlow {
 final case class FileDownloadException(
   conversationId: String,
   correlationId: String,
-  downloadUrl: String,
+  upscanReference: String,
   exception: Throwable
 ) extends Exception(
-      s"Download request with [conversationId=$conversationId] [correlationId=$correlationId] of the file [$downloadUrl] failed because of [${exception.getClass.getName}: ${exception.getMessage()}]."
+      s"Download request with [conversationId=$conversationId] and [correlationId=$correlationId] of the file [$upscanReference] failed because of [${exception.getClass.getName}: ${exception.getMessage()}]."
     )
 final case class FileDownloadFailure(
   conversationId: String,
   correlationId: String,
-  downloadUrl: String,
+  upscanReference: String,
   status: Int,
   reason: String,
   responseBody: String
 ) extends Exception(
-      s"Download request with [conversationId=$conversationId] [correlationId=$correlationId] of the file [$downloadUrl] failed with status [$status $reason] and response body [$responseBody]."
+      s"Download request with [conversationId=$conversationId] and [correlationId=$correlationId] of the file [$upscanReference] failed with status [$status $reason] and response body [$responseBody]."
     )

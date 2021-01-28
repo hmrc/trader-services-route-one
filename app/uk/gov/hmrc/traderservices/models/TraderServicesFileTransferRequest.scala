@@ -30,7 +30,10 @@ case class TraderServicesFileTransferRequest(
   fileMimeType: String,
   batchSize: Int,
   batchCount: Int,
-  correlationId: Option[String] = None
+  correlationId: Option[String] = None,
+  // private field, this value will be overwritten
+  // with x-request-id header value in the controller
+  requestId: Option[String] = None
 )
 
 object TraderServicesFileTransferRequest {
