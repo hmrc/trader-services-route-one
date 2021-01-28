@@ -30,7 +30,8 @@ case class TraderServicesFileTransferRequest(
   fileMimeType: String,
   batchSize: Int,
   batchCount: Int,
-  correlationId: Option[String] = None
+  correlationId: Option[String] = None,
+  requestId: Option[String] = None
 )
 
 object TraderServicesFileTransferRequest {
