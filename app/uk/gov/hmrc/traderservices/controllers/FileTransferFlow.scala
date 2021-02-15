@@ -99,7 +99,7 @@ trait FileTransferFlow {
             )
             val jsonHeader = s"""{
                                 |    "CaseReferenceNumber":"${fileTransferRequest.caseReferenceNumber}",
-                                |    "ApplicationType":"Route1",
+                                |    "ApplicationType":"${fileTransferRequest.applicationName}",
                                 |    "OriginatingSystem":"Digital",
                                 |    "Content":"""".stripMargin
 
@@ -138,6 +138,7 @@ trait FileTransferFlow {
                     conversationId = fileTransferRequest.conversationId,
                     sourceFileName = fileTransferRequest.fileName,
                     sourceFileMimeType = fileTransferRequest.fileMimeType,
+                    fileSize = fileTransferRequest.fileSize.getOrElse(1024),
                     checksum = fileTransferRequest.checksum,
                     batchSize = fileTransferRequest.batchSize,
                     batchCount = fileTransferRequest.batchCount

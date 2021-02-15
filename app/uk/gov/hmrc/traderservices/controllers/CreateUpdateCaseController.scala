@@ -47,7 +47,8 @@ class CreateUpdateCaseController @Inject() (
   def createCase: Action[String] =
     Action.async(parseTolerantTextUtf8) { implicit request =>
       val correlationId = request.headers
-        .get("x-correlation-id")
+        .get("X-Correlation-Id")
+        .orElse(request.headers.get("X-Request-Id").map(_.takeRight(32)))
         .getOrElse(ju.UUID.randomUUID().toString())
 
       withAuthorised {
@@ -92,6 +93,7 @@ class CreateUpdateCaseController @Inject() (
     Action.async(parseTolerantTextUtf8) { implicit request =>
       val correlationId = request.headers
         .get("x-correlation-id")
+        .orElse(request.headers.get("X-Request-Id").map(_.takeRight(32)))
         .getOrElse(ju.UUID.randomUUID().toString())
 
       withAuthorised {

@@ -26,7 +26,8 @@ case class UploadedFile(
   uploadTimestamp: ZonedDateTime,
   checksum: String,
   fileName: String,
-  fileMimeType: String
+  fileMimeType: String,
+  fileSize: Option[Int] = None
 )
 
 object UploadedFile {

@@ -33,7 +33,8 @@ case class TraderServicesFileTransferRequest(
   correlationId: Option[String] = None,
   // private field, this value will be overwritten
   // with x-request-id header value in the controller
-  requestId: Option[String] = None
+  requestId: Option[String] = None,
+  fileSize: Option[Int] = None
 )
 
 object TraderServicesFileTransferRequest {
@@ -56,6 +57,7 @@ object TraderServicesFileTransferRequest {
       checksum = uploadedFile.checksum,
       fileName = uploadedFile.fileName,
       fileMimeType = uploadedFile.fileMimeType,
+      fileSize = uploadedFile.fileSize,
       batchSize = batchSize,
       batchCount = batchCount,
       correlationId = Some(correlationId)
