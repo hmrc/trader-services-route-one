@@ -41,6 +41,7 @@ import java.time.LocalDate
 import java.time.LocalTime
 import uk.gov.hmrc.traderservices.models.ImportQuestions
 import uk.gov.hmrc.traderservices.models.ExportQuestions
+import play.api.Logger
 
 object TraderServicesAuditEvent extends Enumeration {
   type TraderServicesAuditEvent = Value
@@ -65,6 +66,13 @@ class AuditService @Inject() (val auditConnector: AuditConnector) {
     createResponse: TraderServicesCaseResponse
   )(implicit hc: HeaderCarrier, request: Request[Any], ec: ExecutionContext): Future[Unit] = {
     val details: JsValue = pegaResponseToDetails(createResponse, true)
+    Logger(getClass).error(
+      s"""CreateCase ${createResponse.correlationId} result was error ${createResponse.error
+        .map(_.errorCode)
+        .getOrElse("")} ${createResponse.error
+        .map(_.errorMessage)
+        .getOrElse("")}"""
+    )
     auditExtendedEvent(CreateCase, "create-case", details)
   }
 
@@ -80,6 +88,13 @@ class AuditService @Inject() (val auditConnector: AuditConnector) {
     updateResponse: TraderServicesCaseResponse
   )(implicit hc: HeaderCarrier, request: Request[Any], ec: ExecutionContext): Future[Unit] = {
     val details: JsValue = pegaResponseToDetails(updateResponse, false)
+    Logger(getClass).error(
+      s"""UpdateCase ${updateResponse.correlationId} result was error ${updateResponse.error
+        .map(_.errorCode)
+        .getOrElse("")} ${updateResponse.error
+        .map(_.errorMessage)
+        .getOrElse("")}"""
+    )
     auditExtendedEvent(UpdateCase, "update-case", details)
   }
 

@@ -58,6 +58,7 @@ trait FileTransferStubs {
 
   def givenFileTransferSucceeds(
     caseReferenceNumber: String,
+    applicationName: String,
     fileName: String,
     bytes: Array[Byte],
     base64Content: String,
@@ -72,7 +73,7 @@ trait FileTransferStubs {
       202,
       s"""{
          |"CaseReferenceNumber" : "$caseReferenceNumber",
-         |"ApplicationType" : "Route1",
+         |"ApplicationType" : "$applicationName",
          |"OriginatingSystem" : "Digital",
          |"Content" : "$base64Content"
          |}""".stripMargin,
@@ -86,6 +87,7 @@ trait FileTransferStubs {
   def givenFileUploadFails(
     status: Int,
     caseReferenceNumber: String,
+    applicationName: String,
     fileName: String,
     bytes: Array[Byte],
     base64Content: String,
@@ -100,7 +102,7 @@ trait FileTransferStubs {
       status,
       s"""{
          |"CaseReferenceNumber" : "$caseReferenceNumber",
-         |"ApplicationType" : "Route1",
+         |"ApplicationType" : "$applicationName",
          |"OriginatingSystem" : "Digital",
          |"Content" : "$base64Content"
          |}""".stripMargin,
@@ -114,6 +116,7 @@ trait FileTransferStubs {
   def givenFileDownloadFails(
     status: Int,
     caseReferenceNumber: String,
+    applicationName: String,
     fileName: String,
     responseBody: String,
     base64Content: String,
@@ -128,7 +131,7 @@ trait FileTransferStubs {
       202,
       s"""{
          |"CaseReferenceNumber" : "$caseReferenceNumber",
-         |"ApplicationType" : "Route1",
+         |"ApplicationType" : "$applicationName",
          |"OriginatingSystem" : "Digital",
          |"Content" : "$base64Content"
          |}""".stripMargin,
@@ -143,6 +146,7 @@ trait FileTransferStubs {
     status: Int,
     fault: Fault,
     caseReferenceNumber: String,
+    applicationName: String,
     fileName: String,
     bytes: Array[Byte],
     base64Content: String,
@@ -157,7 +161,7 @@ trait FileTransferStubs {
       202,
       s"""{
          |"CaseReferenceNumber" : "$caseReferenceNumber",
-         |"ApplicationType" : "Route1",
+         |"ApplicationType" : "$applicationName",
          |"OriginatingSystem" : "Digital",
          |"Content" : "$base64Content"
          |}""".stripMargin,
@@ -258,6 +262,7 @@ trait FileTransferStubs {
       conversationId = conversationId,
       sourceFileName = fileName,
       sourceFileMimeType = "image/jpeg",
+      fileSize = 543210,
       checksum = checksum,
       batchSize = 1,
       batchCount = 1
@@ -265,18 +270,20 @@ trait FileTransferStubs {
 
     val fileUrl: String
 
-    def jsonPayload = s"""{
-                         |"conversationId":"$conversationId",
-                         |"caseReferenceNumber":"Risk-123",
-                         |"applicationName":"Route1",
-                         |"upscanReference":"XYZ0123456789",
-                         |"downloadUrl":"$wireMockBaseUrlAsString$fileUrl",
-                         |"fileName":"$fileName",
-                         |"fileMimeType":"image/jpeg",
-                         |"checksum":"$checksum",
-                         |"batchSize": 1,
-                         |"batchCount": 1
-                         |}""".stripMargin
+    def jsonPayload(caseReferenceNumber: String, applicationName: String) =
+      s"""{
+         |"conversationId":"$conversationId",
+         |"caseReferenceNumber":"$caseReferenceNumber",
+         |"applicationName":"$applicationName",
+         |"upscanReference":"XYZ0123456789",
+         |"downloadUrl":"$wireMockBaseUrlAsString$fileUrl",
+         |"fileName":"$fileName",
+         |"fileMimeType":"image/jpeg",
+         |"fileSize": 543210,
+         |"checksum":"$checksum",
+         |"batchSize": 1,
+         |"batchCount": 1
+         |}""".stripMargin
   }
 
   private val chunkSize: Int = 2400

@@ -30,16 +30,27 @@ class FileTransferControllerISpec extends ServerBaseISpec with AuthStubs with Fi
 
   "FileTransferController" when {
     "POST /transfer-file" should {
-      testFileTransferSuccess("emptyArray", Some(emptyArray))
-      testFileTransferSuccess("oneByteArray", Some(oneByteArray))
-      testFileTransferSuccess("twoBytesArray", Some(twoBytesArray))
-      testFileTransferSuccess("threeBytesArray", Some(threeBytesArray))
-      testFileTransferSuccess("prod.routes")
-      testFileTransferSuccess("app.routes")
-      testFileTransferSuccess("schema.json")
-      testFileTransferSuccess("logback.xml")
-      testFileTransferSuccess("test1.jpeg")
-      testFileTransferSuccess("test2.txt")
+      testFileTransferSuccess("emptyArray", "Route1", Some(emptyArray))
+      testFileTransferSuccess("oneByteArray", "Route1", Some(oneByteArray))
+      testFileTransferSuccess("twoBytesArray", "Route1", Some(twoBytesArray))
+      testFileTransferSuccess("threeBytesArray", "Route1", Some(threeBytesArray))
+      testFileTransferSuccess("prod.routes", "Route1")
+      testFileTransferSuccess("app.routes", "Route1")
+      testFileTransferSuccess("schema.json", "Route1")
+      testFileTransferSuccess("logback.xml", "Route1")
+      testFileTransferSuccess("test1.jpeg", "Route1")
+      testFileTransferSuccess("test2.txt", "Route1")
+
+      testFileTransferSuccess("emptyArray", "NDRC", Some(emptyArray))
+      testFileTransferSuccess("oneByteArray", "NDRC", Some(oneByteArray))
+      testFileTransferSuccess("twoBytesArray", "NDRC", Some(twoBytesArray))
+      testFileTransferSuccess("threeBytesArray", "NDRC", Some(threeBytesArray))
+      testFileTransferSuccess("prod.routes", "NDRC")
+      testFileTransferSuccess("app.routes", "NDRC")
+      testFileTransferSuccess("schema.json", "NDRC")
+      testFileTransferSuccess("logback.xml", "NDRC")
+      testFileTransferSuccess("test1.jpeg", "NDRC")
+      testFileTransferSuccess("test2.txt", "NDRC")
 
       testFileUploadFailure("emptyArray", 404, Some(emptyArray))
       testFileUploadFailure("oneByteArray", 404, Some(oneByteArray))
@@ -107,16 +118,28 @@ class FileTransferControllerISpec extends ServerBaseISpec with AuthStubs with Fi
     }
   }
 
-  def testFileTransferSuccess(fileName: String, bytesOpt: Option[Array[Byte]] = None) {
-    s"return 202 when transferring $fileName succeeds" in new FileTransferTest(fileName, bytesOpt) {
+  def testFileTransferSuccess(fileName: String, applicationName: String, bytesOpt: Option[Array[Byte]] = None) {
+    s"return 202 when transferring $fileName for #$applicationName succeeds" in new FileTransferTest(
+      fileName,
+      bytesOpt
+    ) {
       givenAuthorised()
       val fileUrl =
-        givenFileTransferSucceeds("Risk-123", fileName, bytes, base64Content, checksum, fileSize, xmlMetadataHeader)
+        givenFileTransferSucceeds(
+          "Risk-123",
+          applicationName,
+          fileName,
+          bytes,
+          base64Content,
+          checksum,
+          fileSize,
+          xmlMetadataHeader
+        )
 
       val result = wsClient
         .url(s"$url/transfer-file")
         .withHttpHeaders("x-correlation-id" -> correlationId)
-        .post(Json.parse(jsonPayload))
+        .post(Json.parse(jsonPayload("Risk-123", applicationName)))
         .futureValue
 
       result.status shouldBe 202
@@ -128,12 +151,22 @@ class FileTransferControllerISpec extends ServerBaseISpec with AuthStubs with Fi
     s"return 500 when uploading $fileName fails because of $status" in new FileTransferTest(fileName, bytesOpt) {
       givenAuthorised()
       val fileUrl =
-        givenFileUploadFails(status, "Risk-123", fileName, bytes, base64Content, checksum, fileSize, xmlMetadataHeader)
+        givenFileUploadFails(
+          status,
+          "Risk-123",
+          "Route1",
+          fileName,
+          bytes,
+          base64Content,
+          checksum,
+          fileSize,
+          xmlMetadataHeader
+        )
 
       val result = wsClient
         .url(s"$url/transfer-file")
         .withHttpHeaders("x-correlation-id" -> correlationId)
-        .post(Json.parse(jsonPayload))
+        .post(Json.parse(jsonPayload("Risk-123", "Route1")))
         .futureValue
 
       result.status shouldBe status
@@ -148,6 +181,7 @@ class FileTransferControllerISpec extends ServerBaseISpec with AuthStubs with Fi
         givenFileDownloadFails(
           status,
           "Risk-123",
+          "Route1",
           fileName,
           s"This is an expected error requested by the test, no worries.",
           base64Content,
@@ -159,7 +193,7 @@ class FileTransferControllerISpec extends ServerBaseISpec with AuthStubs with Fi
       val result = wsClient
         .url(s"$url/transfer-file")
         .withHttpHeaders("x-correlation-id" -> correlationId)
-        .post(Json.parse(jsonPayload))
+        .post(Json.parse(jsonPayload("Risk-123", "Route1")))
         .futureValue
 
       result.status shouldBe 500
@@ -175,6 +209,7 @@ class FileTransferControllerISpec extends ServerBaseISpec with AuthStubs with Fi
           status,
           fault,
           "Risk-123",
+          "Route1",
           fileName,
           bytes,
           base64Content,
@@ -185,7 +220,7 @@ class FileTransferControllerISpec extends ServerBaseISpec with AuthStubs with Fi
 
       val result = wsClient
         .url(s"$url/transfer-file")
-        .post(Json.parse(jsonPayload))
+        .post(Json.parse(jsonPayload("Risk-123", "Route1")))
         .futureValue
 
       result.status shouldBe 500

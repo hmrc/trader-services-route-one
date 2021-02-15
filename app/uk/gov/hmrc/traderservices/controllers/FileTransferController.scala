@@ -52,6 +52,7 @@ class FileTransferController @Inject() (
               .copy(
                 correlationId = fileTransferRequest.correlationId
                   .orElse(request.headers.get("X-Correlation-Id"))
+                  .orElse(request.headers.get("X-Request-Id"))
                   .orElse(Some(UUID.randomUUID().toString())),
                 requestId = hc.requestId.map(_.value)
               )
