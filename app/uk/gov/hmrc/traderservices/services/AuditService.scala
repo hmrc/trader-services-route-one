@@ -67,10 +67,10 @@ class AuditService @Inject() (val auditConnector: AuditConnector) {
   )(implicit hc: HeaderCarrier, request: Request[Any], ec: ExecutionContext): Future[Unit] = {
     val details: JsValue = pegaResponseToDetails(createResponse, true)
     Logger(getClass).error(
-      s"""CreateCase ${createResponse.correlationId} result was error ${createResponse.error
+      s"""Failure of CreateCase request [correlationId=${createResponse.correlationId}] because of ${createResponse.error
         .map(_.errorCode)
         .getOrElse("")} ${createResponse.error
-        .map(_.errorMessage)
+        .flatMap(_.errorMessage)
         .getOrElse("")}"""
     )
     auditExtendedEvent(CreateCase, "create-case", details)
@@ -89,10 +89,10 @@ class AuditService @Inject() (val auditConnector: AuditConnector) {
   )(implicit hc: HeaderCarrier, request: Request[Any], ec: ExecutionContext): Future[Unit] = {
     val details: JsValue = pegaResponseToDetails(updateResponse, false)
     Logger(getClass).error(
-      s"""UpdateCase ${updateResponse.correlationId} result was error ${updateResponse.error
+      s"""Failure of UpdateCase request [correlationId=${updateResponse.correlationId}] because of ${updateResponse.error
         .map(_.errorCode)
         .getOrElse("")} ${updateResponse.error
-        .map(_.errorMessage)
+        .flatMap(_.errorMessage)
         .getOrElse("")}"""
     )
     auditExtendedEvent(UpdateCase, "update-case", details)
