@@ -47,37 +47,37 @@ case class FileTransferMetadataHeader(
        |xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
        |xmlns:mdg="http://www.hmrc.gsi.gov.uk/mdg/batchFileInterfaceMetadataSchema" 
        |xsi:schemaLocation="http://www.hmrc.gsi.gov.uk/mdg/batchFileInterfaceMetadataSchemaBatchFileInterfaceMetadataXSD-1.0.7.xsd">
-       |    <mdg:sourceSystem>$sourceSystem</mdg:sourceSystem>
-       |    <mdg:sourceSystemType>$sourceSystemType</mdg:sourceSystemType>
-       |    <mdg:interfaceName>$interfaceName</mdg:interfaceName>
-       |    <mdg:interfaceVersion>$interfaceVersion</mdg:interfaceVersion>
-       |    <mdg:correlationID>$correlationId</mdg:correlationID>
-       |    <mdg:conversationID>$conversationId</mdg:conversationID>
-       |    <mdg:sequenceNumber>$batchCount</mdg:sequenceNumber>
-       |    <mdg:batchID>$conversationId</mdg:batchID>
-       |	  <mdg:batchSize>$batchSize</mdg:batchSize>
-       |	  <mdg:batchCount>$batchCount</mdg:batchCount>
-       |    <mdg:checksum>$checksum</mdg:checksum>
-       |    <mdg:checksumAlgorithm>$checksumAlgorithm</mdg:checksumAlgorithm>
-       |    <mdg:fileSize>$fileSize</mdg:fileSize>
-       |    <mdg:compressed>false</mdg:compressed>
-       |    <mdg:encrypted>false</mdg:encrypted>
-       |    <mdg:properties>
-       |        ${properties.map {
+       |<mdg:sourceSystem>$sourceSystem</mdg:sourceSystem>
+       |<mdg:sourceSystemType>$sourceSystemType</mdg:sourceSystemType>
+       |<mdg:interfaceName>$interfaceName</mdg:interfaceName>
+       |<mdg:interfaceVersion>$interfaceVersion</mdg:interfaceVersion>
+       |<mdg:correlationID>$correlationId</mdg:correlationID>
+       |<mdg:conversationID>$conversationId</mdg:conversationID>
+       |<mdg:sequenceNumber>$batchCount</mdg:sequenceNumber>
+       |<mdg:batchID>$conversationId</mdg:batchID>
+       |<mdg:batchSize>$batchSize</mdg:batchSize>
+       |<mdg:batchCount>$batchCount</mdg:batchCount>
+       |<mdg:checksum>$checksum</mdg:checksum>
+       |<mdg:checksumAlgorithm>$checksumAlgorithm</mdg:checksumAlgorithm>
+       |<mdg:fileSize>$fileSize</mdg:fileSize>
+       |<mdg:compressed>false</mdg:compressed>
+       |<mdg:encrypted>false</mdg:encrypted>
+       |<mdg:properties>
+       |${properties.map {
       case (key, value) =>
         s"""<mdg:property>
-       |            <mdg:name>$key</mdg:name>
-       |            <mdg:value>$value</mdg:value>
-       |        </mdg:property>""".stripMargin
+       |<mdg:name>$key</mdg:name>
+       |<mdg:value>$value</mdg:value>
+       |</mdg:property>""".stripMargin
     }.mkString}
-       |    </mdg:properties>
-       |    <mdg:sourceLocation>$sourceLocation</mdg:sourceLocation>
-       |    <mdg:sourceFileName>${conversationId}_$sourceFileName</mdg:sourceFileName>
-       |    <mdg:sourceFileMimeType>$sourceFileMimeType</mdg:sourceFileMimeType>
-       |    <mdg:destinations>
-       |		     <mdg:destination>
-       |			       <mdg:destinationSystem>$destinationSystem</mdg:destinationSystem>
-       |		     </mdg:destination>
-       |		 </mdg:destinations>
-       |</mdg:BatchFileInterfaceMetadata>""".stripMargin.replaceAll("\n", "")
+       |</mdg:properties>
+       |<mdg:sourceLocation>$sourceLocation</mdg:sourceLocation>
+       |<mdg:sourceFileName>${conversationId}_$sourceFileName</mdg:sourceFileName>
+       |<mdg:sourceFileMimeType>$sourceFileMimeType</mdg:sourceFileMimeType>
+       |<mdg:destinations>
+       |<mdg:destination>
+       |<mdg:destinationSystem>$destinationSystem</mdg:destinationSystem>
+       |</mdg:destination>
+       |</mdg:destinations>
+       |</mdg:BatchFileInterfaceMetadata>""".stripMargin.replaceAll("\n", "").filter(_.toInt < 128)
 }

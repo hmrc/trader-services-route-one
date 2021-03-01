@@ -111,6 +111,21 @@ trait FileTransferFlow {
                 .prepend(Source.single(ByteString(jsonHeader, StandardCharsets.UTF_8)))
                 .concat(Source.single(ByteString(jsonFooter, StandardCharsets.UTF_8)))
 
+            val xmlMetadata = FileTransferMetadataHeader(
+              caseReferenceNumber = fileTransferRequest.caseReferenceNumber,
+              applicationName = fileTransferRequest.applicationName,
+              correlationId = fileTransferRequest.correlationId.getOrElse(""),
+              conversationId = fileTransferRequest.conversationId,
+              sourceFileName = fileTransferRequest.fileName,
+              sourceFileMimeType = fileTransferRequest.fileMimeType,
+              fileSize = fileTransferRequest.fileSize.getOrElse(1024),
+              checksum = fileTransferRequest.checksum,
+              batchSize = fileTransferRequest.batchSize,
+              batchCount = fileTransferRequest.batchCount
+            ).toXmlString
+
+            Logger(getClass).info(xmlMetadata)
+
             val eisUploadRequest = HttpRequest(
               method = HttpMethods.POST,
               uri = appConfig.eisBaseUrl + appConfig.eisFileTransferApiPath,
@@ -129,21 +144,7 @@ trait FileTransferFlow {
                 RawHeader("checksumAlgorithm", "SHA-256"),
                 RawHeader("checksum", fileTransferRequest.checksum),
                 Date(DateTime.now),
-                RawHeader(
-                  "x-metadata",
-                  FileTransferMetadataHeader(
-                    caseReferenceNumber = fileTransferRequest.caseReferenceNumber,
-                    applicationName = fileTransferRequest.applicationName,
-                    correlationId = fileTransferRequest.correlationId.getOrElse(""),
-                    conversationId = fileTransferRequest.conversationId,
-                    sourceFileName = fileTransferRequest.fileName,
-                    sourceFileMimeType = fileTransferRequest.fileMimeType,
-                    fileSize = fileTransferRequest.fileSize.getOrElse(1024),
-                    checksum = fileTransferRequest.checksum,
-                    batchSize = fileTransferRequest.batchSize,
-                    batchCount = fileTransferRequest.batchCount
-                  ).toXmlString
-                )
+                RawHeader("x-metadata", xmlMetadata)
               ),
               entity = HttpEntity.apply(ContentTypes.`application/json`, fileEncodeAndWrapSource)
             )
