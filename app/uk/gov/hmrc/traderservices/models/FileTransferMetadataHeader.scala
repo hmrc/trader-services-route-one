@@ -79,5 +79,5 @@ case class FileTransferMetadataHeader(
        |<mdg:destinationSystem>$destinationSystem</mdg:destinationSystem>
        |</mdg:destination>
        |</mdg:destinations>
-       |</mdg:BatchFileInterfaceMetadata>""".stripMargin.replaceAll("\n", "").filter(_.toInt < 128)
+       |</mdg:BatchFileInterfaceMetadata>""".stripMargin.replaceAll("\n", "")
 }
