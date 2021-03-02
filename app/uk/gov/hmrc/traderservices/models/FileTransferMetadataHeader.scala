@@ -46,7 +46,7 @@ case class FileTransferMetadataHeader(
        |<mdg:BatchFileInterfaceMetadata 
        |xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
        |xmlns:mdg="http://www.hmrc.gsi.gov.uk/mdg/batchFileInterfaceMetadataSchema" 
-       |xsi:schemaLocation="http://www.hmrc.gsi.gov.uk/mdg/batchFileInterfaceMetadataSchemaBatchFileInterfaceMetadataXSD-1.0.7.xsd">
+       |xsi:schemaLocation="http://www.hmrc.gsi.gov.uk/mdg/batchFileInterfaceMetadataSchema BatchFileInterfaceMetadataXSD-1.0.7.xsd">
        |<mdg:sourceSystem>$sourceSystem</mdg:sourceSystem>
        |<mdg:sourceSystemType>$sourceSystemType</mdg:sourceSystemType>
        |<mdg:interfaceName>$interfaceName</mdg:interfaceName>
