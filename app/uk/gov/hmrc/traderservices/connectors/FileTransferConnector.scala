@@ -68,6 +68,6 @@ class FileTransferConnector @Inject() (
     response.status == 499 || response.status >= 500
 
   final def errorMessage(response: HttpResponse): String =
-    s"HTTP reponse status ${response.status}"
+    s"HTTP response status ${response.status}"
 
 }
