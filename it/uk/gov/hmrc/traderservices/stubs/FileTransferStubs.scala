@@ -172,8 +172,8 @@ trait FileTransferStubs {
     downloadUrl
   }
 
-  def verifyFileTransferHasHappened() =
-    verify(1, postRequestedFor(urlEqualTo(FILE_TRANSFER_URL)))
+  def verifyFileTransferHasHappened(times: Int = 1) =
+    verify(times, postRequestedFor(urlEqualTo(FILE_TRANSFER_URL)))
 
   def verifyFileTransferDidNotHappen() =
     verify(0, postRequestedFor(urlEqualTo(FILE_TRANSFER_URL)))
@@ -241,9 +241,21 @@ trait FileTransferStubs {
       post(urlPathEqualTo("/transfer-file"))
         .willReturn(
           aResponse()
-            .withStatus(200)
+            .withStatus(202)
         )
     )
+
+  def givenTraderServicesFileTransferFailure(status: Int): Unit =
+    stubFor(
+      post(urlPathEqualTo("/transfer-file"))
+        .willReturn(
+          aResponse()
+            .withStatus(status)
+        )
+    )
+
+  def verifyTraderServicesFileTransferHasHappened(times: Int = 1) =
+    verify(times, postRequestedFor(urlPathEqualTo("/transfer-file")))
 
   abstract class FileTransferTest(fileName: String, bytesOpt: Option[Array[Byte]] = None) {
     val correlationId = ju.UUID.randomUUID().toString()

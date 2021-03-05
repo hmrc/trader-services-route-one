@@ -25,6 +25,7 @@ class PegaCreateCaseConnectorISpec extends PegaCreateCaseConnectorISpecSetup {
           "Success",
           "Case created successfully"
         )
+        verifyPegaCreateCaseRequestHasHappened(times = 1)
       }
 
       "return error code and message if 500" in {
@@ -44,6 +45,7 @@ class PegaCreateCaseConnectorISpec extends PegaCreateCaseConnectorISpecSetup {
               errorMessage = Some("Foo Bar")
             )
         )
+        verifyPegaCreateCaseRequestHasHappened(times = 3)
       }
 
       "return error code and message if 403" in {
@@ -63,6 +65,7 @@ class PegaCreateCaseConnectorISpec extends PegaCreateCaseConnectorISpecSetup {
               errorMessage = Some("Bar Foo")
             )
         )
+        verifyPegaCreateCaseRequestHasHappened(times = 1)
       }
 
       "return error code and message if empty content-type" in {
@@ -80,6 +83,7 @@ class PegaCreateCaseConnectorISpec extends PegaCreateCaseConnectorISpecSetup {
               errorMessage = Some("Error: missing content-type header")
             )
         )
+        verifyPegaCreateCaseRequestHasHappened(times = 1)
       }
 
       "return error code and message if 200 with invalid success response content" in {
@@ -99,6 +103,7 @@ class PegaCreateCaseConnectorISpec extends PegaCreateCaseConnectorISpecSetup {
               )
             )
         )
+        verifyPegaCreateCaseRequestHasHappened(times = 1)
       }
 
       "return error code and message if 403 with invalid error response content" in {
@@ -118,6 +123,7 @@ class PegaCreateCaseConnectorISpec extends PegaCreateCaseConnectorISpecSetup {
               )
             )
         )
+        verifyPegaCreateCaseRequestHasHappened(times = 1)
       }
 
       "throw an error if strange response status" in {
@@ -129,6 +135,7 @@ class PegaCreateCaseConnectorISpec extends PegaCreateCaseConnectorISpecSetup {
         an[Upstream5xxResponse] shouldBe thrownBy {
           await(connector.createCase(request, correlationId))
         }
+        verifyPegaCreateCaseRequestHasHappened(times = 1)
       }
     }
   }

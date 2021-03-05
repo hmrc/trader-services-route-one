@@ -26,6 +26,7 @@ class PegaUpdateCaseConnectorISpec extends PegaUpdateCaseConnectorISpecSetup {
           "Case Updated successfully"
         )
 
+        verifyPegaUpdateCaseRequestHasHappened(times = 1)
       }
 
       "return error code and message if 500" in {
@@ -45,6 +46,8 @@ class PegaUpdateCaseConnectorISpec extends PegaUpdateCaseConnectorISpecSetup {
               errorMessage = Some("Foo Bar")
             )
         )
+
+        verifyPegaUpdateCaseRequestHasHappened(times = 3)
       }
 
       "return error code and message if 403" in {
@@ -64,6 +67,8 @@ class PegaUpdateCaseConnectorISpec extends PegaUpdateCaseConnectorISpecSetup {
               errorMessage = Some("Bar Foo")
             )
         )
+
+        verifyPegaUpdateCaseRequestHasHappened(times = 1)
       }
     }
   }

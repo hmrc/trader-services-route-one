@@ -13,12 +13,54 @@ class FileTransferConnectorISpec extends FileTransferConnectorISpecSetup {
 
   "FileTransferConnector" when {
     "transferFile" should {
-      "return 200 if success" in {
+      "return 202 if success" in {
         givenTraderServicesFileTransferSucceeds()
         givenAuditConnector()
         val request = testRequest
         val result = await(connector.transferFile(request, correlationId))
         result.success shouldBe true
+        result.httpStatus shouldBe 202
+        verifyTraderServicesFileTransferHasHappened(times = 1)
+      }
+
+      "return failure if 403" in {
+        givenTraderServicesFileTransferFailure(403)
+        givenAuditConnector()
+        val request = testRequest
+        val result = await(connector.transferFile(request, correlationId))
+        result.success shouldBe false
+        result.httpStatus shouldBe 403
+        verifyTraderServicesFileTransferHasHappened(times = 1)
+      }
+
+      "retry if 499 failure" in {
+        givenTraderServicesFileTransferFailure(499)
+        givenAuditConnector()
+        val request = testRequest
+        val result = await(connector.transferFile(request, correlationId))
+        result.success shouldBe false
+        result.httpStatus shouldBe 499
+        verifyTraderServicesFileTransferHasHappened(times = 3)
+      }
+
+      "retry if 500 failure" in {
+        givenTraderServicesFileTransferFailure(500)
+        givenAuditConnector()
+        val request = testRequest
+        val result = await(connector.transferFile(request, correlationId))
+        result.success shouldBe false
+        result.httpStatus shouldBe 500
+        verifyTraderServicesFileTransferHasHappened(times = 3)
+      }
+
+      "retry if 502 failure" in {
+        givenTraderServicesFileTransferFailure(502)
+        givenAuditConnector()
+        val request = testRequest
+        val result = await(connector.transferFile(request, correlationId))
+        result.success shouldBe false
+        result.httpStatus shouldBe 502
+        verifyTraderServicesFileTransferHasHappened(times = 3)
       }
     }
   }

@@ -249,7 +249,7 @@ class CreateUpdateCaseControllerISpec
         )
 
         verifyAuthorisationHasHappened()
-        verifyPegaCreateCaseRequestHasHappened()
+        verifyPegaCreateCaseRequestHasHappened(times = 3)
         verifyAuditRequestSent(
           1,
           TraderServicesAuditEvent.CreateCase,
@@ -685,7 +685,7 @@ class CreateUpdateCaseControllerISpec
         )
 
         verifyAuthorisationHasHappened()
-        verifyPegaUpdateCaseRequestHasHappened()
+        verifyPegaUpdateCaseRequestHasHappened(times = 3)
         verifyAuditRequestSent(
           1,
           TraderServicesAuditEvent.UpdateCase,

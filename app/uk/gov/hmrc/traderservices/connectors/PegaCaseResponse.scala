@@ -37,14 +37,19 @@ case class PegaCaseError(
   errorDetail: PegaCaseError.ErrorDetail
 ) extends PegaCaseResponse {
 
-  def errorCode: Option[String] = errorDetail.errorCode
-  def errorMessage: Option[String] = errorDetail.errorMessage
+  final def errorCode: Option[String] = errorDetail.errorCode
+  final def errorMessage: Option[String] = errorDetail.errorMessage
 
-  def isDuplicateCaseError: Boolean =
+  final def isDuplicateCaseError: Boolean =
     errorDetail.errorMessage.exists(_.replace(" ", "").startsWith("999:"))
 
-  def duplicateCaseID: Option[String] =
+  final def duplicateCaseID: Option[String] =
     errorDetail.errorMessage.map(_.replace(" ", "").drop(4))
+
+  final def isIntermittent: Boolean =
+    !isDuplicateCaseError &&
+      (errorDetail.errorCode.contains("499") ||
+        errorDetail.errorCode.exists(_.startsWith("5")))
 
 }
 
@@ -82,5 +87,22 @@ object PegaCaseError {
 
   implicit val formats: Format[PegaCaseError] =
     Json.format[PegaCaseError]
+
+}
+
+object PegaCaseResponse {
+
+  final def shouldRetry(response: PegaCaseResponse): Boolean =
+    response match {
+      case e: PegaCaseError if e.isIntermittent => true
+      case _                                    => false
+    }
+
+  final def errorMessage(response: PegaCaseResponse): String =
+    response match {
+      case PegaCaseError(errorDetail) =>
+        s"${errorDetail.errorCode.getOrElse("")} ${errorDetail.errorMessage.getOrElse("")}"
+      case _ => ""
+    }
 
 }
