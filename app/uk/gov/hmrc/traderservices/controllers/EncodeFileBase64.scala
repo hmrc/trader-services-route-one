@@ -60,7 +60,6 @@ object EncodeFileBase64
     val stageLogic =
       new GraphStageLogic(shape) with StageLogging {
 
-        Logger(getClass).info("New stream encoding is starting ...")
         val t0 = System.nanoTime()
 
         val encoder = Base64.getEncoder()

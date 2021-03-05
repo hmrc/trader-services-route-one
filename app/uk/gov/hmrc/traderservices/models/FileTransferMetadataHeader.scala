@@ -72,7 +72,7 @@ case class FileTransferMetadataHeader(
     }.mkString}
        |</mdg:properties>
        |<mdg:sourceLocation>$sourceLocation</mdg:sourceLocation>
-       |<mdg:sourceFileName>${conversationId}_$sourceFileName</mdg:sourceFileName>
+       |<mdg:sourceFileName>${sourceFileName.replaceAll(s"[^\\p{ASCII}]", "?")}_$conversationId</mdg:sourceFileName>
        |<mdg:sourceFileMimeType>$sourceFileMimeType</mdg:sourceFileMimeType>
        |<mdg:destinations>
        |<mdg:destination>

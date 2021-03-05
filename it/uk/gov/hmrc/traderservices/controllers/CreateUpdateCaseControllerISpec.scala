@@ -24,6 +24,7 @@ import play.api.libs.ws.InMemoryBody
 import akka.util.ByteString
 import java.nio.charset.StandardCharsets
 import play.api.libs.ws.BodyWritable
+import java.net.URLEncoder
 
 class CreateUpdateCaseControllerISpec
     extends ServerBaseISpec with AuthStubs with CreateCaseStubs with UpdateCaseStubs with FileTransferStubs
@@ -42,7 +43,7 @@ class CreateUpdateCaseControllerISpec
         val correlationId = ju.UUID.randomUUID().toString()
         givenAuthorised()
         givenPegaCreateImportCaseRequestSucceeds(200)
-        givenFileTransferSucceeds("PCE201103470D2CC8K0NH3", "test1.jpeg", correlationId)
+        givenFileTransferSucceeds("PCE201103470D2CC8K0NH3", "test⫐1.jpeg", correlationId)
         givenFileTransferSucceeds("PCE201103470D2CC8K0NH3", "app.routes", correlationId)
 
         val result = wsClient
@@ -77,7 +78,7 @@ class CreateUpdateCaseControllerISpec
         val correlationId = ju.UUID.randomUUID().toString()
         givenAuthorised()
         givenPegaCreateExportCaseRequestSucceeds()
-        givenFileTransferSucceeds("PCE201103470D2CC8K0NH3", "test1.jpeg", correlationId)
+        givenFileTransferSucceeds("PCE201103470D2CC8K0NH3", "test⫐1.jpeg", correlationId)
         givenFileTransferSucceeds("PCE201103470D2CC8K0NH3", "app.routes", correlationId)
 
         val result = wsClient
@@ -403,8 +404,8 @@ class CreateUpdateCaseControllerISpec
       "return 201 with CaseID when only files uploaded" in {
         val correlationId = ju.UUID.randomUUID().toString()
         givenAuthorised()
-        givenPegaUpdateCaseRequestSucceeds("The user has attached the following file(s): test1.jpeg.")
-        givenFileTransferSucceeds("PCE201103470D2CC8K0NH3", "test1.jpeg", correlationId)
+        givenPegaUpdateCaseRequestSucceeds("The user has attached the following file(s): test?1.jpeg.")
+        givenFileTransferSucceeds("PCE201103470D2CC8K0NH3", "test⫐1.jpeg", correlationId)
 
         val payload = TraderServicesUpdateCaseRequest(
           caseReferenceNumber = "PCE201103470D2CC8K0NH3",
@@ -430,7 +431,7 @@ class CreateUpdateCaseControllerISpec
         verifyPegaUpdateCaseRequestHasHappened(
           "Additional Information",
           "PCE201103470D2CC8K0NH3",
-          "The user has attached the following file(s): test1.jpeg."
+          "The user has attached the following file(s): test?1.jpeg."
         )
         verifyAuditRequestSent(
           1,
@@ -447,7 +448,7 @@ class CreateUpdateCaseControllerISpec
         val correlationId = ju.UUID.randomUUID().toString()
         givenAuthorised()
         givenPegaUpdateCaseRequestSucceeds()
-        givenFileTransferSucceeds("PCE201103470D2CC8K0NH3", "test1.jpeg", correlationId)
+        givenFileTransferSucceeds("PCE201103470D2CC8K0NH3", "test⫐1.jpeg", correlationId)
 
         val payload = TraderServicesUpdateCaseRequest(
           caseReferenceNumber = "PCE201103470D2CC8K0NH3",
@@ -817,10 +818,10 @@ object TestData {
       Seq(
         UploadedFile(
           "ref-123",
-          downloadUrl = baseUrl + "/bucket/test1.jpeg",
+          downloadUrl = baseUrl + s"/bucket/${URLEncoder.encode("test⫐1.jpeg", "UTF-8")}",
           uploadTimestamp = ZonedDateTime.of(2020, 10, 10, 10, 10, 10, 0, ZoneId.of("UTC")),
           checksum = "f55a741917d512ab4c547ea97bdfdd8df72bed5fe51b6a248e0a5a0ae58061c8",
-          fileName = "test1.jpeg",
+          fileName = "test⫐1.jpeg",
           fileMimeType = "image/jpeg"
         ),
         UploadedFile(
@@ -859,10 +860,10 @@ object TestData {
       Seq(
         UploadedFile(
           "ref-123",
-          downloadUrl = baseUrl + "/bucket/test1.jpeg",
+          downloadUrl = baseUrl + s"/bucket/${URLEncoder.encode("test⫐1.jpeg", "UTF-8")}",
           uploadTimestamp = ZonedDateTime.of(2020, 10, 10, 10, 10, 10, 0, ZoneId.of("UTC")),
           checksum = "f55a741917d512ab4c547ea97bdfdd8df72bed5fe51b6a248e0a5a0ae58061c8",
-          fileName = "test1.jpeg",
+          fileName = "test⫐1.jpeg",
           fileMimeType = "image/jpeg"
         ),
         UploadedFile(
@@ -896,11 +897,11 @@ object TestData {
       "uploadedFiles" -> Json.arr(
         Json.obj(
           "upscanReference" -> "ref-123",
-          "fileName"        -> "test1.jpeg",
+          "fileName"        -> "test⫐1.jpeg",
           "checksum"        -> "f55a741917d512ab4c547ea97bdfdd8df72bed5fe51b6a248e0a5a0ae58061c8",
           "fileMimeType"    -> "image/jpeg",
           "uploadTimestamp" -> "2020-10-10T10:10:10Z[UTC]",
-          "downloadUrl"     -> (baseUrl + "/bucket/test1.jpeg"),
+          "downloadUrl"     -> (baseUrl + s"/bucket/${URLEncoder.encode("test⫐1.jpeg", "UTF-8")}"),
           "transferSuccess" -> transferSuccess
         ),
         Json.obj(
@@ -935,11 +936,11 @@ object TestData {
       "uploadedFiles" -> Json.arr(
         Json.obj(
           "upscanReference" -> "ref-123",
-          "fileName"        -> "test1.jpeg",
+          "fileName"        -> "test⫐1.jpeg",
           "checksum"        -> "f55a741917d512ab4c547ea97bdfdd8df72bed5fe51b6a248e0a5a0ae58061c8",
           "fileMimeType"    -> "image/jpeg",
           "uploadTimestamp" -> "2020-10-10T10:10:10Z[UTC]",
-          "downloadUrl"     -> (baseUrl + "/bucket/test1.jpeg"),
+          "downloadUrl"     -> (baseUrl + s"/bucket/${URLEncoder.encode("test⫐1.jpeg", "UTF-8")}"),
           "transferSuccess" -> transferSuccess
         ),
         Json.obj(
@@ -966,10 +967,10 @@ object TestData {
     Seq(
       UploadedFile(
         "ref-123",
-        baseUrl + "/bucket/test1.jpeg",
+        baseUrl + s"/bucket/${URLEncoder.encode("test⫐1.jpeg", "UTF-8")}",
         ZonedDateTime.now(),
         "f55a741917d512ab4c547ea97bdfdd8df72bed5fe51b6a248e0a5a0ae58061c8",
-        "test1.jpeg",
+        "test⫐1.jpeg",
         "image/jpeg"
       )
     )
@@ -979,10 +980,10 @@ object TestData {
       "uploadedFiles" -> Json.arr(
         Json.obj(
           "upscanReference" -> "ref-123",
-          "fileName"        -> "test1.jpeg",
+          "fileName"        -> "test⫐1.jpeg",
           "checksum"        -> "f55a741917d512ab4c547ea97bdfdd8df72bed5fe51b6a248e0a5a0ae58061c8",
           "fileMimeType"    -> "image/jpeg",
-          "downloadUrl"     -> (baseUrl + "/bucket/test1.jpeg"),
+          "downloadUrl"     -> (baseUrl + s"/bucket/${URLEncoder.encode("test⫐1.jpeg", "UTF-8")}"),
           "transferSuccess" -> transferSuccess
         )
       ),
