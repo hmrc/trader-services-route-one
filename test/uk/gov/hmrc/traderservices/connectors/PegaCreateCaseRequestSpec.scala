@@ -119,10 +119,10 @@ class PegaCreateCaseRequestSpec extends UnitSpec {
       Seq(
         UploadedFile(
           "ref-123",
-          downloadUrl = "/bucket/test1.jpeg",
+          downloadUrl = "/bucket/test⫐1.jpeg",
           uploadTimestamp = ZonedDateTime.of(2020, 10, 10, 10, 10, 10, 0, ZoneId.of("UTC")),
           checksum = "f55a741917d512ab4c547ea97bdfdd8df72bed5fe51b6a248e0a5a0ae58061c8",
-          fileName = "test1.jpeg",
+          fileName = "test⫐1.jpeg",
           fileMimeType = "image/jpeg"
         ),
         UploadedFile(
@@ -166,10 +166,10 @@ class PegaCreateCaseRequestSpec extends UnitSpec {
       Seq(
         UploadedFile(
           "ref-123",
-          downloadUrl = "/bucket/test1.jpeg",
+          downloadUrl = "/bucket/test⫐1.jpeg",
           uploadTimestamp = ZonedDateTime.of(2020, 10, 10, 10, 10, 10, 0, ZoneId.of("UTC")),
           checksum = "f55a741917d512ab4c547ea97bdfdd8df72bed5fe51b6a248e0a5a0ae58061c8",
-          fileName = "test1.jpeg",
+          fileName = "test⫐1.jpeg",
           fileMimeType = "image/jpeg"
         ),
         UploadedFile(

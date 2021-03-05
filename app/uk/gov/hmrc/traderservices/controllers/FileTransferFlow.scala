@@ -124,8 +124,6 @@ trait FileTransferFlow {
               batchCount = fileTransferRequest.batchCount
             ).toXmlString
 
-            Logger(getClass).info(xmlMetadata)
-
             val eisUploadRequest = HttpRequest(
               method = HttpMethods.POST,
               uri = appConfig.eisBaseUrl + appConfig.eisFileTransferApiPath,

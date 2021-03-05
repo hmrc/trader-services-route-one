@@ -38,7 +38,7 @@ class FileTransferControllerISpec extends ServerBaseISpec with AuthStubs with Fi
       testFileTransferSuccess("app.routes", "Route1")
       testFileTransferSuccess("schema.json", "Route1")
       testFileTransferSuccess("logback.xml", "Route1")
-      testFileTransferSuccess("test1.jpeg", "Route1")
+      testFileTransferSuccess("test⫐1.jpeg", "Route1")
       testFileTransferSuccess("test2.txt", "Route1")
 
       testFileTransferSuccess("emptyArray", "NDRC", Some(emptyArray))
@@ -49,7 +49,7 @@ class FileTransferControllerISpec extends ServerBaseISpec with AuthStubs with Fi
       testFileTransferSuccess("app.routes", "NDRC")
       testFileTransferSuccess("schema.json", "NDRC")
       testFileTransferSuccess("logback.xml", "NDRC")
-      testFileTransferSuccess("test1.jpeg", "NDRC")
+      testFileTransferSuccess("test⫐1.jpeg", "NDRC")
       testFileTransferSuccess("test2.txt", "NDRC")
 
       testFileUploadFailure("emptyArray", 404, Some(emptyArray))
@@ -60,7 +60,7 @@ class FileTransferControllerISpec extends ServerBaseISpec with AuthStubs with Fi
       testFileUploadFailure("app.routes", 404)
       testFileUploadFailure("schema.json", 501)
       testFileUploadFailure("logback.xml", 409)
-      testFileUploadFailure("test1.jpeg", 403)
+      testFileUploadFailure("test⫐1.jpeg", 403)
 
       testFileDownloadFailure("emptyArray", 404, Some(emptyArray))
       testFileDownloadFailure("oneByteArray", 404, Some(oneByteArray))
@@ -70,15 +70,15 @@ class FileTransferControllerISpec extends ServerBaseISpec with AuthStubs with Fi
       testFileDownloadFailure("app.routes", 403)
       testFileDownloadFailure("schema.json", 500)
       testFileDownloadFailure("logback.xml", 501)
-      testFileDownloadFailure("test1.jpeg", 404)
+      testFileDownloadFailure("test⫐1.jpeg", 404)
 
-      testFileDownloadFault("test1.jpeg", 200, Fault.RANDOM_DATA_THEN_CLOSE)
+      testFileDownloadFault("test⫐1.jpeg", 200, Fault.RANDOM_DATA_THEN_CLOSE)
       testFileDownloadFault("test2.txt", 500, Fault.RANDOM_DATA_THEN_CLOSE)
-      testFileDownloadFault("test1.jpeg", 200, Fault.MALFORMED_RESPONSE_CHUNK)
+      testFileDownloadFault("test⫐1.jpeg", 200, Fault.MALFORMED_RESPONSE_CHUNK)
       testFileDownloadFault("test2.txt", 500, Fault.MALFORMED_RESPONSE_CHUNK)
-      testFileDownloadFault("test1.jpeg", 200, Fault.CONNECTION_RESET_BY_PEER)
+      testFileDownloadFault("test⫐1.jpeg", 200, Fault.CONNECTION_RESET_BY_PEER)
       testFileDownloadFault("test2.txt", 500, Fault.CONNECTION_RESET_BY_PEER)
-      testFileDownloadFault("test1.jpeg", 200, Fault.EMPTY_RESPONSE)
+      testFileDownloadFault("test⫐1.jpeg", 200, Fault.EMPTY_RESPONSE)
       testFileDownloadFault("test2.txt", 500, Fault.EMPTY_RESPONSE)
 
       "return 400 when empty payload" in {

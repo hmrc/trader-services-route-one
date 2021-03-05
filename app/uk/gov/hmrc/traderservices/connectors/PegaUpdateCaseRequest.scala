@@ -60,7 +60,7 @@ object PegaUpdateCaseRequest {
         RequestType = "Additional Information",
         Description = request.responseText
           .getOrElse(
-            s"The user has attached the following file(s): ${request.uploadedFiles.map(_.fileName).mkString(", ")}."
+            s"The user has attached the following file(s): ${request.uploadedFiles.map(_.fileName.replaceAll(s"[^\\p{ASCII}]", "?")).mkString(", ")}."
           )
       )
 
