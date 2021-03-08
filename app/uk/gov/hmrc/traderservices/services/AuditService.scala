@@ -33,7 +33,7 @@ import uk.gov.hmrc.traderservices.connectors.TraderServicesCaseResponse
 import play.api.libs.json._
 import uk.gov.hmrc.play.audit.model.ExtendedDataEvent
 import uk.gov.hmrc.traderservices.models.UploadedFile
-import uk.gov.hmrc.traderservices.models.DeclarationDetails
+import uk.gov.hmrc.traderservices.models.EntryDetails
 import uk.gov.hmrc.traderservices.models.TypeOfAmendment
 import uk.gov.hmrc.traderservices.models.FileTransferResult
 import uk.gov.hmrc.traderservices.models.FileTransferAudit
@@ -137,7 +137,7 @@ object AuditService {
     eori: Option[String],
     caseReferenceNumber: Option[String],
     declarationType: String,
-    declarationDetails: DeclarationDetails,
+    entryDetails: EntryDetails,
     requestType: Option[String],
     routeType: Option[String],
     priorityGoods: Option[String],
@@ -168,7 +168,7 @@ object AuditService {
                 eori = createRequest.eori,
                 caseReferenceNumber = createResponse.result.map(_.caseId),
                 declarationType = "import",
-                declarationDetails = createRequest.declarationDetails,
+                entryDetails = createRequest.entryDetails,
                 requestType = Some(q.requestType.toString()),
                 routeType = Some(q.routeType.toString()),
                 priorityGoods = q.priorityGoods.map(_.toString()),
@@ -193,7 +193,7 @@ object AuditService {
                 eori = createRequest.eori,
                 caseReferenceNumber = createResponse.result.map(_.caseId),
                 declarationType = "export",
-                declarationDetails = createRequest.declarationDetails,
+                entryDetails = createRequest.entryDetails,
                 requestType = Some(q.requestType.toString()),
                 routeType = Some(q.routeType.toString()),
                 priorityGoods = q.priorityGoods.map(_.toString()),
