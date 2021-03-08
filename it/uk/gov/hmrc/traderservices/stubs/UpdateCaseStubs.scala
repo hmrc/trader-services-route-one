@@ -28,8 +28,8 @@ trait UpdateCaseStubs {
         |}""".stripMargin
     )
 
-  def verifyPegaUpdateCaseRequestHasHappened() =
-    verify(1, postRequestedFor(urlEqualTo(UPDATE_CASE_URL)))
+  def verifyPegaUpdateCaseRequestHasHappened(times: Int = 1) =
+    verify(times, postRequestedFor(urlEqualTo(UPDATE_CASE_URL)))
 
   def verifyPegaUpdateCaseRequestHasHappened(requestType: String, caseId: String, description: String): Unit =
     verify(

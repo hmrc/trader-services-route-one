@@ -25,12 +25,18 @@ import com.kenshoo.play.metrics.Metrics
 import com.codahale.metrics.MetricRegistry
 import play.api.libs.json.Writes
 import uk.gov.hmrc.http.logging.Authorization
+import akka.actor.ActorSystem
+import scala.concurrent.duration._
 
 @Singleton
-class PegaCreateCaseConnector @Inject() (val config: AppConfig, val http: HttpPost, metrics: Metrics)
-    extends ReadSuccessOrFailure[PegaCaseResponse, PegaCaseSuccess, PegaCaseError](
+class PegaCreateCaseConnector @Inject() (
+  val config: AppConfig,
+  val http: HttpPost,
+  metrics: Metrics,
+  val actorSystem: ActorSystem
+) extends ReadSuccessOrFailure[PegaCaseResponse, PegaCaseSuccess, PegaCaseError](
       PegaCaseError.fromStatusAndMessage
-    ) with PegaConnector with HttpAPIMonitor {
+    ) with PegaConnector with HttpAPIMonitor with Retries {
 
   override val kenshooRegistry: MetricRegistry = metrics.defaultRegistry
 
@@ -40,17 +46,19 @@ class PegaCreateCaseConnector @Inject() (val config: AppConfig, val http: HttpPo
     hc: HeaderCarrier,
     ec: ExecutionContext
   ): Future[PegaCaseResponse] =
-    monitor(s"ConsumedAPI-eis-pega-create-case-api-POST") {
-      http
-        .POST[PegaCreateCaseRequest, PegaCaseResponse](url, createCaseRequest)(
-          implicitly[Writes[PegaCreateCaseRequest]],
-          readFromJsonSuccessOrFailure,
-          HeaderCarrier(
-            authorization = Some(Authorization(s"Bearer ${config.eisAuthorizationToken}"))
+    retry(1.second, 2.seconds)(PegaCaseResponse.shouldRetry, PegaCaseResponse.errorMessage) {
+      monitor(s"ConsumedAPI-eis-pega-create-case-api-POST") {
+        http
+          .POST[PegaCreateCaseRequest, PegaCaseResponse](url, createCaseRequest)(
+            implicitly[Writes[PegaCreateCaseRequest]],
+            readFromJsonSuccessOrFailure,
+            HeaderCarrier(
+              authorization = Some(Authorization(s"Bearer ${config.eisAuthorizationToken}"))
+            )
+              .withExtraHeaders(pegaApiHeaders(correlationId, config.eisEnvironment): _*),
+            implicitly[ExecutionContext]
           )
-            .withExtraHeaders(pegaApiHeaders(correlationId, config.eisEnvironment): _*),
-          implicitly[ExecutionContext]
-        )
+      }
     }
 
 }

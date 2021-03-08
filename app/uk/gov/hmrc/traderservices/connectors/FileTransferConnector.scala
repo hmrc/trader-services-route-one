@@ -27,13 +27,16 @@ import uk.gov.hmrc.traderservices.models.{FileTransferResult, TraderServicesFile
 import uk.gov.hmrc.http.HttpResponse
 import uk.gov.hmrc.http.HttpReads.Implicits._
 import java.time.LocalDateTime
+import akka.actor.ActorSystem
+import scala.concurrent.duration._
 
 @Singleton
 class FileTransferConnector @Inject() (
   val config: AppConfig,
   val http: HttpPost,
-  metrics: Metrics
-) extends HttpAPIMonitor {
+  metrics: Metrics,
+  val actorSystem: ActorSystem
+) extends HttpAPIMonitor with Retries {
 
   override val kenshooRegistry: MetricRegistry = metrics.defaultRegistry
 
@@ -43,21 +46,28 @@ class FileTransferConnector @Inject() (
     hc: HeaderCarrier,
     ec: ExecutionContext
   ): Future[FileTransferResult] =
-    monitor(s"ConsumedAPI-trader-services-transfer-file-api-POST") {
-      http
-        .POST[TraderServicesFileTransferRequest, HttpResponse](url, fileTransferRequest)
-        .map(response =>
-          FileTransferResult(
-            fileTransferRequest.upscanReference,
-            isSuccess(response),
-            response.status,
-            LocalDateTime.now(),
-            None
-          )
-        )
-    }
+    retry[HttpResponse](1.second, 2.seconds)(shouldRetry, errorMessage) {
+      monitor(s"ConsumedAPI-trader-services-transfer-file-api-POST") {
+        http
+          .POST[TraderServicesFileTransferRequest, HttpResponse](url, fileTransferRequest)
+      }
+    }.map(response =>
+      FileTransferResult(
+        fileTransferRequest.upscanReference,
+        isSuccess(response),
+        response.status,
+        LocalDateTime.now(),
+        None
+      )
+    )
 
   private def isSuccess(response: HttpResponse): Boolean =
     response.status >= 200 && response.status < 300
+
+  final def shouldRetry(response: HttpResponse): Boolean =
+    response.status == 499 || response.status >= 500
+
+  final def errorMessage(response: HttpResponse): String =
+    s"HTTP response status ${response.status}"
 
 }

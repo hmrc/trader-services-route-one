@@ -65,8 +65,8 @@ trait CreateCaseStubs {
   def givenPegaCreateExportCaseRequestSucceeds(): Unit =
     stubForPostWithResponse(200, validCreateExportCasePayload, validResponseBody)
 
-  def verifyPegaCreateCaseRequestHasHappened() =
-    verify(1, postRequestedFor(urlEqualTo(CREATE_CASE_URL)))
+  def verifyPegaCreateCaseRequestHasHappened(times: Int = 1) =
+    verify(times, postRequestedFor(urlEqualTo(CREATE_CASE_URL)))
 
   def verifyPegaCreateCaseRequestDidNotHappen() =
     verify(0, postRequestedFor(urlEqualTo(CREATE_CASE_URL)))

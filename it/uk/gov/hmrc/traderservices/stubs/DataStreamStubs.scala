@@ -23,7 +23,7 @@ trait DataStreamStubs extends Eventually {
     eventually {
       verify(
         count,
-        postRequestedFor(urlPathEqualTo(auditUrl))
+        postRequestedFor(urlPathMatching(auditUrl))
           .withRequestBody(
             similarToJson(s"""{
           |  "auditSource": "trader-services-route-one",
@@ -39,7 +39,7 @@ trait DataStreamStubs extends Eventually {
     eventually {
       verify(
         0,
-        postRequestedFor(urlPathEqualTo(auditUrl))
+        postRequestedFor(urlPathMatching(auditUrl))
           .withRequestBody(similarToJson(s"""{
           |  "auditSource": "trader-services-route-one",
           |  "auditType": "$event"
@@ -47,12 +47,10 @@ trait DataStreamStubs extends Eventually {
       )
     }
 
-  def givenAuditConnector(): Unit = {
-    stubFor(post(urlPathEqualTo(auditUrl)).willReturn(aResponse().withStatus(204)))
-    stubFor(post(urlPathEqualTo(auditUrl + "/merged")).willReturn(aResponse().withStatus(204)))
-  }
+  def givenAuditConnector(): Unit =
+    stubFor(post(urlPathMatching(auditUrl)).willReturn(aResponse().withStatus(204)))
 
-  private def auditUrl = "/write/audit"
+  private def auditUrl = "/write/audit.*"
 
   private def similarToJson(value: String) = equalToJson(value.stripMargin, true, true)
 
