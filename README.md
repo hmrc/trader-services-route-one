@@ -25,7 +25,7 @@ Response status | Description
 Example request payload 
 
     {
-        "declarationDetails" : {
+        "entryDetails" : {
             "epu" : "123",
             "entryNumber" : "000000Z",
             "entryDate" : "2020-10-05"

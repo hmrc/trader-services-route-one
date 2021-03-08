@@ -96,7 +96,7 @@ class PegaCreateCaseRequestSpec extends UnitSpec {
     freightType: ImportFreightType
   ) =
     TraderServicesCreateCaseRequest(
-      DeclarationDetails(EPU(2), EntryNumber("223456A"), LocalDate.parse("2020-09-02")),
+      EntryDetails(EPU(2), EntryNumber("223456A"), LocalDate.parse("2020-09-02")),
       ImportQuestions(
         requestType,
         routeType,
@@ -144,7 +144,7 @@ class PegaCreateCaseRequestSpec extends UnitSpec {
     freightType: ExportFreightType
   ) =
     TraderServicesCreateCaseRequest(
-      DeclarationDetails(EPU(2), EntryNumber("A23456A"), LocalDate.parse("2020-09-02")),
+      EntryDetails(EPU(2), EntryNumber("A23456A"), LocalDate.parse("2020-09-02")),
       ExportQuestions(
         requestType,
         routeType,

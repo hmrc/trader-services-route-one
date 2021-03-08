@@ -120,7 +120,7 @@ class CreateUpdateCaseControllerISpec
           .futureValue
 
         val errorMessage =
-          "Invalid payload: Parsing failed due to at path /uploadedFiles with error.path.missing, and at path /questionsAnswers with error.path.missing, and at path /declarationDetails with error.path.missing."
+          "Invalid payload: Parsing failed due to at path /uploadedFiles with error.path.missing, and at path /entryDetails with error.path.missing, and at path /questionsAnswers with error.path.missing."
 
         result.status shouldBe 400
         result.json.as[JsObject] should (
@@ -176,7 +176,7 @@ class CreateUpdateCaseControllerISpec
                 haveProperty[String](
                   "errorMessage",
                   be(
-                    "Could not parse payload due to Unexpected end-of-input in field name\n at [Source: (String)\"{\n  \"declarat\"; line: 2, column: 12]."
+                    "Could not parse payload due to Unexpected end-of-input in field name\n at [Source: (String)\"{\n  \"entryDet\"; line: 2, column: 12]."
                   )
                 )
             )
@@ -192,7 +192,7 @@ class CreateUpdateCaseControllerISpec
             ApiError(
               "ERROR_UNKNOWN",
               Some(
-                "Could not parse payload due to Unexpected end-of-input in field name\n at [Source: (String)\"{\n  \"declarat\"; line: 2, column: 12]."
+                "Could not parse payload due to Unexpected end-of-input in field name\n at [Source: (String)\"{\n  \"entryDet\"; line: 2, column: 12]."
               )
             )
           ) ++ Json.obj("duplicate" -> false)
@@ -795,7 +795,7 @@ object TestData {
 
   def testCreateImportCaseRequest(baseUrl: String) =
     TraderServicesCreateCaseRequest(
-      DeclarationDetails(EPU(2), EntryNumber("223456A"), LocalDate.parse("2020-09-02")),
+      EntryDetails(EPU(2), EntryNumber("223456A"), LocalDate.parse("2020-09-02")),
       ImportQuestions(
         requestType = ImportRequestType.New,
         routeType = ImportRouteType.Route1,
@@ -838,7 +838,7 @@ object TestData {
 
   def testCreateExportCaseRequest(baseUrl: String) =
     TraderServicesCreateCaseRequest(
-      DeclarationDetails(EPU(2), EntryNumber("A23456A"), LocalDate.parse("2020-09-02")),
+      EntryDetails(EPU(2), EntryNumber("A23456A"), LocalDate.parse("2020-09-02")),
       ExportQuestions(
         requestType = ExportRequestType.New,
         routeType = ExportRouteType.Route1,
@@ -882,7 +882,7 @@ object TestData {
     Json.obj(
       "eori"            -> "GB123456789012345",
       "declarationType" -> "import",
-      "declarationDetails" -> Json
+      "entryDetails" -> Json
         .obj("epu" -> "2", "entryDate" -> "2020-09-02", "entryNumber" -> "223456A"),
       "dateOfArrival" -> "2020-10-29",
       "hasALVS"       -> false,
@@ -921,7 +921,7 @@ object TestData {
     Json.obj(
       "eori"            -> "GB123456789012345",
       "declarationType" -> "export",
-      "declarationDetails" -> Json
+      "entryDetails" -> Json
         .obj("epu" -> "2", "entryDate" -> "2020-09-02", "entryNumber" -> "A23456A"),
       "dateOfArrival" -> "2020-10-29",
       "timeOfArrival" -> "23:45:00",
