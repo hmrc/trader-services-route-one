@@ -72,7 +72,8 @@ case class FileTransferMetadataHeader(
     }.mkString}
        |</mdg:properties>
        |<mdg:sourceLocation>$sourceLocation</mdg:sourceLocation>
-       |<mdg:sourceFileName>${sourceFileName.replaceAll(s"[^\\p{ASCII}]", "?")}_$conversationId</mdg:sourceFileName>
+       |<mdg:sourceFileName>${FileTransferMetadataHeader
+      .refineFileName(sourceFileName, correlationId)}</mdg:sourceFileName>
        |<mdg:sourceFileMimeType>$sourceFileMimeType</mdg:sourceFileMimeType>
        |<mdg:destinations>
        |<mdg:destination>
@@ -80,4 +81,17 @@ case class FileTransferMetadataHeader(
        |</mdg:destination>
        |</mdg:destinations>
        |</mdg:BatchFileInterfaceMetadata>""".stripMargin.replaceAll("\n", "")
+
+}
+
+object FileTransferMetadataHeader {
+
+  final def refineFileName(sourceFileName: String, correlationId: String) = {
+    val asciiOnly = sourceFileName.replaceAll(s"[^\\p{ASCII}]", "?")
+    val lastDot = asciiOnly.lastIndexOf(".")
+    if (lastDot >= 0)
+      asciiOnly.substring(0, lastDot) + "_" + correlationId + asciiOnly.substring(lastDot)
+    else
+      asciiOnly + "_" + correlationId
+  }
 }
