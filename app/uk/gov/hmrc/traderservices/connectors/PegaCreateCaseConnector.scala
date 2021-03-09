@@ -24,9 +24,9 @@ import scala.concurrent.{ExecutionContext, Future}
 import com.kenshoo.play.metrics.Metrics
 import com.codahale.metrics.MetricRegistry
 import play.api.libs.json.Writes
-import uk.gov.hmrc.http.logging.Authorization
 import akka.actor.ActorSystem
 import scala.concurrent.duration._
+import uk.gov.hmrc.http.Authorization
 
 @Singleton
 class PegaCreateCaseConnector @Inject() (

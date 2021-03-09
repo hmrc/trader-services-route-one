@@ -7,8 +7,8 @@
 
     <logger name="uk.gov" level="WARN"/>
     <logger name="uk.gov.hmrc.traderservices" level="INFO"/>
-    <logger name="application" level="INFO"/>
-    <logger name="akka.stream.Materializer" level="DEBUG"/>
+    <logger name="application" level="WARN"/>
+    <logger name="akka.stream.Materializer" level="WARN"/>
 
     <root level="ERROR">
         <appender-ref ref="STDOUT"/>
