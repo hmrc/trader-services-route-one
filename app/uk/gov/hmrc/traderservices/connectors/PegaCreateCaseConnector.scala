@@ -49,13 +49,14 @@ class PegaCreateCaseConnector @Inject() (
     retry(1.second, 2.seconds)(PegaCaseResponse.shouldRetry, PegaCaseResponse.errorMessage) {
       monitor(s"ConsumedAPI-eis-pega-create-case-api-POST") {
         http
-          .POST[PegaCreateCaseRequest, PegaCaseResponse](url, createCaseRequest)(
+          .POST[PegaCreateCaseRequest, PegaCaseResponse](
+            url,
+            createCaseRequest,
+            pegaApiHeaders(correlationId, config.eisEnvironment, config.eisAuthorizationToken)
+          )(
             implicitly[Writes[PegaCreateCaseRequest]],
             readFromJsonSuccessOrFailure,
-            HeaderCarrier(
-              authorization = Some(Authorization(s"Bearer ${config.eisAuthorizationToken}"))
-            )
-              .withExtraHeaders(pegaApiHeaders(correlationId, config.eisEnvironment): _*),
+            HeaderCarrier(),
             implicitly[ExecutionContext]
           )
       }
