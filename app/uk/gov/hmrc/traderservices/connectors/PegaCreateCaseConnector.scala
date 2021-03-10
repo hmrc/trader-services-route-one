@@ -56,7 +56,7 @@ class PegaCreateCaseConnector @Inject() (
           )(
             implicitly[Writes[PegaCreateCaseRequest]],
             readFromJsonSuccessOrFailure,
-            HeaderCarrier(),
+            hc,
             implicitly[ExecutionContext]
           )
       }
