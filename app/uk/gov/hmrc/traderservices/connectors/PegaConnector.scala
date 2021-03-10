@@ -29,13 +29,14 @@ trait PegaConnector {
     .withZone(ZoneId.of("GMT"))
 
   /** Headers required by the PEGA API */
-  final def pegaApiHeaders(correlationId: String, environment: String): Seq[(String, String)] =
+  final def pegaApiHeaders(correlationId: String, environment: String, token: String): Seq[(String, String)] =
     Seq(
       "x-correlation-id"    -> correlationId,
       "CustomProcessesHost" -> "Digital",
       "date"                -> httpDateFormat.format(ZonedDateTime.now),
       "accept"              -> "application/json",
-      "environment"         -> environment
+      "environment"         -> environment,
+      "Authorization"       -> s"Bearer $token"
     )
 
 }
