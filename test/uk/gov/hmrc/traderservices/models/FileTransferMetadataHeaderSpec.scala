@@ -33,6 +33,12 @@ class FileTransferMetadataHeaderSpec extends UnitSpec {
       FileTransferMetadataHeader.refineFileName("foo..baz", "123") shouldBe "foo._123.baz"
       FileTransferMetadataHeader.refineFileName(".bar", "123") shouldBe "_123.bar"
       FileTransferMetadataHeader.refineFileName("foo.bar", "") shouldBe "foo_.bar"
+      FileTransferMetadataHeader.refineFileName("foo&b&ar", "") shouldBe "foo&amp;b&amp;ar_"
+      FileTransferMetadataHeader.refineFileName("foo<bar<", "") shouldBe "foo&lt;bar&lt;_"
+      FileTransferMetadataHeader.refineFileName("foo>>bar", "") shouldBe "foo&gt;&gt;bar_"
+      FileTransferMetadataHeader.refineFileName("foo>>bar", "") shouldBe "foo&gt;&gt;bar_"
+      FileTransferMetadataHeader.refineFileName("foo&'bar", "") shouldBe "foo&amp;&apos;bar_"
+      FileTransferMetadataHeader.refineFileName(">foo\"&bar", "") shouldBe "&gt;foo&quot;&amp;bar_"
     }
   }
 

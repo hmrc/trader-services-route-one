@@ -87,7 +87,13 @@ case class FileTransferMetadataHeader(
 object FileTransferMetadataHeader {
 
   final def refineFileName(sourceFileName: String, correlationId: String) = {
-    val asciiOnly = sourceFileName.replaceAll(s"[^\\p{ASCII}]", "?")
+    val asciiOnly = sourceFileName
+      .replaceAll(s"[^\\p{ASCII}]", "?")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll("'", "&apos;")
+      .replaceAll("\"", "&quot;")
     val lastDot = asciiOnly.lastIndexOf(".")
     if (lastDot >= 0)
       asciiOnly.substring(0, lastDot) + "_" + correlationId + asciiOnly.substring(lastDot)
