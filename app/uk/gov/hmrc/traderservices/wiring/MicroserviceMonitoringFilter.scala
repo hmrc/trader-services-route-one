@@ -26,11 +26,11 @@ import com.kenshoo.play.metrics.Metrics
 import play.api.Logger
 import play.api.mvc.{Filter, RequestHeader, Result}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpException, Upstream4xxResponse, Upstream5xxResponse}
-import uk.gov.hmrc.play.HeaderCarrierConverter.fromHeadersAndSession
 
 import scala.concurrent.duration.NANOSECONDS
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
+import uk.gov.hmrc.play.http.HeaderCarrierConverter
 
 @Singleton
 class MicroserviceMonitoringFilter @Inject() (metrics: Metrics, routes: Routes)(implicit
@@ -54,7 +54,7 @@ object KeyToPatternMappingFromRoutes {
               if (placeholders.contains(name)) s"{$name}" else ":"
             } else p
           )
-          .mkString("|")
+          .mkString("__")
         val pattern = r.replace("$", ":")
         Logger(getClass).info(s"$key-$method -> $pattern")
         (key, pattern)
@@ -68,7 +68,8 @@ abstract class MonitoringFilter(kenshooRegistry: MetricRegistry)(implicit ec: Ex
     nextFilter: (RequestHeader) => Future[Result]
   )(requestHeader: RequestHeader): Future[Result] = {
 
-    implicit val hc: HeaderCarrier = fromHeadersAndSession(requestHeader.headers)
+    implicit val hc: HeaderCarrier =
+      HeaderCarrierConverter.fromRequest(requestHeader)
 
     findMatchingKey(requestHeader.uri) match {
       case Some(key) =>
