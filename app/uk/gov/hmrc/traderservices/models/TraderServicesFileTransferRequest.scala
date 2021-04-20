@@ -65,7 +65,4 @@ object TraderServicesFileTransferRequest {
 
   implicit val formats: Format[TraderServicesFileTransferRequest] =
     Json.format[TraderServicesFileTransferRequest]
-
-  implicit val validate: Validator.Validate[TraderServicesFileTransferRequest] =
-    Validator.always
 }

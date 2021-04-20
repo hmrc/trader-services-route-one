@@ -19,6 +19,7 @@ import cats.Semigroup
 import cats.data.Validated
 import cats.data.Validated.{Invalid, Valid}
 
+// $COVERAGE-OFF$
 object Validator {
 
   import Implicits._
@@ -97,7 +98,12 @@ object Validator {
         )
 
   def checkEach[T, E](elements: T => Seq[E], validator: Validate[E]): Validate[T] =
-    (entity: T) => elements(entity).map(validator).reduce(_.combine(_))
+    (entity: T) => {
+      val vs = elements(entity).map(validator)
+      if (vs.nonEmpty)
+        vs.reduce(_.combine(_))
+      else Valid(())
+    }
 
   def checkEachIfSome[T, E](
     extract: T => Option[Seq[E]],
@@ -167,22 +173,22 @@ object Validator {
     def isOneOf(set: Set[String]): Boolean = value.forall(set.apply)
   }
 
-  implicit class BigDecimalMatchers(val value: BigDecimal) extends AnyVal {
-    def inRange(min: BigDecimal, max: BigDecimal, multipleOf: Option[BigDecimal] = None): Boolean =
-      value != null && value <= max && value >= min && multipleOf.forall(a => (value % a).abs < 0.0001)
-    def lteq(max: BigDecimal, multipleOf: Option[BigDecimal] = None): Boolean =
-      value != null && value <= max && multipleOf.forall(a => (value % a).abs < 0.0001)
-    def gteq(min: BigDecimal, multipleOf: Option[BigDecimal] = None): Boolean =
-      value != null && value >= min && multipleOf.forall(a => (value % a).abs < 0.0001)
+  implicit class IntMatchers(val value: Int) extends AnyVal {
+    def inRange(min: Int, max: Int, multipleOf: Option[Int] = None): Boolean =
+      value <= max && value >= min && multipleOf.forall(a => (value % a).abs < 0.0001)
+    def lteq(max: Int, multipleOf: Option[Int] = None): Boolean =
+      value <= max && multipleOf.forall(a => (value % a).abs < 0.0001)
+    def gteq(min: Int, multipleOf: Option[Int] = None): Boolean =
+      value >= min && multipleOf.forall(a => (value % a).abs < 0.0001)
   }
 
-  implicit class OptionalBigDecimalMatchers(val value: Option[BigDecimal]) extends AnyVal {
-    def inRange(min: BigDecimal, max: BigDecimal, multipleOf: Option[BigDecimal] = None): Boolean =
-      value.forall(v => v != null && v <= max && v >= min && multipleOf.forall(a => (v % a).abs < 0.0001))
-    def lteq(max: BigDecimal, multipleOf: Option[BigDecimal] = None): Boolean =
-      value.forall(v => v != null && v <= max && multipleOf.forall(a => (v % a).abs < 0.0001))
-    def gteq(min: BigDecimal, multipleOf: Option[BigDecimal] = None): Boolean =
-      value.forall(v => v != null && v >= min && multipleOf.forall(a => (v % a).abs < 0.0001))
+  implicit class OptionalIntMatchers(val value: Option[Int]) extends AnyVal {
+    def inRange(min: Int, max: Int, multipleOf: Option[Int] = None): Boolean =
+      value.forall(v => v <= max && v >= min && multipleOf.forall(a => (v % a).abs < 0.0001))
+    def lteq(max: Int, multipleOf: Option[Int] = None): Boolean =
+      value.forall(v => v <= max && multipleOf.forall(a => (v % a).abs < 0.0001))
+    def gteq(min: Int, multipleOf: Option[Int] = None): Boolean =
+      value.forall(v => v >= min && multipleOf.forall(a => (v % a).abs < 0.0001))
   }
 
   implicit class BooleanOps(val value: Boolean) extends AnyVal {

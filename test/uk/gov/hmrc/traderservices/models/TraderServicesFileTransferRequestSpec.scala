@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.traderservices.services
+package uk.gov.hmrc.traderservices.models
 
 import uk.gov.hmrc.traderservices.support.UnitSpec
-import uk.gov.hmrc.traderservices.models.UploadedFile
 import java.time.ZonedDateTime
-import uk.gov.hmrc.traderservices.models.TraderServicesFileTransferRequest
 
 class TraderServicesFileTransferRequestSpec extends UnitSpec {
 

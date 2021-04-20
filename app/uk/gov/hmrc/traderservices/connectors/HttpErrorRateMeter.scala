@@ -23,6 +23,7 @@ import scala.util.{Failure, Success}
 import com.codahale.metrics.MetricRegistry
 import uk.gov.hmrc.http._
 
+// $COVERAGE-OFF$
 trait HttpErrorRateMeter {
   val kenshooRegistry: MetricRegistry
   def meterName[T](serviceName: String, statusCode: Int): String =
