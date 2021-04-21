@@ -26,9 +26,6 @@ class AuthActionsISpec extends AppBaseISpec {
       override val eisUpdateCaseApiPath: String = "???"
       override val eisAuthorizationToken: String = "???"
       override val eisEnvironment: String = "???"
-      override val eisFileTransferHost: String = "???"
-      override val eisFileTransferPort: Int = -1
-      override val eisFileTransferApiPath: String = "???"
       override lazy val fileTransferUrl: String = "???"
     }
 

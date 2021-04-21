@@ -39,12 +39,6 @@ trait AppConfig {
 
   val eisUpdateCaseApiPath: String
 
-  val eisFileTransferHost: String
-
-  val eisFileTransferPort: Int
-
-  val eisFileTransferApiPath: String
-
   val eisAuthorizationToken: String
 
   val eisEnvironment: String
@@ -83,28 +77,6 @@ class AppConfigImpl @Inject() (config: ServicesConfig) extends AppConfig {
       "eis.cpr.caserequest.route1.update.path",
       throw new IllegalStateException(
         "Missing [microservice.services.eis.cpr.caserequest.route1.update.path] configuration property"
-      )
-    )
-
-  override val eisFileTransferHost: String = config.getConfString(
-    "eis.cpr.caserequest.route1.host",
-    throw new IllegalStateException(
-      "Missing [microservice.services.eis.cpr.caserequest.route1.host] configuration property"
-    )
-  )
-
-  override val eisFileTransferPort: Int = config.getConfInt(
-    "eis.cpr.caserequest.route1.port",
-    throw new IllegalStateException(
-      "Missing [microservice.services.eis.cpr.caserequest.route1.port] configuration property"
-    )
-  )
-
-  override val eisFileTransferApiPath: String =
-    config.getConfString(
-      "eis.cpr.filetransfer.caseevidence.path",
-      throw new IllegalStateException(
-        "Missing [microservice.services.eis.cpr.filetransfer.caseevidence.path] configuration property"
       )
     )
 

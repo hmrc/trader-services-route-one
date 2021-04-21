@@ -2,4 +2,3 @@
 
 POST        /create-case             @uk.gov.hmrc.traderservices.controllers.CreateUpdateCaseController.createCase
 POST        /update-case             @uk.gov.hmrc.traderservices.controllers.CreateUpdateCaseController.updateCase
-POST        /transfer-file           @uk.gov.hmrc.traderservices.controllers.FileTransferController.transferFile

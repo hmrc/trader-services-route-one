@@ -43,8 +43,8 @@ class CreateUpdateCaseControllerISpec
         val correlationId = ju.UUID.randomUUID().toString()
         givenAuthorised()
         givenPegaCreateImportCaseRequestSucceeds(200)
-        givenFileTransferSucceeds("PCE201103470D2CC8K0NH3", "test⫐1.jpeg", correlationId)
-        givenFileTransferSucceeds("PCE201103470D2CC8K0NH3", "app.routes", correlationId)
+        givenTraderServicesFileTransferSucceeds("PCE201103470D2CC8K0NH3", "test⫐1.jpeg", correlationId)
+        givenTraderServicesFileTransferSucceeds("PCE201103470D2CC8K0NH3", "app.routes", correlationId)
 
         val result = wsClient
           .url(s"$baseUrl/create-case")
@@ -78,8 +78,8 @@ class CreateUpdateCaseControllerISpec
         val correlationId = ju.UUID.randomUUID().toString()
         givenAuthorised()
         givenPegaCreateExportCaseRequestSucceeds()
-        givenFileTransferSucceeds("PCE201103470D2CC8K0NH3", "test⫐1.jpeg", correlationId)
-        givenFileTransferSucceeds("PCE201103470D2CC8K0NH3", "app.routes", correlationId)
+        givenTraderServicesFileTransferSucceeds("PCE201103470D2CC8K0NH3", "test⫐1.jpeg", correlationId)
+        givenTraderServicesFileTransferSucceeds("PCE201103470D2CC8K0NH3", "app.routes", correlationId)
 
         val result = wsClient
           .url(s"$baseUrl/create-case")
@@ -405,7 +405,7 @@ class CreateUpdateCaseControllerISpec
         val correlationId = ju.UUID.randomUUID().toString()
         givenAuthorised()
         givenPegaUpdateCaseRequestSucceeds("The user has attached the following file(s): test?1.jpeg.")
-        givenFileTransferSucceeds("PCE201103470D2CC8K0NH3", "test⫐1.jpeg", correlationId)
+        givenTraderServicesFileTransferSucceeds("PCE201103470D2CC8K0NH3", "test⫐1.jpeg", correlationId)
 
         val payload = TraderServicesUpdateCaseRequest(
           caseReferenceNumber = "PCE201103470D2CC8K0NH3",
@@ -448,7 +448,7 @@ class CreateUpdateCaseControllerISpec
         val correlationId = ju.UUID.randomUUID().toString()
         givenAuthorised()
         givenPegaUpdateCaseRequestSucceeds()
-        givenFileTransferSucceeds("PCE201103470D2CC8K0NH3", "test⫐1.jpeg", correlationId)
+        givenTraderServicesFileTransferSucceeds("PCE201103470D2CC8K0NH3", "test⫐1.jpeg", correlationId)
 
         val payload = TraderServicesUpdateCaseRequest(
           caseReferenceNumber = "PCE201103470D2CC8K0NH3",

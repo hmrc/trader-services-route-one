@@ -59,6 +59,7 @@ object TraderServicesUpdateCaseRequest {
             case WriteResponseAndUploadDocuments => r.uploadedFiles.nonEmpty && r.responseText.nonEmpty
           },
         "Invalid request, responseText and fileUploads must respect typeOfAmendment"
-      )
+      ),
+      checkEach(_.uploadedFiles, TraderServicesCreateCaseRequest.uploadedFileValidator)
     )
 }

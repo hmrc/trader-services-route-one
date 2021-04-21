@@ -4,6 +4,11 @@
 
 Backend microservice exposing an API of Trader Services on MDTP.
 
+## Dependencies
+
+- PEGA API via IF/EIS
+- [file-transmission-synchronous](https://github.com/hmrc/file-transmission-synchronous)
+
 ## API
 
 ### Create Case
@@ -136,47 +141,7 @@ Example 400 error response payload
             "errorCode" : "400",
             "errorMessage" : "invalid phone number"
         }
-    } 
-
-### Transfer File
-
-Method | Path | Description | Authorization
----|---|---|---
-`POST` | `/transfer-file` | transfer file to the PEGA system | any GovernmentGateway authorized user
-
-Header | Description
----|---
-`x-correlation-id` | message correlation UUID (optional)
-
-Response status | Description
----|---
-202| when file transfer successful
-400| when payload invalid or has not passed the validation
-
-Example request payload:
-
-    {
-        "conversationId":"074c3823-c941-417e-a08b-e47b08e9a9b7",
-        "caseReferenceNumber":"Risk-123",
-        "applicationName":"Route1",
-        "upscanReference":"XYZ0123456789",
-        "downloadUrl":"https://s3.amazonaws.com/bucket/9d9e1444-2555-422e-b251-44fd2e85530a",
-        "fileName":"test.jpeg",
-        "fileMimeType":"image/jpeg",
-        "checksum":"a38d7dd155b1ec9703e5f19f839922ad5a1b0aa4f255c6c2b03e61535997d757",
-        "batchSize": 1,
-        "batchCount": 1
-    }
-
-Example 400 error response payload
-
-    {
-        "correlationId" : "7fedc2d5-1bba-434b-87e6-4d4ec1757e31",
-        "error" : {
-            "errorCode" : "400",
-            "errorMessage" : "invalid case reference number"
-        }
-    }     
+    }    
 
 
 ## Running the tests
