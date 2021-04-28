@@ -87,7 +87,7 @@ class AuditService @Inject() (val auditConnector: AuditConnector) {
   final def auditUpdateCaseErrorEvent(
     updateResponse: TraderServicesCaseResponse
   )(implicit hc: HeaderCarrier, request: Request[Any], ec: ExecutionContext): Future[Unit] = {
-    val details: JsValue = pegaResponseToDetails(updateResponse, false)
+    val details: JsObject = pegaResponseToDetails(updateResponse, false)
     Logger(getClass).error(
       s"""Failure of UpdateCase request [correlationId=${updateResponse.correlationId}] because of ${updateResponse.error
         .map(_.errorCode)
@@ -150,7 +150,8 @@ object AuditService {
     contactEmail: Option[String],
     contactNumber: Option[String],
     numberOfFilesUploaded: Int,
-    uploadedFiles: Seq[FileTransferAudit]
+    uploadedFiles: Seq[FileTransferAudit],
+    correlationId: String
   )
 
   object CreateCaseAuditEventDetails {
@@ -184,7 +185,8 @@ object AuditService {
                 uploadedFiles = combineFileUploadAndTransferResults(
                   createRequest.uploadedFiles,
                   createResponse.result.map(_.fileTransferResults)
-                )
+                ),
+                correlationId = createResponse.correlationId
               )
 
             case q: ExportQuestions =>
@@ -209,7 +211,8 @@ object AuditService {
                 uploadedFiles = combineFileUploadAndTransferResults(
                   createRequest.uploadedFiles,
                   createResponse.result.map(_.fileTransferResults)
-                )
+                ),
+                correlationId = createResponse.correlationId
               )
           }
         )
@@ -231,7 +234,8 @@ object AuditService {
     typeOfAmendment: TypeOfAmendment,
     responseText: Option[String] = None,
     numberOfFilesUploaded: Int,
-    uploadedFiles: Seq[FileTransferAudit]
+    uploadedFiles: Seq[FileTransferAudit],
+    correlationId: String
   )
 
   object UpdateCaseAuditEventDetails {
@@ -252,7 +256,8 @@ object AuditService {
             uploadedFiles = combineFileUploadAndTransferResults(
               updateRequest.uploadedFiles,
               updateResponse.result.map(_.fileTransferResults)
-            )
+            ),
+            correlationId = updateResponse.correlationId
           )
         )
         .as[JsObject]
@@ -271,7 +276,8 @@ object AuditService {
     reportDuplicate: Boolean
   ): JsObject =
     Json.obj(
-      "success" -> caseResponse.isSuccess
+      "success"       -> caseResponse.isSuccess,
+      "correlationId" -> caseResponse.correlationId
     ) ++
       (if (caseResponse.isSuccess)
          Json.obj(
