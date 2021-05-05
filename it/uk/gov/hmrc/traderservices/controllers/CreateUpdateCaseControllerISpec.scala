@@ -64,6 +64,7 @@ class CreateUpdateCaseControllerISpec
 
         verifyAuthorisationHasHappened()
         verifyPegaCreateCaseRequestHasHappened()
+        verifyTraderServicesFileTransferHasHappened(2)
         verifyAuditRequestSent(
           1,
           TraderServicesAuditEvent.CreateCase,
@@ -99,6 +100,7 @@ class CreateUpdateCaseControllerISpec
 
         verifyAuthorisationHasHappened()
         verifyPegaCreateCaseRequestHasHappened()
+        verifyTraderServicesFileTransferHasHappened(2)
         verifyAuditRequestSent(
           1,
           TraderServicesAuditEvent.CreateCase,
@@ -137,6 +139,7 @@ class CreateUpdateCaseControllerISpec
 
         verifyAuthorisationHasHappened()
         verifyPegaCreateCaseRequestDidNotHappen()
+        verifyTraderServicesFileTransferDidNotHappen()
         verifyAuditRequestSent(
           1,
           TraderServicesAuditEvent.CreateCase,
@@ -184,6 +187,7 @@ class CreateUpdateCaseControllerISpec
 
         verifyAuthorisationHasHappened()
         verifyPegaCreateCaseRequestDidNotHappen()
+        verifyTraderServicesFileTransferDidNotHappen()
         verifyAuditRequestSent(
           1,
           TraderServicesAuditEvent.CreateCase,
@@ -222,6 +226,7 @@ class CreateUpdateCaseControllerISpec
 
         verifyAuthorisationHasHappened()
         verifyPegaCreateCaseRequestHasHappened()
+        verifyTraderServicesFileTransferDidNotHappen()
         verifyAuditRequestSent(
           1,
           TraderServicesAuditEvent.CreateCase,
@@ -250,6 +255,7 @@ class CreateUpdateCaseControllerISpec
 
         verifyAuthorisationHasHappened()
         verifyPegaCreateCaseRequestHasHappened(times = 3)
+        verifyTraderServicesFileTransferDidNotHappen()
         verifyAuditRequestSent(
           1,
           TraderServicesAuditEvent.CreateCase,
@@ -258,7 +264,7 @@ class CreateUpdateCaseControllerISpec
         )
       }
 
-      "return 400 with error code 409 and message if PEGA reports duplicated case" in {
+      "return 400 with error code 409 and message if PEGA reports duplicated import case" in {
         givenAuthorised()
         givenPegaCreateCaseRequestFails(500, "500", "999: PCE201103470D2CC8K0NH3")
 
@@ -281,6 +287,7 @@ class CreateUpdateCaseControllerISpec
 
         verifyAuthorisationHasHappened()
         verifyPegaCreateCaseRequestHasHappened()
+        verifyTraderServicesFileTransferDidNotHappen()
         verifyAuditRequestSent(
           1,
           TraderServicesAuditEvent.CreateCase,
@@ -290,6 +297,42 @@ class CreateUpdateCaseControllerISpec
             "errorCode"    -> "409",
             "errorMessage" -> "PCE201103470D2CC8K0NH3"
           ) ++ TestData.createImportRequestDetails(wireMockBaseUrlAsString, transferSuccess = false)
+        )
+      }
+
+      "return 400 with error code 409 and message if PEGA reports duplicated export case" in {
+        givenAuthorised()
+        givenPegaCreateCaseRequestFails(500, "500", "999: PCE201103470D2CC8K0NH3")
+
+        val correlationId = ju.UUID.randomUUID().toString()
+
+        val result = wsClient
+          .url(s"$baseUrl/create-case")
+          .withHttpHeaders("X-Correlation-ID" -> correlationId)
+          .post(Json.toJson(TestData.testCreateExportCaseRequest(wireMockBaseUrlAsString)))
+          .futureValue
+
+        result.status shouldBe 409
+        result.json.as[JsObject] should (
+          haveProperty[JsObject](
+            "error",
+            haveProperty[String]("errorCode", be("409")) and
+              haveProperty[String]("errorMessage", be("PCE201103470D2CC8K0NH3"))
+          )
+        )
+
+        verifyAuthorisationHasHappened()
+        verifyPegaCreateCaseRequestHasHappened()
+        verifyTraderServicesFileTransferDidNotHappen()
+        verifyAuditRequestSent(
+          1,
+          TraderServicesAuditEvent.CreateCase,
+          Json.obj(
+            "success"      -> false,
+            "duplicate"    -> true,
+            "errorCode"    -> "409",
+            "errorMessage" -> "PCE201103470D2CC8K0NH3"
+          ) ++ TestData.createExportRequestDetails(wireMockBaseUrlAsString, transferSuccess = false)
         )
       }
 
@@ -316,6 +359,7 @@ class CreateUpdateCaseControllerISpec
 
         verifyAuthorisationHasHappened()
         verifyPegaCreateCaseRequestHasHappened()
+        verifyTraderServicesFileTransferDidNotHappen()
         verifyAuditRequestSent(
           1,
           TraderServicesAuditEvent.CreateCase,
@@ -344,6 +388,7 @@ class CreateUpdateCaseControllerISpec
 
         verifyAuthorisationHasHappened()
         verifyPegaCreateCaseRequestHasHappened()
+        verifyTraderServicesFileTransferDidNotHappen()
         verifyAuditRequestSent(
           1,
           TraderServicesAuditEvent.CreateCase,
@@ -389,6 +434,7 @@ class CreateUpdateCaseControllerISpec
           "PCE201103470D2CC8K0NH3",
           "An example description."
         )
+        verifyTraderServicesFileTransferDidNotHappen()
         verifyAuditRequestSent(
           1,
           TraderServicesAuditEvent.UpdateCase,
@@ -433,6 +479,7 @@ class CreateUpdateCaseControllerISpec
           "PCE201103470D2CC8K0NH3",
           "The user has attached the following file(s): test?1.jpeg."
         )
+        verifyTraderServicesFileTransferHasHappened(1)
         verifyAuditRequestSent(
           1,
           TraderServicesAuditEvent.UpdateCase,
@@ -476,6 +523,7 @@ class CreateUpdateCaseControllerISpec
           "PCE201103470D2CC8K0NH3",
           "An example description."
         )
+        verifyTraderServicesFileTransferHasHappened(1)
         verifyAuditRequestSent(
           1,
           TraderServicesAuditEvent.UpdateCase,
@@ -526,6 +574,7 @@ class CreateUpdateCaseControllerISpec
 
         verifyAuthorisationHasHappened()
         verifyPegaUpdateCaseRequestDidNotHappen()
+        verifyTraderServicesFileTransferDidNotHappen()
         verifyAuditRequestSent(
           1,
           TraderServicesAuditEvent.UpdateCase,
@@ -567,6 +616,7 @@ class CreateUpdateCaseControllerISpec
 
         verifyAuthorisationHasHappened()
         verifyPegaUpdateCaseRequestDidNotHappen()
+        verifyTraderServicesFileTransferDidNotHappen()
         verifyAuditRequestSent(
           1,
           TraderServicesAuditEvent.UpdateCase,
@@ -620,6 +670,7 @@ class CreateUpdateCaseControllerISpec
 
         verifyAuthorisationHasHappened()
         verifyPegaUpdateCaseRequestDidNotHappen()
+        verifyTraderServicesFileTransferDidNotHappen()
         verifyAuditRequestSent(
           1,
           TraderServicesAuditEvent.UpdateCase,
@@ -656,6 +707,7 @@ class CreateUpdateCaseControllerISpec
 
         verifyAuthorisationHasHappened()
         verifyPegaUpdateCaseRequestHasHappened()
+        verifyTraderServicesFileTransferDidNotHappen()
         verifyAuditRequestSent(
           1,
           TraderServicesAuditEvent.UpdateCase,
@@ -686,6 +738,7 @@ class CreateUpdateCaseControllerISpec
 
         verifyAuthorisationHasHappened()
         verifyPegaUpdateCaseRequestHasHappened(times = 3)
+        verifyTraderServicesFileTransferDidNotHappen()
         verifyAuditRequestSent(
           1,
           TraderServicesAuditEvent.UpdateCase,
@@ -720,6 +773,7 @@ class CreateUpdateCaseControllerISpec
 
         verifyAuthorisationHasHappened()
         verifyPegaUpdateCaseRequestHasHappened()
+        verifyTraderServicesFileTransferDidNotHappen()
         verifyAuditRequestSent(
           1,
           TraderServicesAuditEvent.UpdateCase,
@@ -754,6 +808,7 @@ class CreateUpdateCaseControllerISpec
 
         verifyAuthorisationHasHappened()
         verifyPegaUpdateCaseRequestHasHappened()
+        verifyTraderServicesFileTransferDidNotHappen()
         verifyAuditRequestSent(
           1,
           TraderServicesAuditEvent.UpdateCase,
@@ -781,6 +836,7 @@ class CreateUpdateCaseControllerISpec
 
         verifyAuthorisationHasHappened()
         verifyPegaUpdateCaseRequestHasHappened()
+        verifyTraderServicesFileTransferDidNotHappen()
         verifyAuditRequestSent(
           1,
           TraderServicesAuditEvent.UpdateCase,

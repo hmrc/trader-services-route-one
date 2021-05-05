@@ -42,4 +42,7 @@ trait FileTransferStubs {
   def verifyTraderServicesFileTransferHasHappened(times: Int = 1) =
     verify(times, postRequestedFor(urlPathEqualTo("/transfer-file")))
 
+  def verifyTraderServicesFileTransferDidNotHappen() =
+    verify(0, postRequestedFor(urlPathEqualTo("/transfer-file")))
+
 }
