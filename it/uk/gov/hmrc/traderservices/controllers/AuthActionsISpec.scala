@@ -27,6 +27,7 @@ class AuthActionsISpec extends AppBaseISpec {
       override val eisAuthorizationToken: String = "???"
       override val eisEnvironment: String = "???"
       override lazy val fileTransferUrl: String = "???"
+      override val transferFilesAsync: Boolean = false
     }
 
     implicit val hc = HeaderCarrier()

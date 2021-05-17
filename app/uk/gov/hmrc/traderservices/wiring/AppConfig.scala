@@ -42,6 +42,8 @@ trait AppConfig {
   val eisAuthorizationToken: String
 
   val eisEnvironment: String
+
+  val transferFilesAsync: Boolean
 }
 
 class AppConfigImpl @Inject() (config: ServicesConfig) extends AppConfig {
@@ -95,5 +97,8 @@ class AppConfigImpl @Inject() (config: ServicesConfig) extends AppConfig {
         "Missing [microservice.services.eis.cpr.caserequest.route1.environment] configuration property"
       )
     )
+
+  override val transferFilesAsync: Boolean =
+    config.getBoolean("features.transferFilesAsync")
 
 }

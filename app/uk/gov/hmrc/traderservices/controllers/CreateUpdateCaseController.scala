@@ -30,6 +30,9 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 import java.time.LocalDateTime
 import java.util.UUID
+import scala.util.Success
+import scala.util.Failure
+import play.api.Logger
 
 @Singleton
 class CreateUpdateCaseController @Inject() (
@@ -159,16 +162,21 @@ class CreateUpdateCaseController @Inject() (
       .createCase(pegaCreateCaseRequest, correlationId)
       .flatMap {
         case success: PegaCaseSuccess =>
-          transferFilesToPega(success.CaseID, correlationId, createCaseRequest.uploadedFiles)
-            .flatMap { fileTransferResults =>
+          transferFilesToPega(
+            success.CaseID,
+            correlationId,
+            createCaseRequest.uploadedFiles,
+            appConfig.transferFilesAsync,
+            auditFileTransferResults(audit, correlationId, success)
+          )
+            .map { fileTransferResults =>
               val response = TraderServicesCaseResponse(
                 correlationId = correlationId,
                 result = Option(
                   TraderServicesResult(success.CaseID, LocalDateTime.now(), fileTransferResults)
                 )
               )
-              audit(response)
-                .map(_ => Created(Json.toJson(response)))
+              Created(Json.toJson(response))
             }
         // when request to the upstream api returns an error
         case error: PegaCaseError =>
@@ -218,16 +226,21 @@ class CreateUpdateCaseController @Inject() (
       .updateCase(pegaUpdateCaseRequest, correlationId)
       .flatMap {
         case success: PegaCaseSuccess =>
-          transferFilesToPega(updateCaseRequest.caseReferenceNumber, correlationId, updateCaseRequest.uploadedFiles)
-            .flatMap { fileTransferResults =>
+          transferFilesToPega(
+            updateCaseRequest.caseReferenceNumber,
+            correlationId,
+            updateCaseRequest.uploadedFiles,
+            appConfig.transferFilesAsync,
+            auditFileTransferResults(audit, correlationId, success)
+          )
+            .map { fileTransferResults =>
               val response = TraderServicesCaseResponse(
                 correlationId = correlationId,
                 result = Option(
                   TraderServicesResult(success.CaseID, LocalDateTime.now(), fileTransferResults)
                 )
               )
-              audit(response)
-                .map(_ => Created(Json.toJson(response)))
+              Created(Json.toJson(response))
             }
         // when request to the upstream api returns an error
         case error: PegaCaseError =>
@@ -245,26 +258,75 @@ class CreateUpdateCaseController @Inject() (
       }
   }
 
+  private def auditFileTransferResults(
+    audit: TraderServicesCaseResponse => Future[Unit],
+    correlationId: String,
+    success: PegaCaseSuccess
+  ): Seq[FileTransferResult] => Future[Unit] =
+    fileTransferResults => {
+      val response = TraderServicesCaseResponse(
+        correlationId = correlationId,
+        result = Option(
+          TraderServicesResult(success.CaseID, LocalDateTime.now(), fileTransferResults)
+        )
+      )
+      audit(response)
+    }
+
   private def transferFilesToPega(
     caseReferenceNumber: String,
     conversationId: String,
-    uploadedFiles: Seq[UploadedFile]
-  )(implicit hc: HeaderCarrier): Future[Seq[FileTransferResult]] =
-    Future.sequence(
-      uploadedFiles.zipWithIndex
-        .map {
-          case (file, index) =>
-            TraderServicesFileTransferRequest
-              .fromUploadedFile(
-                caseReferenceNumber,
-                conversationId,
-                correlationId = UUID.randomUUID().toString(),
-                applicationName = "Route1",
-                batchSize = uploadedFiles.size,
-                batchCount = index + 1,
-                uploadedFile = file
+    uploadedFiles: Seq[UploadedFile],
+    async: Boolean,
+    audit: Seq[FileTransferResult] => Future[Unit]
+  )(implicit hc: HeaderCarrier): Future[Seq[FileTransferResult]] = {
+
+    def transferFileRequest(file: UploadedFile, index: Int): TraderServicesFileTransferRequest =
+      TraderServicesFileTransferRequest
+        .fromUploadedFile(
+          caseReferenceNumber,
+          conversationId,
+          correlationId = UUID.randomUUID().toString(),
+          applicationName = "Route1",
+          batchSize = uploadedFiles.size,
+          batchCount = index + 1,
+          uploadedFile = file
+        )
+
+    def doTransferFile(file: UploadedFile, index: Int): Future[FileTransferResult] =
+      fileTransferConnector.transferFile(transferFileRequest(file, index), conversationId)
+
+    if (async && uploadedFiles.size > 1)
+      doTransferFile(uploadedFiles.head, 0)
+        .andThen {
+          case Success(firstFileTransferResult) =>
+            Future
+              .sequence(
+                uploadedFiles.zipWithIndex.drop(1).map {
+                  case (file, index) => doTransferFile(file, index)
+                }
               )
+              .map { fileTransferResults =>
+                audit(firstFileTransferResult +: fileTransferResults)
+              }
+
+          case Failure(exception) =>
+            Logger(getClass).error(
+              s"Skipping next transfers because first file transfer attempt have failed with $exception"
+            )
+            Future.successful(())
         }
-        .map(fileTransferConnector.transferFile(_, conversationId))
-    )
+        .map(_ => Seq.empty[FileTransferResult])
+    else
+      Future
+        .sequence(
+          uploadedFiles.zipWithIndex.map {
+            case (file, index) => doTransferFile(file, index)
+          }
+        )
+        .andThen {
+          case Success(fileTransferResults) =>
+            audit(fileTransferResults)
+        }
+  }
 }
