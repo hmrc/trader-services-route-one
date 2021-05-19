@@ -15,24 +15,30 @@
  */
 
 package uk.gov.hmrc.traderservices.controllers
+
+import akka.actor.ActorRef
+import akka.actor.ActorSystem
+import akka.actor.Props
+import akka.pattern.ask
+import akka.util.Timeout
+import play.api.Configuration
+import play.api.Environment
 import play.api.libs.json.Json
 import play.api.mvc._
-import play.api.{Configuration, Environment}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
-import uk.gov.hmrc.traderservices.connectors.{PegaCreateCaseRequest, _}
+import uk.gov.hmrc.traderservices.connectors.PegaCreateCaseRequest
+import uk.gov.hmrc.traderservices.connectors._
 import uk.gov.hmrc.traderservices.models._
 import uk.gov.hmrc.traderservices.services.AuditService
 import uk.gov.hmrc.traderservices.wiring.AppConfig
 
-import java.{util => ju}
-import javax.inject.{Inject, Singleton}
-import scala.concurrent.{ExecutionContext, Future}
 import java.time.LocalDateTime
-import java.util.UUID
-import scala.util.Success
-import scala.util.Failure
-import play.api.Logger
+import java.{util => ju}
+import javax.inject.Inject
+import javax.inject.Singleton
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 
 @Singleton
 class CreateUpdateCaseController @Inject() (
@@ -43,6 +49,7 @@ class CreateUpdateCaseController @Inject() (
   val env: Environment,
   val appConfig: AppConfig,
   val auditService: AuditService,
+  actorSystem: ActorSystem,
   cc: ControllerComponents
 )(implicit val configuration: Configuration, ec: ExecutionContext)
     extends BackendController(cc) with AuthActions with ControllerHelper {
@@ -281,52 +288,28 @@ class CreateUpdateCaseController @Inject() (
     audit: Seq[FileTransferResult] => Future[Unit]
   )(implicit hc: HeaderCarrier): Future[Seq[FileTransferResult]] = {
 
-    def transferFileRequest(file: UploadedFile, index: Int): TraderServicesFileTransferRequest =
-      TraderServicesFileTransferRequest
-        .fromUploadedFile(
-          caseReferenceNumber,
-          conversationId,
-          correlationId = UUID.randomUUID().toString(),
-          applicationName = "Route1",
-          batchSize = uploadedFiles.size,
-          batchCount = index + 1,
-          uploadedFile = file
-        )
+    // Single-use actor responsible for transferring files batch to PEGA
+    val fileTransferActor: ActorRef =
+      actorSystem.actorOf(
+        Props(classOf[FileTransferActor], caseReferenceNumber, fileTransferConnector, conversationId, audit)
+      )
 
-    def doTransferFile(file: UploadedFile, index: Int): Future[FileTransferResult] =
-      fileTransferConnector.transferFile(transferFileRequest(file, index), conversationId)
-
-    if (async && uploadedFiles.size > 1)
-      doTransferFile(uploadedFiles.head, 0)
-        .andThen {
-          case Success(firstFileTransferResult) =>
-            Future
-              .sequence(
-                uploadedFiles.zipWithIndex.drop(1).map {
-                  case (file, index) => doTransferFile(file, index)
-                }
-              )
-              .map { fileTransferResults =>
-                audit(firstFileTransferResult +: fileTransferResults)
-              }
-
-          case Failure(exception) =>
-            Logger(getClass).error(
-              s"Skipping next transfers because first file transfer attempt have failed with $exception"
-            )
-            Future.successful(())
-        }
-        .map(_ => Seq.empty[FileTransferResult])
-    else
-      Future
-        .sequence(
-          uploadedFiles.zipWithIndex.map {
-            case (file, index) => doTransferFile(file, index)
-          }
-        )
-        .andThen {
-          case Success(fileTransferResults) =>
-            audit(fileTransferResults)
-        }
+    if (async && uploadedFiles.size > 1) {
+      fileTransferActor ! FileTransferActor.TransferMultipleFiles(
+        uploadedFiles.zipWithIndex,
+        uploadedFiles.size,
+        hc
+      )
+      Future.successful(Seq.empty)
+    } else
+      fileTransferActor
+        .ask(
+          FileTransferActor.TransferMultipleFiles(
+            uploadedFiles.zipWithIndex,
+            uploadedFiles.size,
+            hc
+          )
+        )(Timeout(5, ju.concurrent.TimeUnit.MINUTES))
+        .mapTo[Seq[FileTransferResult]]
   }
 }
