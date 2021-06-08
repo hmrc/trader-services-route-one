@@ -294,7 +294,7 @@ class CreateUpdateCaseController @Inject() (
         Props(classOf[FileTransferActor], caseReferenceNumber, fileTransferConnector, conversationId, audit)
       )
 
-    if (async && uploadedFiles.size > 1) {
+    if (async) {
       fileTransferActor ! FileTransferActor.TransferMultipleFiles(
         uploadedFiles.zipWithIndex,
         uploadedFiles.size,
