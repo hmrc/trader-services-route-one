@@ -67,8 +67,8 @@ class CreateUpdateCaseControllerAsyncISpec
           1,
           TraderServicesAuditEvent.CreateCase,
           Json.obj(
-            "success"             -> true,
-            "caseReferenceNumber" -> "PCE201103470D2CC8K0NH3"
+            "success"                 -> true,
+            "caseReferenceNumberHash" -> "441577ddffc4f2dab040a595f734b893880f7e39afc94111bd81d19244668745"
           ) ++ TestData.createImportRequestDetails(wireMockBaseUrlAsString, transferSuccess = true)
         )
       }
@@ -103,8 +103,8 @@ class CreateUpdateCaseControllerAsyncISpec
           1,
           TraderServicesAuditEvent.CreateCase,
           Json.obj(
-            "success"             -> true,
-            "caseReferenceNumber" -> "PCE201103470D2CC8K0NH3"
+            "success"                 -> true,
+            "caseReferenceNumberHash" -> "441577ddffc4f2dab040a595f734b893880f7e39afc94111bd81d19244668745"
           ) ++ TestData.createExportRequestDetails(wireMockBaseUrlAsString, transferSuccess = true)
         )
       }
@@ -437,10 +437,10 @@ class CreateUpdateCaseControllerAsyncISpec
           1,
           TraderServicesAuditEvent.UpdateCase,
           Json.obj(
-            "success"             -> true,
-            "typeOfAmendment"     -> "WriteResponse",
-            "caseReferenceNumber" -> "PCE201103470D2CC8K0NH3",
-            "responseText"        -> "An example description."
+            "success"                 -> true,
+            "typeOfAmendment"         -> "WriteResponse",
+            "caseReferenceNumberHash" -> "441577ddffc4f2dab040a595f734b893880f7e39afc94111bd81d19244668745",
+            "responseText"            -> "An example description."
           )
         )
       }
@@ -482,9 +482,9 @@ class CreateUpdateCaseControllerAsyncISpec
           1,
           TraderServicesAuditEvent.UpdateCase,
           Json.obj(
-            "success"             -> true,
-            "typeOfAmendment"     -> "UploadDocuments",
-            "caseReferenceNumber" -> "PCE201103470D2CC8K0NH3"
+            "success"                 -> true,
+            "typeOfAmendment"         -> "UploadDocuments",
+            "caseReferenceNumberHash" -> "441577ddffc4f2dab040a595f734b893880f7e39afc94111bd81d19244668745"
           ) ++ TestData.updateRequestFileUploadDetailsMap(wireMockBaseUrlAsString, transferSuccess = true)
         )
       }
@@ -526,10 +526,10 @@ class CreateUpdateCaseControllerAsyncISpec
           1,
           TraderServicesAuditEvent.UpdateCase,
           Json.obj(
-            "success"             -> true,
-            "typeOfAmendment"     -> "WriteResponseAndUploadDocuments",
-            "responseText"        -> "An example description.",
-            "caseReferenceNumber" -> "PCE201103470D2CC8K0NH3"
+            "success"                 -> true,
+            "typeOfAmendment"         -> "WriteResponseAndUploadDocuments",
+            "responseText"            -> "An example description.",
+            "caseReferenceNumberHash" -> "441577ddffc4f2dab040a595f734b893880f7e39afc94111bd81d19244668745"
           ) ++ TestData.updateRequestFileUploadDetailsMap(wireMockBaseUrlAsString, transferSuccess = true)
         )
       }
