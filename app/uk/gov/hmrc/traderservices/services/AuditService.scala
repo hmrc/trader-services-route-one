@@ -42,7 +42,6 @@ import java.time.LocalTime
 import uk.gov.hmrc.traderservices.models.ImportQuestions
 import uk.gov.hmrc.traderservices.models.ExportQuestions
 import play.api.Logger
-import uk.gov.hmrc.traderservices.utilities.SHA256
 
 object TraderServicesAuditEvent extends Enumeration {
   type TraderServicesAuditEvent = Value
@@ -136,7 +135,7 @@ object AuditService {
   case class CreateCaseAuditEventDetails(
     success: Boolean,
     eori: Option[String],
-    caseReferenceNumberHash: Option[String],
+    caseReferenceNumber: Option[String],
     declarationType: String,
     entryDetails: EntryDetails,
     requestType: Option[String],
@@ -168,7 +167,7 @@ object AuditService {
               CreateCaseAuditEventDetails(
                 success = true,
                 eori = createRequest.eori,
-                caseReferenceNumberHash = createResponse.result.map(_.caseId).map(SHA256.compute),
+                caseReferenceNumber = createResponse.result.map(_.caseId),
                 declarationType = "import",
                 entryDetails = createRequest.entryDetails,
                 requestType = Some(q.requestType.toString()),
@@ -194,7 +193,7 @@ object AuditService {
               CreateCaseAuditEventDetails(
                 success = true,
                 eori = createRequest.eori,
-                caseReferenceNumberHash = createResponse.result.map(_.caseId).map(SHA256.compute),
+                caseReferenceNumber = createResponse.result.map(_.caseId),
                 declarationType = "export",
                 entryDetails = createRequest.entryDetails,
                 requestType = Some(q.requestType.toString()),
@@ -231,7 +230,7 @@ object AuditService {
   case class UpdateCaseAuditEventDetails(
     success: Boolean,
     eori: Option[String],
-    caseReferenceNumberHash: String,
+    caseReferenceNumber: String,
     typeOfAmendment: TypeOfAmendment,
     responseText: Option[String] = None,
     numberOfFilesUploaded: Int,
@@ -250,7 +249,7 @@ object AuditService {
           UpdateCaseAuditEventDetails(
             success = true,
             eori = updateRequest.eori,
-            caseReferenceNumberHash = SHA256.compute(updateRequest.caseReferenceNumber),
+            caseReferenceNumber = updateRequest.caseReferenceNumber,
             typeOfAmendment = updateRequest.typeOfAmendment,
             responseText = updateRequest.responseText,
             numberOfFilesUploaded = updateRequest.uploadedFiles.size,
