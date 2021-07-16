@@ -41,8 +41,8 @@ class CreateUpdateCaseControllerAsyncISpec
         val correlationId = ju.UUID.randomUUID().toString()
         givenAuthorised()
         givenPegaCreateImportCaseRequestSucceeds(200)
-        givenTraderServicesFileTransferSucceeds("PCE201103470D2CC8K0NH3", "test⫐1.jpeg", correlationId)
-        givenTraderServicesFileTransferSucceeds("PCE201103470D2CC8K0NH3", "app.routes", correlationId)
+        givenFileTransferSucceeds("PCE201103470D2CC8K0NH3", "test⫐1.jpeg", correlationId)
+        givenFileTransferSucceeds("PCE201103470D2CC8K0NH3", "app.routes", correlationId)
 
         val result = wsClient
           .url(s"$baseUrl/create-case")
@@ -62,7 +62,7 @@ class CreateUpdateCaseControllerAsyncISpec
 
         verifyAuthorisationHasHappened()
         verifyPegaCreateCaseRequestHasHappened()
-        verifyTraderServicesFileTransferHasHappened(2)
+        verifyFileTransferHasHappened(2)
         verifyAuditRequestSent(
           1,
           TraderServicesAuditEvent.CreateCase,
@@ -77,8 +77,8 @@ class CreateUpdateCaseControllerAsyncISpec
         val correlationId = ju.UUID.randomUUID().toString()
         givenAuthorised()
         givenPegaCreateExportCaseRequestSucceeds()
-        givenTraderServicesFileTransferSucceeds("PCE201103470D2CC8K0NH3", "test⫐1.jpeg", correlationId)
-        givenTraderServicesFileTransferSucceeds("PCE201103470D2CC8K0NH3", "app.routes", correlationId)
+        givenFileTransferSucceeds("PCE201103470D2CC8K0NH3", "test⫐1.jpeg", correlationId)
+        givenFileTransferSucceeds("PCE201103470D2CC8K0NH3", "app.routes", correlationId)
 
         val result = wsClient
           .url(s"$baseUrl/create-case")
@@ -98,7 +98,7 @@ class CreateUpdateCaseControllerAsyncISpec
 
         verifyAuthorisationHasHappened()
         verifyPegaCreateCaseRequestHasHappened()
-        verifyTraderServicesFileTransferHasHappened(2)
+        verifyFileTransferHasHappened(2)
         verifyAuditRequestSent(
           1,
           TraderServicesAuditEvent.CreateCase,
@@ -449,7 +449,7 @@ class CreateUpdateCaseControllerAsyncISpec
         val correlationId = ju.UUID.randomUUID().toString()
         givenAuthorised()
         givenPegaUpdateCaseRequestSucceeds("The user has attached the following file(s): test?1.jpeg.")
-        givenTraderServicesFileTransferSucceeds("PCE201103470D2CC8K0NH3", "test⫐1.jpeg", correlationId)
+        givenFileTransferSucceeds("PCE201103470D2CC8K0NH3", "test⫐1.jpeg", correlationId)
 
         val payload = TraderServicesUpdateCaseRequest(
           caseReferenceNumber = "PCE201103470D2CC8K0NH3",
@@ -477,7 +477,7 @@ class CreateUpdateCaseControllerAsyncISpec
           "PCE201103470D2CC8K0NH3",
           "The user has attached the following file(s): test?1.jpeg."
         )
-        verifyTraderServicesFileTransferHasHappened(1)
+        verifyFileTransferHasHappened(1)
         verifyAuditRequestSent(
           1,
           TraderServicesAuditEvent.UpdateCase,
@@ -493,7 +493,7 @@ class CreateUpdateCaseControllerAsyncISpec
         val correlationId = ju.UUID.randomUUID().toString()
         givenAuthorised()
         givenPegaUpdateCaseRequestSucceeds()
-        givenTraderServicesFileTransferSucceeds("PCE201103470D2CC8K0NH3", "test⫐1.jpeg", correlationId)
+        givenFileTransferSucceeds("PCE201103470D2CC8K0NH3", "test⫐1.jpeg", correlationId)
 
         val payload = TraderServicesUpdateCaseRequest(
           caseReferenceNumber = "PCE201103470D2CC8K0NH3",
@@ -521,7 +521,7 @@ class CreateUpdateCaseControllerAsyncISpec
           "PCE201103470D2CC8K0NH3",
           "An example description."
         )
-        verifyTraderServicesFileTransferHasHappened(1)
+        verifyFileTransferHasHappened(1)
         verifyAuditRequestSent(
           1,
           TraderServicesAuditEvent.UpdateCase,

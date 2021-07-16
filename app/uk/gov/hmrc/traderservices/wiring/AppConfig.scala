@@ -33,6 +33,8 @@ trait AppConfig {
 
   lazy val fileTransferUrl: String = ""
 
+  lazy val multiFileTransferUrl: String = ""
+
   val eisBaseUrl: String
 
   val eisCreateCaseApiPath: String
@@ -61,6 +63,14 @@ class AppConfigImpl @Inject() (config: ServicesConfig) extends AppConfig {
       "file-transfer.url",
       throw new IllegalStateException(
         "Missing [microservice.services.file-transfer.url] configuration property"
+      )
+    )
+
+  override lazy val multiFileTransferUrl: String =
+    config.getConfString(
+      "multi-file-transfer.url",
+      throw new IllegalStateException(
+        "Missing [microservice.services.multi-file-transfer.url] configuration property"
       )
     )
 

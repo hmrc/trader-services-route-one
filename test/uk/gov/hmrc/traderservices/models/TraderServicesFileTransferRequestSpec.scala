@@ -31,16 +31,17 @@ class TraderServicesFileTransferRequestSpec extends UnitSpec {
         fileName = "foo.png",
         fileMimeType = "foo/bar"
       )
-      TraderServicesFileTransferRequest.fromUploadedFile(
-        caseReferenceNumber = "A00000A",
-        conversationId = "123-456-789",
-        correlationId = "abc-efg-ghi",
-        applicationName = "bar",
-        batchSize = 7,
-        batchCount = 1,
-        uploadedFile = uploadedFile
-      ) shouldBe
-        TraderServicesFileTransferRequest(
+      FileTransferRequest
+        .fromUploadedFile(
+          caseReferenceNumber = "A00000A",
+          conversationId = "123-456-789",
+          correlationId = "abc-efg-ghi",
+          applicationName = "bar",
+          batchSize = 7,
+          batchCount = 1,
+          uploadedFile = uploadedFile
+        ) shouldBe
+        FileTransferRequest(
           conversationId = "123-456-789",
           caseReferenceNumber = "A00000A",
           applicationName = "bar",

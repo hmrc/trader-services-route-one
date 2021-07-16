@@ -44,8 +44,8 @@ class FileTransferActor(
   var clientRef: ActorRef = ActorRef.noSender
   var startTimestamp: Long = 0
 
-  def transferFileRequest(file: UploadedFile, index: Int, batchSize: Int): TraderServicesFileTransferRequest =
-    TraderServicesFileTransferRequest
+  def transferFileRequest(file: UploadedFile, index: Int, batchSize: Int): FileTransferRequest =
+    FileTransferRequest
       .fromUploadedFile(
         caseReferenceNumber,
         conversationId,

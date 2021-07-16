@@ -23,7 +23,7 @@ import uk.gov.hmrc.traderservices.wiring.AppConfig
 import scala.concurrent.{ExecutionContext, Future}
 import com.kenshoo.play.metrics.Metrics
 import com.codahale.metrics.MetricRegistry
-import uk.gov.hmrc.traderservices.models.{FileTransferResult, TraderServicesFileTransferRequest}
+import uk.gov.hmrc.traderservices.models.{FileTransferRequest, FileTransferResult, MultiFileTransferRequest, MultiFileTransferResult}
 import uk.gov.hmrc.http.HttpResponse
 import uk.gov.hmrc.http.HttpReads.Implicits._
 import java.time.LocalDateTime
@@ -40,16 +40,17 @@ class FileTransferConnector @Inject() (
 
   override val kenshooRegistry: MetricRegistry = metrics.defaultRegistry
 
-  final lazy val url = config.fileTransferUrl
+  final lazy val fileTransferUrl = config.fileTransferUrl
+  final lazy val multiFileTransferUrl = config.multiFileTransferUrl
 
-  final def transferFile(fileTransferRequest: TraderServicesFileTransferRequest, correlationId: String)(implicit
+  final def transferFile(fileTransferRequest: FileTransferRequest, correlationId: String)(implicit
     hc: HeaderCarrier,
     ec: ExecutionContext
   ): Future[FileTransferResult] =
     retry[HttpResponse](1.second, 2.seconds)(shouldRetry, errorMessage) {
       monitor(s"ConsumedAPI-trader-services-transfer-file-api-POST") {
         http
-          .POST[TraderServicesFileTransferRequest, HttpResponse](url, fileTransferRequest)
+          .POST[FileTransferRequest, HttpResponse](fileTransferUrl, fileTransferRequest)
       }
     }.map(response =>
       FileTransferResult(
@@ -59,6 +60,25 @@ class FileTransferConnector @Inject() (
         LocalDateTime.now(),
         None
       )
+    )
+
+  final def transferMultipleFiles(
+    multipleFileTransferRequest: MultiFileTransferRequest,
+    correlationId: String
+  )(implicit
+    hc: HeaderCarrier,
+    ec: ExecutionContext
+  ): Future[Either[Int, MultiFileTransferResult]] =
+    retry[HttpResponse](1.second, 2.seconds)(shouldRetry, errorMessage) {
+      monitor(s"ConsumedAPI-trader-services-transfer-multiple-files-api-POST") {
+        http
+          .POST[MultiFileTransferRequest, HttpResponse](multiFileTransferUrl, multipleFileTransferRequest)
+      }
+    }.map(response =>
+      if (isSuccess(response))
+        Right(response.json.as[MultiFileTransferResult])
+      else
+        Left(response.status.intValue())
     )
 
   private def isSuccess(response: HttpResponse): Boolean =
