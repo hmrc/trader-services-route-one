@@ -55,6 +55,10 @@ class FileTransferConnector @Inject() (
     }.map(response =>
       FileTransferResult(
         fileTransferRequest.upscanReference,
+        fileTransferRequest.checksum,
+        fileTransferRequest.fileName,
+        fileTransferRequest.fileMimeType,
+        fileTransferRequest.fileSize,
         isSuccess(response),
         response.status,
         LocalDateTime.now(),

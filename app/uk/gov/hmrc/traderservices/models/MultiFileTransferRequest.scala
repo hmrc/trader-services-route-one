@@ -39,6 +39,16 @@ object FileTransferData {
 
   implicit val formats: Format[FileTransferData] =
     Json.format[FileTransferData]
+
+  def fromUploadedFile(file: UploadedFile): FileTransferData =
+    FileTransferData(
+      upscanReference = file.upscanReference,
+      downloadUrl = file.downloadUrl,
+      checksum = file.checksum,
+      fileName = file.fileName,
+      fileSize = file.fileSize,
+      fileMimeType = file.fileMimeType
+    )
 }
 
 object MultiFileTransferRequest {

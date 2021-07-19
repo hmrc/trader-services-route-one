@@ -19,10 +19,10 @@ package uk.gov.hmrc.traderservices.models
 import uk.gov.hmrc.traderservices.support.UnitSpec
 import java.time.ZonedDateTime
 
-class TraderServicesFileTransferRequestSpec extends UnitSpec {
+class FileTransferRequestSpec extends UnitSpec {
 
-  "TraderServicesFileTransferRequest" should {
-    "create TraderServicesFileTransferRequest from an uploaded file" in {
+  "FileTransferRequest" should {
+    "create FileTransferRequest from an uploaded file" in {
       val uploadedFile = UploadedFile(
         upscanReference = "ABC123",
         downloadUrl = "http://abc",
@@ -53,6 +53,28 @@ class TraderServicesFileTransferRequestSpec extends UnitSpec {
           batchSize = 7,
           batchCount = 1,
           correlationId = Some("abc-efg-ghi")
+        )
+    }
+  }
+
+  "FileTransferData" should {
+    "create FileTransferData from an uploaded file" in {
+      val uploadedFile = UploadedFile(
+        upscanReference = "ABC123",
+        downloadUrl = "http://abc",
+        uploadTimestamp = ZonedDateTime.now,
+        checksum = "XYZ",
+        fileName = "foo.png",
+        fileMimeType = "foo/bar"
+      )
+      FileTransferData
+        .fromUploadedFile(uploadedFile) shouldBe
+        FileTransferData(
+          upscanReference = "ABC123",
+          downloadUrl = "http://abc",
+          checksum = "XYZ",
+          fileName = "foo.png",
+          fileMimeType = "foo/bar"
         )
     }
   }

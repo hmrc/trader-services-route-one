@@ -22,6 +22,10 @@ import java.time.LocalDateTime
 
 final case class FileTransferResult(
   upscanReference: String,
+  checksum: String,
+  fileName: String,
+  fileMimeType: String,
+  fileSize: Option[Int],
   success: Boolean,
   httpStatus: Int,
   transferredAt: LocalDateTime,

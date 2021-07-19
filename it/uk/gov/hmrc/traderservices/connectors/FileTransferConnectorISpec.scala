@@ -66,7 +66,27 @@ class FileTransferConnectorISpec extends FileTransferConnectorISpecSetup {
 
     "transferMultipleFiles" should {
       "return list of file transfer results" in {
-        givenMultiFileTransferSucceeds("Risk-123", "Route1", conversationId)
+        givenMultiFileTransferSucceeds(
+          "Risk-123",
+          "Route1",
+          conversationId,
+          Seq(
+            FileTransferData(
+              upscanReference = "XYZ0123456789",
+              downloadUrl = "/dummy.jpeg",
+              checksum = "0" * 64,
+              fileName = "dummy.jpeg",
+              fileMimeType = "image/jpeg"
+            ),
+            FileTransferData(
+              upscanReference = "XYZ0123456780",
+              downloadUrl = "/foo.jpeg",
+              checksum = "1" * 64,
+              fileName = "foo.jpeg",
+              fileMimeType = "image/jpeg"
+            )
+          )
+        )
         givenAuditConnector()
         val request = testMultiFileRequest
         val resultOpt = await(connector.transferMultipleFiles(request, correlationId))
