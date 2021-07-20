@@ -16,29 +16,24 @@
 
 package uk.gov.hmrc.traderservices.controllers
 
-import akka.actor.ActorRef
-import akka.actor.ActorSystem
-import akka.actor.Props
+import java.time.LocalDateTime
+import java.{util => ju}
+import javax.inject.{Inject, Singleton}
+
+import scala.concurrent.{ExecutionContext, Future}
+
+import akka.actor.{ActorRef, ActorSystem, Props}
 import akka.pattern.ask
 import akka.util.Timeout
-import play.api.Configuration
-import play.api.Environment
 import play.api.libs.json.Json
 import play.api.mvc._
+import play.api.{Configuration, Environment}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
-import uk.gov.hmrc.traderservices.connectors.PegaCreateCaseRequest
-import uk.gov.hmrc.traderservices.connectors._
+import uk.gov.hmrc.traderservices.connectors.{PegaCreateCaseRequest, _}
 import uk.gov.hmrc.traderservices.models._
 import uk.gov.hmrc.traderservices.services.AuditService
 import uk.gov.hmrc.traderservices.wiring.AppConfig
-
-import java.time.LocalDateTime
-import java.{util => ju}
-import javax.inject.Inject
-import javax.inject.Singleton
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
 
 @Singleton
 class CreateUpdateCaseController @Inject() (
@@ -70,7 +65,10 @@ class CreateUpdateCaseController @Inject() (
           createCaseInPegaAndUploadFiles(
             createCaseRequest,
             correlationId,
-            auditService.auditCreateCaseEvent(createCaseRequest)
+            createCaseResult => {
+              CreateCaseLog.log(createCaseRequest, createCaseResult)
+              auditService.auditCreateCaseEvent(createCaseRequest)(createCaseResult)
+            }
           )
 
         } {
@@ -119,7 +117,10 @@ class CreateUpdateCaseController @Inject() (
           updateCaseInPega(
             updateCaseRequest,
             correlationId,
-            auditService.auditUpdateCaseEvent(updateCaseRequest)
+            updateCaseResult => {
+              UpdateCaseLog.log(updateCaseRequest, updateCaseResult)
+              auditService.auditUpdateCaseEvent(updateCaseRequest)(updateCaseResult)
+            }
           )
 
         } {
