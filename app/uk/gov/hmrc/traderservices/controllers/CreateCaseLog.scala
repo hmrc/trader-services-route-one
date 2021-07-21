@@ -79,7 +79,7 @@ object CreateCaseLog {
         correlationId = response.correlationId,
         questionsAnswers = request.questionsAnswers,
         numberOfFiles = request.uploadedFiles.size,
-        error = response.error,
+        error = response.error.map(_.sanitized),
         fileTransferSuccesses = response.result.map(_.fileTransferResults.count(_.success)),
         fileTransferFailures = response.result.map(_.fileTransferResults.count(f => !f.success))
       )

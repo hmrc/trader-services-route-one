@@ -21,7 +21,12 @@ import play.api.libs.json.{Format, Json}
 case class ApiError(
   errorCode: String,
   errorMessage: Option[String] = None
-)
+) {
+  // alters error to remove messages containing case reference
+  def sanitized: ApiError =
+    if (errorCode == 409) ApiError(errorCode, Some("duplicate create case request"))
+    else this
+}
 
 object ApiError {
   implicit val formats: Format[ApiError] = Json.format[ApiError]
