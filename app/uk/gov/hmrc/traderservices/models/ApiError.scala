@@ -24,7 +24,7 @@ case class ApiError(
 ) {
   // alters error to remove messages containing case reference
   def sanitized: ApiError =
-    if (errorCode == 409) ApiError(errorCode, Some("duplicate create case request"))
+    if (errorCode == "409") ApiError(errorCode, Some("duplicate create case request"))
     else this
 }
 
