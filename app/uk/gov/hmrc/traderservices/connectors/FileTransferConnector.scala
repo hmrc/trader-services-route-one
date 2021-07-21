@@ -62,6 +62,7 @@ class FileTransferConnector @Inject() (
         isSuccess(response),
         response.status,
         LocalDateTime.now(),
+        hc.requestId.map(_.value).getOrElse(""),
         None
       )
     )

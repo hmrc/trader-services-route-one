@@ -29,7 +29,8 @@ case class UpdateCaseLog(
   numberOfFiles: Int,
   error: Option[ApiError],
   fileTransferSuccesses: Option[Int],
-  fileTransferFailures: Option[Int]
+  fileTransferFailures: Option[Int],
+  fileCorrelationIds: Seq[String]
 )
 
 object UpdateCaseLog {
@@ -46,7 +47,8 @@ object UpdateCaseLog {
         numberOfFiles = request.uploadedFiles.size,
         error = response.error,
         fileTransferSuccesses = response.result.map(_.fileTransferResults.count(_.success)),
-        fileTransferFailures = response.result.map(_.fileTransferResults.count(f => !f.success))
+        fileTransferFailures = response.result.map(_.fileTransferResults.count(f => !f.success)),
+        fileCorrelationIds = response.result.map(_.fileTransferResults.map(_.correlationId)).getOrElse(Seq.empty)
       )
     Logger(getClass()).info(s"json${Json.stringify(Json.toJson(log))}")
 
