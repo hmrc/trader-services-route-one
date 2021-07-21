@@ -3,6 +3,7 @@ package uk.gov.hmrc.traderservices.stubs
 import com.github.tomakehurst.wiremock.client.WireMock._
 import uk.gov.hmrc.traderservices.support.WireMockSupport
 import uk.gov.hmrc.traderservices.models.FileTransferData
+import java.util.UUID
 
 trait FileTransferStubs {
   me: WireMockSupport =>
@@ -92,7 +93,8 @@ trait FileTransferStubs {
                          |          "checksum":"${file.checksum}",
                          |          "success": true,
                          |          "httpStatus": 202,
-                         |          "transferredAt": "2021-07-17T12:18:09"
+                         |          "transferredAt": "2021-07-17T12:18:09",
+                         |          "correlationId": "${UUID.randomUUID}"
                          |      }""".stripMargin)
               .mkString(",")}
                          |   ]
