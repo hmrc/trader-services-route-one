@@ -35,6 +35,15 @@ import uk.gov.hmrc.traderservices.models._
 import uk.gov.hmrc.traderservices.services.AuditService
 import uk.gov.hmrc.traderservices.wiring.AppConfig
 
+import java.time.LocalDateTime
+import java.{util => ju}
+import javax.inject.Inject
+import javax.inject.Singleton
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
+import scala.concurrent.duration.FiniteDuration
+import scala.util.Success
+import scala.concurrent.Await
 
 @Singleton
 class CreateUpdateCaseController @Inject() (
