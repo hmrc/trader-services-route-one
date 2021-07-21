@@ -2,11 +2,12 @@ package uk.gov.hmrc.traderservices.stubs
 
 import com.github.tomakehurst.wiremock.client.WireMock._
 import uk.gov.hmrc.traderservices.support.WireMockSupport
+import uk.gov.hmrc.traderservices.models.FileTransferData
 
 trait FileTransferStubs {
   me: WireMockSupport =>
 
-  def givenTraderServicesFileTransferSucceeds(
+  def givenFileTransferSucceeds(
     caseReferenceNumber: String,
     fileName: String,
     conversationId: String
@@ -30,7 +31,7 @@ trait FileTransferStubs {
         )
     )
 
-  def givenTraderServicesFileTransferFailure(status: Int): Unit =
+  def givenFileTransferFailure(status: Int): Unit =
     stubFor(
       post(urlPathEqualTo("/transfer-file"))
         .willReturn(
@@ -39,10 +40,111 @@ trait FileTransferStubs {
         )
     )
 
-  def verifyTraderServicesFileTransferHasHappened(times: Int = 1) =
+  def verifyFileTransferHasHappened(times: Int = 1) =
     verify(times, postRequestedFor(urlPathEqualTo("/transfer-file")))
 
-  def verifyTraderServicesFileTransferDidNotHappen() =
+  def verifyFileTransferDidNotHappen() =
     verify(0, postRequestedFor(urlPathEqualTo("/transfer-file")))
+
+  def givenMultiFileTransferSucceeds(
+    caseReferenceNumber: String,
+    applicationName: String,
+    conversationId: String,
+    files: Seq[FileTransferData]
+  ): Unit =
+    stubFor(
+      post(urlPathEqualTo("/transfer-multiple-files"))
+        .withRequestBody(
+          equalToJson(
+            s"""{
+               |   "caseReferenceNumber":"$caseReferenceNumber",
+               |   "applicationName":"$applicationName",
+               |   "conversationId":"$conversationId",
+               |   "files": [ ${files
+              .map(file => s"""{
+               |          "upscanReference":"${file.upscanReference}",
+               |          "downloadUrl":"${file.downloadUrl}",
+               |          "fileName":"${file.fileName}",
+               |          "fileMimeType":"${file.fileMimeType}"
+               |          ${file.fileSize.map(s => s""", "fileSize":$s""").getOrElse("")},
+               |          "checksum":"${file.checksum}"
+               |      }""".stripMargin)
+              .mkString(",")}
+               |   ]
+               |}""".stripMargin,
+            true,
+            true
+          )
+        )
+        .willReturn(
+          aResponse()
+            .withStatus(201)
+            .withBody(s"""{
+                         |   "caseReferenceNumber":"$caseReferenceNumber",
+                         |   "applicationName":"$applicationName",
+                         |   "conversationId":"$conversationId",
+                         |   "results": [ ${files
+              .map(file => s"""{
+                         |          "upscanReference":"${file.upscanReference}",
+                         |          "fileName":"${file.downloadUrl}",
+                         |          "fileMimeType":"${file.fileMimeType}"
+                         |          ${file.fileSize.map(s => s""", "fileSize":$s""").getOrElse("")},
+                         |          "checksum":"${file.checksum}",
+                         |          "success": true,
+                         |          "httpStatus": 202,
+                         |          "transferredAt": "2021-07-17T12:18:09"
+                         |      }""".stripMargin)
+              .mkString(",")}
+                         |   ]
+                         |}""".stripMargin)
+        )
+    )
+
+  def givenMultiFileTransferFails(
+    caseReferenceNumber: String,
+    applicationName: String,
+    conversationId: String,
+    status: Int
+  ): Unit =
+    stubFor(
+      post(urlPathEqualTo("/transfer-multiple-files"))
+        .withRequestBody(
+          equalToJson(
+            s"""{
+               |   "caseReferenceNumber":"$caseReferenceNumber",
+               |   "applicationName":"$applicationName",
+               |   "conversationId":"$conversationId",
+               |   "files": [
+               |      {
+               |          "upscanReference":"XYZ0123456789",
+               |          "downloadUrl":"/dummy.jpeg",
+               |          "fileName":"dummy.jpeg",
+               |          "fileMimeType":"image/jpeg",
+               |          "checksum":"${"0" * 64}"
+               |      },
+               |      {
+               |          "upscanReference":"XYZ0123456780",
+               |          "downloadUrl":"/foo.jpeg",
+               |          "fileName":"foo.jpeg",
+               |          "fileMimeType":"image/jpeg",
+               |          "checksum":"${"1" * 64}"
+               |      }
+               |   ]
+               |}""".stripMargin,
+            true,
+            true
+          )
+        )
+        .willReturn(
+          aResponse()
+            .withStatus(status)
+        )
+    )
+
+  def verifyMultiFileTransferHasHappened(times: Int = 1) =
+    verify(times, postRequestedFor(urlPathEqualTo("/transfer-multiple-files")))
+
+  def verifyMultiFileTransferDidNotHappen() =
+    verify(0, postRequestedFor(urlPathEqualTo("/transfer-multiple-files")))
 
 }

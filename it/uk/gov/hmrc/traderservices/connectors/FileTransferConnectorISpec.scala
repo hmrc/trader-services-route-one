@@ -14,53 +14,123 @@ class FileTransferConnectorISpec extends FileTransferConnectorISpecSetup {
   "FileTransferConnector" when {
     "transferFile" should {
       "return 202 if success" in {
-        givenTraderServicesFileTransferSucceeds("Risk-123", "dummy.jpeg", conversationId)
+        givenFileTransferSucceeds("Risk-123", "dummy.jpeg", conversationId)
         givenAuditConnector()
         val request = testRequest
         val result = await(connector.transferFile(request, correlationId))
         result.success shouldBe true
         result.httpStatus shouldBe 202
-        verifyTraderServicesFileTransferHasHappened(times = 1)
+        verifyFileTransferHasHappened(times = 1)
       }
 
       "return failure if 403" in {
-        givenTraderServicesFileTransferFailure(403)
+        givenFileTransferFailure(403)
         givenAuditConnector()
         val request = testRequest
         val result = await(connector.transferFile(request, correlationId))
         result.success shouldBe false
         result.httpStatus shouldBe 403
-        verifyTraderServicesFileTransferHasHappened(times = 1)
+        verifyFileTransferHasHappened(times = 1)
       }
 
       "retry if 499 failure" in {
-        givenTraderServicesFileTransferFailure(499)
+        givenFileTransferFailure(499)
         givenAuditConnector()
         val request = testRequest
         val result = await(connector.transferFile(request, correlationId))
         result.success shouldBe false
         result.httpStatus shouldBe 499
-        verifyTraderServicesFileTransferHasHappened(times = 3)
+        verifyFileTransferHasHappened(times = 3)
       }
 
       "retry if 500 failure" in {
-        givenTraderServicesFileTransferFailure(500)
+        givenFileTransferFailure(500)
         givenAuditConnector()
         val request = testRequest
         val result = await(connector.transferFile(request, correlationId))
         result.success shouldBe false
         result.httpStatus shouldBe 500
-        verifyTraderServicesFileTransferHasHappened(times = 3)
+        verifyFileTransferHasHappened(times = 3)
       }
 
       "retry if 502 failure" in {
-        givenTraderServicesFileTransferFailure(502)
+        givenFileTransferFailure(502)
         givenAuditConnector()
         val request = testRequest
         val result = await(connector.transferFile(request, correlationId))
         result.success shouldBe false
         result.httpStatus shouldBe 502
-        verifyTraderServicesFileTransferHasHappened(times = 3)
+        verifyFileTransferHasHappened(times = 3)
+      }
+    }
+
+    "transferMultipleFiles" should {
+      "return list of file transfer results" in {
+        givenMultiFileTransferSucceeds(
+          "Risk-123",
+          "Route1",
+          conversationId,
+          Seq(
+            FileTransferData(
+              upscanReference = "XYZ0123456789",
+              downloadUrl = "/dummy.jpeg",
+              checksum = "0" * 64,
+              fileName = "dummy.jpeg",
+              fileMimeType = "image/jpeg"
+            ),
+            FileTransferData(
+              upscanReference = "XYZ0123456780",
+              downloadUrl = "/foo.jpeg",
+              checksum = "1" * 64,
+              fileName = "foo.jpeg",
+              fileMimeType = "image/jpeg"
+            )
+          )
+        )
+        givenAuditConnector()
+        val request = testMultiFileRequest
+        val resultOpt = await(connector.transferMultipleFiles(request, correlationId))
+        resultOpt match {
+          case Right(result) =>
+            result.conversationId shouldBe conversationId
+            result.applicationName shouldBe "Route1"
+            result.caseReferenceNumber shouldBe "Risk-123"
+            result.results.head.success shouldBe true
+            result.results.head.httpStatus shouldBe 202
+            result.results.head.upscanReference shouldBe "XYZ0123456789"
+
+          case Left(_) =>
+            fail()
+        }
+
+        verifyMultiFileTransferHasHappened(times = 1)
+      }
+
+      "do not retry if http status is 400" in {
+        givenMultiFileTransferFails("Risk-123", "Route1", conversationId, 400)
+        givenAuditConnector()
+        val request = testMultiFileRequest
+        val resultOpt = await(connector.transferMultipleFiles(request, correlationId))
+        resultOpt shouldBe Left(400)
+        verifyMultiFileTransferHasHappened(times = 1)
+      }
+
+      "retry if http status is 499" in {
+        givenMultiFileTransferFails("Risk-123", "Route1", conversationId, 499)
+        givenAuditConnector()
+        val request = testMultiFileRequest
+        val resultOpt = await(connector.transferMultipleFiles(request, correlationId))
+        resultOpt shouldBe Left(499)
+        verifyMultiFileTransferHasHappened(times = 3)
+      }
+
+      "retry if http status is 500" in {
+        givenMultiFileTransferFails("Risk-123", "Route1", conversationId, 500)
+        givenAuditConnector()
+        val request = testMultiFileRequest
+        val resultOpt = await(connector.transferMultipleFiles(request, correlationId))
+        resultOpt shouldBe Left(500)
+        verifyMultiFileTransferHasHappened(times = 3)
       }
     }
   }
@@ -91,6 +161,30 @@ trait FileTransferConnectorISpecSetup extends AppBaseISpec with FileTransferStub
               |"batchSize": 1,
               |"batchCount": 1
               |}""".stripMargin)
-    .as[TraderServicesFileTransferRequest]
+    .as[FileTransferRequest]
+
+  val testMultiFileRequest = Json
+    .parse(s"""{
+              |"conversationId":"$conversationId",
+              |"caseReferenceNumber":"Risk-123",
+              |"applicationName":"Route1",
+              |"files":[
+              |     {
+              |          "upscanReference":"XYZ0123456789",
+              |          "downloadUrl":"/dummy.jpeg",
+              |          "fileName":"dummy.jpeg",
+              |          "fileMimeType":"image/jpeg",
+              |          "checksum":"${"0" * 64}"
+              |      },
+              |      {
+              |          "upscanReference":"XYZ0123456780",
+              |          "downloadUrl":"/foo.jpeg",
+              |          "fileName":"foo.jpeg",
+              |          "fileMimeType":"image/jpeg",
+              |          "checksum":"${"1" * 64}"
+              |      }
+              |]
+              |}""".stripMargin)
+    .as[MultiFileTransferRequest]
 
 }
