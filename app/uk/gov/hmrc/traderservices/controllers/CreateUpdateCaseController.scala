@@ -35,6 +35,16 @@ import uk.gov.hmrc.traderservices.models._
 import uk.gov.hmrc.traderservices.services.AuditService
 import uk.gov.hmrc.traderservices.wiring.AppConfig
 
+import java.time.LocalDateTime
+import java.{util => ju}
+import javax.inject.Inject
+import javax.inject.Singleton
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
+import scala.concurrent.duration.FiniteDuration
+import scala.util.Success
+import scala.concurrent.Await
+
 @Singleton
 class CreateUpdateCaseController @Inject() (
   val authConnector: MicroserviceAuthConnector,
@@ -289,28 +299,40 @@ class CreateUpdateCaseController @Inject() (
     audit: Seq[FileTransferResult] => Future[Unit]
   )(implicit hc: HeaderCarrier): Future[Seq[FileTransferResult]] = {
 
-    // Single-use actor responsible for transferring files batch to PEGA
-    val fileTransferActor: ActorRef =
-      actorSystem.actorOf(
-        Props(classOf[FileTransferActor], caseReferenceNumber, fileTransferConnector, conversationId, audit)
+    val fileTransferRequest: MultiFileTransferRequest =
+      MultiFileTransferRequest(
+        conversationId,
+        caseReferenceNumber,
+        "Route1",
+        uploadedFiles.map(FileTransferData.fromUploadedFile)
       )
 
+    def doTransferFiles: Future[Seq[FileTransferResult]] = {
+      if (fileTransferRequest.files.nonEmpty)
+        fileTransferConnector
+          .transferMultipleFiles(fileTransferRequest, conversationId)
+          .map {
+            case Left(status)  => Seq.empty
+            case Right(result) => result.results
+          }
+      else
+        Future.successful(Seq.empty)
+    }.andThen {
+      case Success(results) =>
+        audit(results)
+    }
+
     if (async) {
-      fileTransferActor ! FileTransferActor.TransferMultipleFiles(
-        uploadedFiles.zipWithIndex,
-        uploadedFiles.size,
-        hc
+      actorSystem.scheduler.scheduleOnce(
+        FiniteDuration(100, "ms"),
+        new Runnable {
+          override def run(): Unit =
+            Await.ready(doTransferFiles, FiniteDuration(5, "min"))
+        }
       )
       Future.successful(Seq.empty)
     } else
-      fileTransferActor
-        .ask(
-          FileTransferActor.TransferMultipleFiles(
-            uploadedFiles.zipWithIndex,
-            uploadedFiles.size,
-            hc
-          )
-        )(Timeout(5, ju.concurrent.TimeUnit.MINUTES))
-        .mapTo[Seq[FileTransferResult]]
+      doTransferFiles
+
   }
 }

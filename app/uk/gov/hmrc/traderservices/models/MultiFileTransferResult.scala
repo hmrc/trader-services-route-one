@@ -18,21 +18,15 @@ package uk.gov.hmrc.traderservices.models
 
 import play.api.libs.json.Format
 import play.api.libs.json.Json
-import java.time.LocalDateTime
 
-final case class FileTransferResult(
-  upscanReference: String,
-  checksum: String,
-  fileName: String,
-  fileMimeType: String,
-  fileSize: Option[Int],
-  success: Boolean,
-  httpStatus: Int,
-  transferredAt: LocalDateTime,
-  error: Option[String] = None
+final case class MultiFileTransferResult(
+  conversationId: String,
+  caseReferenceNumber: String,
+  applicationName: String,
+  results: Seq[FileTransferResult]
 )
 
-object FileTransferResult {
-  implicit val formats: Format[FileTransferResult] =
-    Json.format[FileTransferResult]
+object MultiFileTransferResult {
+  implicit val formats: Format[MultiFileTransferResult] =
+    Json.format[MultiFileTransferResult]
 }

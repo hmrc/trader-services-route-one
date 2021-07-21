@@ -19,7 +19,7 @@ package uk.gov.hmrc.traderservices.models
 import play.api.libs.json.Json
 import play.api.libs.json.Format
 
-case class TraderServicesFileTransferRequest(
+case class FileTransferRequest(
   conversationId: String,
   caseReferenceNumber: String,
   applicationName: String,
@@ -37,7 +37,7 @@ case class TraderServicesFileTransferRequest(
   fileSize: Option[Int] = None
 )
 
-object TraderServicesFileTransferRequest {
+object FileTransferRequest {
 
   def fromUploadedFile(
     caseReferenceNumber: String,
@@ -47,8 +47,8 @@ object TraderServicesFileTransferRequest {
     batchSize: Int,
     batchCount: Int,
     uploadedFile: UploadedFile
-  ): TraderServicesFileTransferRequest =
-    TraderServicesFileTransferRequest(
+  ): FileTransferRequest =
+    FileTransferRequest(
       conversationId = conversationId,
       caseReferenceNumber = caseReferenceNumber,
       applicationName = applicationName,
@@ -63,6 +63,6 @@ object TraderServicesFileTransferRequest {
       correlationId = Some(correlationId)
     )
 
-  implicit val formats: Format[TraderServicesFileTransferRequest] =
-    Json.format[TraderServicesFileTransferRequest]
+  implicit val formats: Format[FileTransferRequest] =
+    Json.format[FileTransferRequest]
 }

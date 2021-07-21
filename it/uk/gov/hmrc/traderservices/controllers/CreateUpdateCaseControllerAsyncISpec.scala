@@ -19,11 +19,17 @@ import java.nio.charset.StandardCharsets
 import play.api.libs.ws.BodyWritable
 
 import play.api.Application
+import org.scalatest.concurrent.Eventually
+import org.scalatest.time.Span
+import org.scalatest.time.Millis
 
 class CreateUpdateCaseControllerAsyncISpec
     extends ServerBaseISpec with AuthStubs with CreateCaseStubs with UpdateCaseStubs with FileTransferStubs
-    with JsonMatchers {
+    with JsonMatchers with Eventually {
   this: Suite with ServerProvider =>
+
+  override implicit val patienceConfig: PatienceConfig =
+    PatienceConfig(timeout = scaled(Span(5000, Millis)), interval = scaled(Span(500, Millis)))
 
   override implicit lazy val app: Application = defaultAppBuilder
     .configure("features.transferFilesAsync" -> true)
@@ -41,13 +47,19 @@ class CreateUpdateCaseControllerAsyncISpec
         val correlationId = ju.UUID.randomUUID().toString()
         givenAuthorised()
         givenPegaCreateImportCaseRequestSucceeds(200)
-        givenTraderServicesFileTransferSucceeds("PCE201103470D2CC8K0NH3", "test⫐1.jpeg", correlationId)
-        givenTraderServicesFileTransferSucceeds("PCE201103470D2CC8K0NH3", "app.routes", correlationId)
+        val createCaseRequest =
+          TestData.testCreateImportCaseRequest(wireMockBaseUrlAsString)
+        givenMultiFileTransferSucceeds(
+          "PCE201103470D2CC8K0NH3",
+          "Route1",
+          correlationId,
+          createCaseRequest.uploadedFiles.map(FileTransferData.fromUploadedFile)
+        )
 
         val result = wsClient
           .url(s"$baseUrl/create-case")
           .withHttpHeaders("X-Correlation-ID" -> correlationId)
-          .post(Json.toJson(TestData.testCreateImportCaseRequest(wireMockBaseUrlAsString)))
+          .post(Json.toJson(createCaseRequest))
           .futureValue
 
         result.status shouldBe 201
@@ -62,28 +74,35 @@ class CreateUpdateCaseControllerAsyncISpec
 
         verifyAuthorisationHasHappened()
         verifyPegaCreateCaseRequestHasHappened()
-        verifyTraderServicesFileTransferHasHappened(2)
-        verifyAuditRequestSent(
-          1,
-          TraderServicesAuditEvent.CreateCase,
-          Json.obj(
-            "success"             -> true,
-            "caseReferenceNumber" -> "PCE201103470D2CC8K0NH3"
-          ) ++ TestData.createImportRequestDetails(wireMockBaseUrlAsString, transferSuccess = true)
-        )
+        eventually {
+          verifyMultiFileTransferHasHappened(1)
+          verifyAuditRequestSent(
+            1,
+            TraderServicesAuditEvent.CreateCase,
+            Json.obj(
+              "success"             -> true,
+              "caseReferenceNumber" -> "PCE201103470D2CC8K0NH3"
+            ) ++ TestData.createImportRequestDetails(wireMockBaseUrlAsString, transferSuccess = true)
+          )
+        }
       }
 
       "return 201 with CaseID as a result if successful PEGA API call for export case" in {
         val correlationId = ju.UUID.randomUUID().toString()
         givenAuthorised()
         givenPegaCreateExportCaseRequestSucceeds()
-        givenTraderServicesFileTransferSucceeds("PCE201103470D2CC8K0NH3", "test⫐1.jpeg", correlationId)
-        givenTraderServicesFileTransferSucceeds("PCE201103470D2CC8K0NH3", "app.routes", correlationId)
-
+        val createCaseRequest =
+          TestData.testCreateExportCaseRequest(wireMockBaseUrlAsString)
+        givenMultiFileTransferSucceeds(
+          "PCE201103470D2CC8K0NH3",
+          "Route1",
+          correlationId,
+          createCaseRequest.uploadedFiles.map(FileTransferData.fromUploadedFile)
+        )
         val result = wsClient
           .url(s"$baseUrl/create-case")
           .withHttpHeaders("X-Correlation-ID" -> correlationId)
-          .post(Json.toJson(TestData.testCreateExportCaseRequest(wireMockBaseUrlAsString)))
+          .post(Json.toJson(createCaseRequest))
           .futureValue
 
         result.status shouldBe 201
@@ -98,15 +117,17 @@ class CreateUpdateCaseControllerAsyncISpec
 
         verifyAuthorisationHasHappened()
         verifyPegaCreateCaseRequestHasHappened()
-        verifyTraderServicesFileTransferHasHappened(2)
-        verifyAuditRequestSent(
-          1,
-          TraderServicesAuditEvent.CreateCase,
-          Json.obj(
-            "success"             -> true,
-            "caseReferenceNumber" -> "PCE201103470D2CC8K0NH3"
-          ) ++ TestData.createExportRequestDetails(wireMockBaseUrlAsString, transferSuccess = true)
-        )
+        eventually {
+          verifyMultiFileTransferHasHappened(1)
+          verifyAuditRequestSent(
+            1,
+            TraderServicesAuditEvent.CreateCase,
+            Json.obj(
+              "success"             -> true,
+              "caseReferenceNumber" -> "PCE201103470D2CC8K0NH3"
+            ) ++ TestData.createExportRequestDetails(wireMockBaseUrlAsString, transferSuccess = true)
+          )
+        }
       }
 
       "return 400 if empty payload" in {
@@ -137,7 +158,7 @@ class CreateUpdateCaseControllerAsyncISpec
 
         verifyAuthorisationHasHappened()
         verifyPegaCreateCaseRequestDidNotHappen()
-        verifyTraderServicesFileTransferDidNotHappen()
+        verifyMultiFileTransferDidNotHappen()
         verifyAuditRequestSent(
           1,
           TraderServicesAuditEvent.CreateCase,
@@ -185,7 +206,7 @@ class CreateUpdateCaseControllerAsyncISpec
 
         verifyAuthorisationHasHappened()
         verifyPegaCreateCaseRequestDidNotHappen()
-        verifyTraderServicesFileTransferDidNotHappen()
+        verifyMultiFileTransferDidNotHappen()
         verifyAuditRequestSent(
           1,
           TraderServicesAuditEvent.CreateCase,
@@ -224,7 +245,7 @@ class CreateUpdateCaseControllerAsyncISpec
 
         verifyAuthorisationHasHappened()
         verifyPegaCreateCaseRequestHasHappened()
-        verifyTraderServicesFileTransferDidNotHappen()
+        verifyMultiFileTransferDidNotHappen()
         verifyAuditRequestSent(
           1,
           TraderServicesAuditEvent.CreateCase,
@@ -253,7 +274,7 @@ class CreateUpdateCaseControllerAsyncISpec
 
         verifyAuthorisationHasHappened()
         verifyPegaCreateCaseRequestHasHappened(times = 3)
-        verifyTraderServicesFileTransferDidNotHappen()
+        verifyMultiFileTransferDidNotHappen()
         verifyAuditRequestSent(
           1,
           TraderServicesAuditEvent.CreateCase,
@@ -285,7 +306,7 @@ class CreateUpdateCaseControllerAsyncISpec
 
         verifyAuthorisationHasHappened()
         verifyPegaCreateCaseRequestHasHappened()
-        verifyTraderServicesFileTransferDidNotHappen()
+        verifyMultiFileTransferDidNotHappen()
         verifyAuditRequestSent(
           1,
           TraderServicesAuditEvent.CreateCase,
@@ -321,7 +342,7 @@ class CreateUpdateCaseControllerAsyncISpec
 
         verifyAuthorisationHasHappened()
         verifyPegaCreateCaseRequestHasHappened()
-        verifyTraderServicesFileTransferDidNotHappen()
+        verifyFileTransferDidNotHappen()
         verifyAuditRequestSent(
           1,
           TraderServicesAuditEvent.CreateCase,
@@ -357,7 +378,7 @@ class CreateUpdateCaseControllerAsyncISpec
 
         verifyAuthorisationHasHappened()
         verifyPegaCreateCaseRequestHasHappened()
-        verifyTraderServicesFileTransferDidNotHappen()
+        verifyFileTransferDidNotHappen()
         verifyAuditRequestSent(
           1,
           TraderServicesAuditEvent.CreateCase,
@@ -386,7 +407,7 @@ class CreateUpdateCaseControllerAsyncISpec
 
         verifyAuthorisationHasHappened()
         verifyPegaCreateCaseRequestHasHappened()
-        verifyTraderServicesFileTransferDidNotHappen()
+        verifyFileTransferDidNotHappen()
         verifyAuditRequestSent(
           1,
           TraderServicesAuditEvent.CreateCase,
@@ -432,7 +453,7 @@ class CreateUpdateCaseControllerAsyncISpec
           "PCE201103470D2CC8K0NH3",
           "An example description."
         )
-        verifyTraderServicesFileTransferDidNotHappen()
+        verifyMultiFileTransferDidNotHappen()
         verifyAuditRequestSent(
           1,
           TraderServicesAuditEvent.UpdateCase,
@@ -449,13 +470,20 @@ class CreateUpdateCaseControllerAsyncISpec
         val correlationId = ju.UUID.randomUUID().toString()
         givenAuthorised()
         givenPegaUpdateCaseRequestSucceeds("The user has attached the following file(s): test?1.jpeg.")
-        givenTraderServicesFileTransferSucceeds("PCE201103470D2CC8K0NH3", "test⫐1.jpeg", correlationId)
+        val uploadedFiles =
+          TestData.testUpdateCaseRequestUploadedFiles(wireMockBaseUrlAsString)
+        givenMultiFileTransferSucceeds(
+          "PCE201103470D2CC8K0NH3",
+          "Route1",
+          correlationId,
+          uploadedFiles.map(FileTransferData.fromUploadedFile)
+        )
 
         val payload = TraderServicesUpdateCaseRequest(
           caseReferenceNumber = "PCE201103470D2CC8K0NH3",
           typeOfAmendment = TypeOfAmendment.UploadDocuments,
           responseText = None,
-          uploadedFiles = TestData.testUpdateCaseRequestUploadedFiles(wireMockBaseUrlAsString),
+          uploadedFiles = uploadedFiles,
           eori = Some("GB123456789012345")
         )
 
@@ -477,29 +505,38 @@ class CreateUpdateCaseControllerAsyncISpec
           "PCE201103470D2CC8K0NH3",
           "The user has attached the following file(s): test?1.jpeg."
         )
-        verifyTraderServicesFileTransferHasHappened(1)
-        verifyAuditRequestSent(
-          1,
-          TraderServicesAuditEvent.UpdateCase,
-          Json.obj(
-            "success"             -> true,
-            "typeOfAmendment"     -> "UploadDocuments",
-            "caseReferenceNumber" -> "PCE201103470D2CC8K0NH3"
-          ) ++ TestData.updateRequestFileUploadDetailsMap(wireMockBaseUrlAsString, transferSuccess = true)
-        )
+        eventually {
+          verifyMultiFileTransferHasHappened(1)
+          verifyAuditRequestSent(
+            1,
+            TraderServicesAuditEvent.UpdateCase,
+            Json.obj(
+              "success"             -> true,
+              "typeOfAmendment"     -> "UploadDocuments",
+              "caseReferenceNumber" -> "PCE201103470D2CC8K0NH3"
+            ) ++ TestData.updateRequestFileUploadDetailsMap(wireMockBaseUrlAsString, transferSuccess = true)
+          )
+        }
       }
 
       "return 201 with CaseID when both response text and files uploaded" in {
         val correlationId = ju.UUID.randomUUID().toString()
         givenAuthorised()
         givenPegaUpdateCaseRequestSucceeds()
-        givenTraderServicesFileTransferSucceeds("PCE201103470D2CC8K0NH3", "test⫐1.jpeg", correlationId)
+        val uploadedFiles =
+          TestData.testUpdateCaseRequestUploadedFiles(wireMockBaseUrlAsString)
+        givenMultiFileTransferSucceeds(
+          "PCE201103470D2CC8K0NH3",
+          "Route1",
+          correlationId,
+          uploadedFiles.map(FileTransferData.fromUploadedFile)
+        )
 
         val payload = TraderServicesUpdateCaseRequest(
           caseReferenceNumber = "PCE201103470D2CC8K0NH3",
           typeOfAmendment = TypeOfAmendment.WriteResponseAndUploadDocuments,
           responseText = Some("An example description."),
-          uploadedFiles = TestData.testUpdateCaseRequestUploadedFiles(wireMockBaseUrlAsString),
+          uploadedFiles = uploadedFiles,
           eori = Some("GB123456789012345")
         )
 
@@ -521,17 +558,19 @@ class CreateUpdateCaseControllerAsyncISpec
           "PCE201103470D2CC8K0NH3",
           "An example description."
         )
-        verifyTraderServicesFileTransferHasHappened(1)
-        verifyAuditRequestSent(
-          1,
-          TraderServicesAuditEvent.UpdateCase,
-          Json.obj(
-            "success"             -> true,
-            "typeOfAmendment"     -> "WriteResponseAndUploadDocuments",
-            "responseText"        -> "An example description.",
-            "caseReferenceNumber" -> "PCE201103470D2CC8K0NH3"
-          ) ++ TestData.updateRequestFileUploadDetailsMap(wireMockBaseUrlAsString, transferSuccess = true)
-        )
+        eventually {
+          verifyMultiFileTransferHasHappened(1)
+          verifyAuditRequestSent(
+            1,
+            TraderServicesAuditEvent.UpdateCase,
+            Json.obj(
+              "success"             -> true,
+              "typeOfAmendment"     -> "WriteResponseAndUploadDocuments",
+              "responseText"        -> "An example description.",
+              "caseReferenceNumber" -> "PCE201103470D2CC8K0NH3"
+            ) ++ TestData.updateRequestFileUploadDetailsMap(wireMockBaseUrlAsString, transferSuccess = true)
+          )
+        }
       }
 
       "return 400 if invalid payload" in {
@@ -572,7 +611,7 @@ class CreateUpdateCaseControllerAsyncISpec
 
         verifyAuthorisationHasHappened()
         verifyPegaUpdateCaseRequestDidNotHappen()
-        verifyTraderServicesFileTransferDidNotHappen()
+        verifyFileTransferDidNotHappen()
         verifyAuditRequestSent(
           1,
           TraderServicesAuditEvent.UpdateCase,
@@ -614,7 +653,7 @@ class CreateUpdateCaseControllerAsyncISpec
 
         verifyAuthorisationHasHappened()
         verifyPegaUpdateCaseRequestDidNotHappen()
-        verifyTraderServicesFileTransferDidNotHappen()
+        verifyMultiFileTransferDidNotHappen()
         verifyAuditRequestSent(
           1,
           TraderServicesAuditEvent.UpdateCase,
@@ -668,7 +707,7 @@ class CreateUpdateCaseControllerAsyncISpec
 
         verifyAuthorisationHasHappened()
         verifyPegaUpdateCaseRequestDidNotHappen()
-        verifyTraderServicesFileTransferDidNotHappen()
+        verifyMultiFileTransferDidNotHappen()
         verifyAuditRequestSent(
           1,
           TraderServicesAuditEvent.UpdateCase,
@@ -705,7 +744,7 @@ class CreateUpdateCaseControllerAsyncISpec
 
         verifyAuthorisationHasHappened()
         verifyPegaUpdateCaseRequestHasHappened()
-        verifyTraderServicesFileTransferDidNotHappen()
+        verifyMultiFileTransferDidNotHappen()
         verifyAuditRequestSent(
           1,
           TraderServicesAuditEvent.UpdateCase,
@@ -736,7 +775,7 @@ class CreateUpdateCaseControllerAsyncISpec
 
         verifyAuthorisationHasHappened()
         verifyPegaUpdateCaseRequestHasHappened(times = 3)
-        verifyTraderServicesFileTransferDidNotHappen()
+        verifyMultiFileTransferDidNotHappen()
         verifyAuditRequestSent(
           1,
           TraderServicesAuditEvent.UpdateCase,
@@ -771,7 +810,7 @@ class CreateUpdateCaseControllerAsyncISpec
 
         verifyAuthorisationHasHappened()
         verifyPegaUpdateCaseRequestHasHappened()
-        verifyTraderServicesFileTransferDidNotHappen()
+        verifyMultiFileTransferDidNotHappen()
         verifyAuditRequestSent(
           1,
           TraderServicesAuditEvent.UpdateCase,
@@ -806,7 +845,7 @@ class CreateUpdateCaseControllerAsyncISpec
 
         verifyAuthorisationHasHappened()
         verifyPegaUpdateCaseRequestHasHappened()
-        verifyTraderServicesFileTransferDidNotHappen()
+        verifyMultiFileTransferDidNotHappen()
         verifyAuditRequestSent(
           1,
           TraderServicesAuditEvent.UpdateCase,
@@ -834,7 +873,7 @@ class CreateUpdateCaseControllerAsyncISpec
 
         verifyAuthorisationHasHappened()
         verifyPegaUpdateCaseRequestHasHappened()
-        verifyTraderServicesFileTransferDidNotHappen()
+        verifyMultiFileTransferDidNotHappen()
         verifyAuditRequestSent(
           1,
           TraderServicesAuditEvent.UpdateCase,
