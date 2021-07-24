@@ -35,7 +35,7 @@ import play.api.Logger
 
 class JsonEncoder extends EncoderBase[ILoggingEvent] {
 
-  private val mapper = new ObjectMapper().configure(Feature.ESCAPE_NON_ASCII, true)
+  val mapper = new ObjectMapper().configure(Feature.ESCAPE_NON_ASCII, true)
 
   lazy val appName: String = Try(ConfigFactory.load().getString("appName")) match {
     case Success(name) => name.toString
@@ -52,10 +52,11 @@ class JsonEncoder extends EncoderBase[ILoggingEvent] {
     FastDateFormat.getInstance(dformat)
   }
 
-  private lazy val jsonDataPrefix: Seq[String] =
+  lazy val jsonDataPrefix: Seq[String] =
     Try(ConfigFactory.load().getString("logger.json.data.prefix")) match {
-      case Success(prefix) if prefix.nonEmpty => prefix.split(".").map(_.trim()).filter(_.nonEmpty)
-      case _                                  => throw new Exception("Missing config property [logger.json.data.prefix]")
+      case Success(prefix) if prefix.nonEmpty =>
+        prefix.split('.').map(_.trim()).filter(_.nonEmpty)
+      case _ => throw new Exception("Missing config property [logger.json.data.prefix]")
     }
 
   override def encode(event: ILoggingEvent): Array[Byte] = {
@@ -81,9 +82,9 @@ class JsonEncoder extends EncoderBase[ILoggingEvent] {
     s"${mapper.writeValueAsString(eventNode)}$LINE_SEPARATOR".getBytes(StandardCharsets.UTF_8)
   }
 
-  def decodeMessage(eventNode: ObjectNode, message: String): Unit =
+  def decodeMessage(eventNode: ObjectNode, message: String): Unit = {
+    eventNode.put("message", message.drop(4))
     if (message.startsWith("json{") && jsonDataPrefix.nonEmpty) {
-      eventNode.put("message", message.drop(4))
       val messageNode: JsonNode = mapper.readTree(message.drop(4))
       try {
         val dataNode = if (jsonDataPrefix.size > 1) {
@@ -98,8 +99,8 @@ class JsonEncoder extends EncoderBase[ILoggingEvent] {
         case e: Exception =>
           Logger(getClass).error(e.getMessage())
       }
-    } else
-      eventNode.put("message", message)
+    }
+  }
 
   override def footerBytes(): Array[Byte] =
     LINE_SEPARATOR.getBytes(StandardCharsets.UTF_8)
