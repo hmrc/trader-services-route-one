@@ -52,6 +52,12 @@ class JsonEncoder extends EncoderBase[ILoggingEvent] {
     FastDateFormat.getInstance(dformat)
   }
 
+  private lazy val jsonDataPrefix: Seq[String] =
+    Try(ConfigFactory.load().getString("logger.json.data.prefix")) match {
+      case Success(prefix) if prefix.nonEmpty => prefix.split(".").map(_.trim()).filter(_.nonEmpty)
+      case _                                  => throw new Exception("Missing config property [logger.json.data.prefix]")
+    }
+
   override def encode(event: ILoggingEvent): Array[Byte] = {
     val eventNode = mapper.createObjectNode
 
@@ -76,11 +82,18 @@ class JsonEncoder extends EncoderBase[ILoggingEvent] {
   }
 
   def decodeMessage(eventNode: ObjectNode, message: String): Unit =
-    if (message.startsWith("json{")) {
+    if (message.startsWith("json{") && jsonDataPrefix.nonEmpty) {
       eventNode.put("message", message.drop(4))
+      val messageNode: JsonNode = mapper.readTree(message.drop(4))
       try {
-        val messageNode: JsonNode = mapper.readTree(message.drop(4))
-        eventNode.put("route1", messageNode)
+        val dataNode = if (jsonDataPrefix.size > 1) {
+          val intermediaryDataNodes: Seq[(String, ObjectNode)] =
+            jsonDataPrefix.init.map(p => (p, mapper.createObjectNode))
+          intermediaryDataNodes.foldLeft[ObjectNode](eventNode) {
+            case (parent, (name, child)) => parent.put(name, child); child
+          }
+        } else eventNode
+        dataNode.put(jsonDataPrefix.last, messageNode)
       } catch {
         case e: Exception =>
           Logger(getClass).error(e.getMessage())
