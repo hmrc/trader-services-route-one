@@ -31,6 +31,7 @@ trait CreateCaseStubs {
       |    "VesselEstimatedDate":"20201029",
       |    "VesselEstimatedTime":"234500",
       |    "FreightOption":"Maritime",
+      |    "EORI":"GB123456789012345",
       |    "TelephoneNumber":"07123456789",
       |    "EmailAddress":"sampelname@gmail.com"
       |    }
@@ -51,6 +52,7 @@ trait CreateCaseStubs {
       |    "VesselEstimatedDate":"20201029",
       |    "VesselEstimatedTime":"234500",
       |    "FreightOption":"Maritime",
+      |    "EORI":"GB123456789012345",
       |    "TelephoneNumber":"07123456789",
       |    "EmailAddress":"sampelname@gmail.com",
       |    "Priority" : "Live animals"
