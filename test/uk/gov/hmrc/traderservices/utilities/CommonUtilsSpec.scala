@@ -19,7 +19,7 @@ package uk.gov.hmrc.traderservices.utilities
 import uk.gov.hmrc.traderservices.support.UnitSpec
 import uk.gov.hmrc.traderservices.utilities.CommonUtils.LocalDateTimeUtils
 class CommonUtilsSpec extends UnitSpec {
-  "LocalDateTimeUtils" should {
+  "CommonUtils" should {
     "parse date string correctly" in {
       "2020-11-03T15:29:28.601Z".toLocaDateTime.toString shouldBe "2020-11-03T15:29:28.601"
       "2020-01-12T00:00:00.000Z".toLocaDateTime.toString shouldBe "2020-01-12T00:00"

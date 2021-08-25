@@ -58,11 +58,12 @@ class FileTransferConnector @Inject() (
         fileTransferRequest.checksum,
         fileTransferRequest.fileName,
         fileTransferRequest.fileMimeType,
-        fileTransferRequest.fileSize,
+        fileTransferRequest.fileSize.getOrElse(0),
         isSuccess(response),
         response.status,
         LocalDateTime.now(),
         hc.requestId.map(_.value).getOrElse(""),
+        0,
         None
       )
     )

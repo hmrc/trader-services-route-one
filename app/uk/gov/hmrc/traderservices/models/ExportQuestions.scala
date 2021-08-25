@@ -24,7 +24,8 @@ case class ExportQuestions(
   priorityGoods: Option[ExportPriorityGoods] = None,
   freightType: ExportFreightType,
   vesselDetails: Option[VesselDetails] = None,
-  contactInfo: ContactInfo
+  contactInfo: ContactInfo,
+  explanation: Option[String] = None
 ) extends QuestionsAnswers
 
 object ExportQuestions {

@@ -37,19 +37,20 @@ Example request payload
         },
         "questionsAnswers" : {
             "export" : {
-            "requestType" : "New",
-            "routeType" : "Route2",
-            "freightType" : "Air",
-            "vesselDetails" : {
-                "vesselName" : "Foo Bar",
-                "dateOfArrival" : "2020-10-19",
-                "timeOfArrival" : "10:09:00"
-            },
-            "contactInfo" : {
-                "contactName" : "Bob",
-                "contactEmail" : "name@somewhere.com",
-                "contactNumber" : "01234567891"
-            }
+                "requestType" : "New",
+                "routeType" : "Route2",
+                "freightType" : "Air",
+                "vesselDetails" : {
+                    "vesselName" : "Foo Bar",
+                    "dateOfArrival" : "2020-10-19",
+                    "timeOfArrival" : "10:09:00"
+                },
+                "contactInfo" : {
+                    "contactName" : "Bob",
+                    "contactEmail" : "name@somewhere.com",
+                    "contactNumber" : "01234567891"
+                },
+                "explanation": "lorem ipsum ..."
             }
         },
         "uploadedFiles" : [ {

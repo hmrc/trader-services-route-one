@@ -18,12 +18,15 @@ package uk.gov.hmrc.traderservices.models
 
 import play.api.libs.json.Format
 import play.api.libs.json.Json
+import play.api.libs.json.JsObject
 
 final case class MultiFileTransferResult(
   conversationId: String,
   caseReferenceNumber: String,
   applicationName: String,
-  results: Seq[FileTransferResult]
+  results: Seq[FileTransferResult],
+  totalDurationMillis: Int,
+  metadata: Option[JsObject] = None
 )
 
 object MultiFileTransferResult {

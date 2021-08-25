@@ -20,11 +20,11 @@ import java.time.LocalDateTime
 import java.{util => ju}
 import javax.inject.{Inject, Singleton}
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.duration.FiniteDuration
+import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.util.Success
 
-import akka.actor.{ActorRef, ActorSystem, Props}
-import akka.pattern.ask
-import akka.util.Timeout
+import akka.actor.ActorSystem
 import play.api.libs.json.Json
 import play.api.mvc._
 import play.api.{Configuration, Environment}
@@ -34,16 +34,6 @@ import uk.gov.hmrc.traderservices.connectors.{PegaCreateCaseRequest, _}
 import uk.gov.hmrc.traderservices.models._
 import uk.gov.hmrc.traderservices.services.AuditService
 import uk.gov.hmrc.traderservices.wiring.AppConfig
-
-import java.time.LocalDateTime
-import java.{util => ju}
-import javax.inject.Inject
-import javax.inject.Singleton
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
-import scala.concurrent.duration.FiniteDuration
-import scala.util.Success
-import scala.concurrent.Await
 
 @Singleton
 class CreateUpdateCaseController @Inject() (
@@ -162,7 +152,7 @@ class CreateUpdateCaseController @Inject() (
         }
     }
 
-  private def createCaseInPegaAndUploadFiles(
+  final def createCaseInPegaAndUploadFiles(
     createCaseRequest: TraderServicesCreateCaseRequest,
     correlationId: String,
     audit: TraderServicesCaseResponse => Future[Unit]
@@ -184,6 +174,7 @@ class CreateUpdateCaseController @Inject() (
             success.CaseID,
             correlationId,
             createCaseRequest.uploadedFiles,
+            createCaseRequest.questionsAnswers.explanation,
             appConfig.transferFilesAsync,
             auditFileTransferResults(audit, correlationId, success)
           )
@@ -226,7 +217,7 @@ class CreateUpdateCaseController @Inject() (
       }
   }
 
-  private def updateCaseInPega(
+  final def updateCaseInPega(
     updateCaseRequest: TraderServicesUpdateCaseRequest,
     correlationId: String,
     audit: TraderServicesCaseResponse => Future[Unit]
@@ -248,6 +239,7 @@ class CreateUpdateCaseController @Inject() (
             updateCaseRequest.caseReferenceNumber,
             correlationId,
             updateCaseRequest.uploadedFiles,
+            None,
             appConfig.transferFilesAsync,
             auditFileTransferResults(audit, correlationId, success)
           )
@@ -291,10 +283,11 @@ class CreateUpdateCaseController @Inject() (
       audit(response)
     }
 
-  private def transferFilesToPega(
+  final def transferFilesToPega(
     caseReferenceNumber: String,
     conversationId: String,
     uploadedFiles: Seq[UploadedFile],
+    explanation: Option[String],
     async: Boolean,
     audit: Seq[FileTransferResult] => Future[Unit]
   )(implicit hc: HeaderCarrier): Future[Seq[FileTransferResult]] = {
@@ -304,7 +297,7 @@ class CreateUpdateCaseController @Inject() (
         conversationId,
         caseReferenceNumber,
         "Route1",
-        uploadedFiles.map(FileTransferData.fromUploadedFile)
+        FileTransferData.fromUploadedFilesAndExplanation(uploadedFiles, explanation)
       )
 
     def doTransferFiles: Future[Seq[FileTransferResult]] = {

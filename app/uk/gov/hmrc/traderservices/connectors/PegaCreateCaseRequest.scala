@@ -91,7 +91,8 @@ object PegaCreateCaseRequest {
               hasALVS,
               freightType,
               vesselDetails,
-              contactInfo
+              contactInfo,
+              explanation
             ) =>
           Content(
             EntryType = "Import",
@@ -118,7 +119,8 @@ object PegaCreateCaseRequest {
               priorityGoods,
               freightType,
               vesselDetails,
-              contactInfo
+              contactInfo,
+              explanation
             ) =>
           Content(
             EntryType = "Export",
