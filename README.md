@@ -49,18 +49,20 @@ Example request payload
                     "contactName" : "Bob",
                     "contactEmail" : "name@somewhere.com",
                     "contactNumber" : "01234567891"
-                },
-                "explanation": "lorem ipsum ..."
+                }
             }
         },
         "uploadedFiles" : [ {
-            "downloadUrl" : "https://bucketName.s3.eu-west-2.amazonaws.com?1235676",
+            "upscanReference" : "foo",
+            "downloadUrl" : "https://www.w3.org/TR/PNG/iso_8859-1.txt",
             "uploadTimestamp" : "2018-04-24T09:30:00Z",
-            "checksum" : "396f101dd52e8b2ace0dcf5ed09b1d1f030e608938510ce46e7a5c7a4e775100",
-            "fileName" : "test.pdf",
-            "fileMimeType" : "application/pdf"
+            "checksum" : "3aff1954277c4fc27603346901e4848b58fe3c8bed63affe6086003dd6c2b9fe",
+            "fileName" : "iso_8859-1.txt",
+            "fileMimeType" : "text/plain",
+            "fileSize" : 6121
         } ],
-        "eori" : "GB123456789012345" <- optional
+        "explanation" : "Humpty Dumpty sat on a wall",
+        "eori" : "GB123456789012345"
     }
 
 Example 201 success response payload
