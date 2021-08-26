@@ -17,6 +17,7 @@
 package uk.gov.hmrc.traderservices.models
 
 import play.api.libs.json.{Format, Json}
+import uk.gov.hmrc.traderservices.stubs.MessageUtils
 
 case class MultiFileTransferRequest(
   conversationId: String,
@@ -37,8 +38,21 @@ case class FileTransferData(
 
 object FileTransferData {
 
+  val EXPLANATION_REFERENCE = "data:explanation"
+  val EXPLANATION_FILENAME = "explanation.txt"
+
   implicit val formats: Format[FileTransferData] =
     Json.format[FileTransferData]
+
+  def fromUploadedFilesAndExplanation(
+    uploadedFiles: Seq[UploadedFile],
+    explanation: Option[String]
+  ): Seq[FileTransferData] = {
+    val files = uploadedFiles.map(FileTransferData.fromUploadedFile)
+    explanation
+      .map(e => files :+ FileTransferData.fromExplanation(e))
+      .getOrElse(files)
+  }
 
   def fromUploadedFile(file: UploadedFile): FileTransferData =
     FileTransferData(
@@ -49,6 +63,21 @@ object FileTransferData {
       fileSize = file.fileSize,
       fileMimeType = file.fileMimeType
     )
+
+  def fromExplanation(explanation: String): FileTransferData = {
+    val (base64Message, sha256Checksum) =
+      MessageUtils.encodeBase64AndCalculateSHA256(explanation)
+
+    FileTransferData(
+      upscanReference = EXPLANATION_REFERENCE,
+      downloadUrl = s"data:text/plain;charset=UTF-8;base64,$base64Message",
+      checksum = sha256Checksum,
+      fileName = EXPLANATION_FILENAME,
+      fileSize = Some(explanation.length),
+      fileMimeType = "text/plain;charset=UTF-8"
+    )
+  }
+
 }
 
 object MultiFileTransferRequest {

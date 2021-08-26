@@ -25,11 +25,12 @@ final case class FileTransferResult(
   checksum: String,
   fileName: String,
   fileMimeType: String,
-  fileSize: Option[Int],
+  fileSize: Int,
   success: Boolean,
   httpStatus: Int,
   transferredAt: LocalDateTime,
   correlationId: String,
+  durationMillis: Int,
   error: Option[String] = None
 )
 

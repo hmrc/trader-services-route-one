@@ -47,13 +47,20 @@ class CreateUpdateCaseControllerAsyncISpec
         val correlationId = ju.UUID.randomUUID().toString()
         givenAuthorised()
         givenPegaCreateImportCaseRequestSucceeds(200)
+
         val createCaseRequest =
           TestData.testCreateImportCaseRequest(wireMockBaseUrlAsString)
+
+        val files = FileTransferData.fromUploadedFilesAndExplanation(
+          createCaseRequest.uploadedFiles,
+          createCaseRequest.questionsAnswers.explanation
+        )
+
         givenMultiFileTransferSucceeds(
           "PCE201103470D2CC8K0NH3",
           "Route1",
           correlationId,
-          createCaseRequest.uploadedFiles.map(FileTransferData.fromUploadedFile)
+          files
         )
 
         val result = wsClient
@@ -82,7 +89,7 @@ class CreateUpdateCaseControllerAsyncISpec
             Json.obj(
               "success"             -> true,
               "caseReferenceNumber" -> "PCE201103470D2CC8K0NH3"
-            ) ++ TestData.createImportRequestDetails(wireMockBaseUrlAsString, transferSuccess = true)
+            ) ++ TestData.createImportRequestDetails(wireMockBaseUrlAsString, transferSuccess = true, files = files)
           )
         }
       }
@@ -91,14 +98,22 @@ class CreateUpdateCaseControllerAsyncISpec
         val correlationId = ju.UUID.randomUUID().toString()
         givenAuthorised()
         givenPegaCreateExportCaseRequestSucceeds()
+
         val createCaseRequest =
           TestData.testCreateExportCaseRequest(wireMockBaseUrlAsString)
+
+        val files = FileTransferData.fromUploadedFilesAndExplanation(
+          createCaseRequest.uploadedFiles,
+          createCaseRequest.questionsAnswers.explanation
+        )
+
         givenMultiFileTransferSucceeds(
           "PCE201103470D2CC8K0NH3",
           "Route1",
           correlationId,
-          createCaseRequest.uploadedFiles.map(FileTransferData.fromUploadedFile)
+          files
         )
+
         val result = wsClient
           .url(s"$baseUrl/create-case")
           .withHttpHeaders("X-Correlation-ID" -> correlationId)
@@ -125,7 +140,7 @@ class CreateUpdateCaseControllerAsyncISpec
             Json.obj(
               "success"             -> true,
               "caseReferenceNumber" -> "PCE201103470D2CC8K0NH3"
-            ) ++ TestData.createExportRequestDetails(wireMockBaseUrlAsString, transferSuccess = true)
+            ) ++ TestData.createExportRequestDetails(wireMockBaseUrlAsString, transferSuccess = true, files = files)
           )
         }
       }
@@ -250,7 +265,7 @@ class CreateUpdateCaseControllerAsyncISpec
           1,
           TraderServicesAuditEvent.CreateCase,
           Json.obj("success" -> false, "duplicate" -> false, "errorCode" -> "400")
-            ++ TestData.createImportRequestDetails(wireMockBaseUrlAsString, transferSuccess = false)
+            ++ TestData.createImportRequestDetails(wireMockBaseUrlAsString, transferSuccess = false, files = Seq.empty)
         )
       }
 
@@ -279,7 +294,7 @@ class CreateUpdateCaseControllerAsyncISpec
           1,
           TraderServicesAuditEvent.CreateCase,
           Json.obj("success" -> false, "duplicate" -> false, "errorCode" -> "500", "errorMessage" -> "Foo Bar")
-            ++ TestData.createImportRequestDetails(wireMockBaseUrlAsString, transferSuccess = false)
+            ++ TestData.createImportRequestDetails(wireMockBaseUrlAsString, transferSuccess = false, files = Seq.empty)
         )
       }
 
@@ -315,7 +330,7 @@ class CreateUpdateCaseControllerAsyncISpec
             "duplicate"    -> true,
             "errorCode"    -> "409",
             "errorMessage" -> "PCE201103470D2CC8K0NH3"
-          ) ++ TestData.createImportRequestDetails(wireMockBaseUrlAsString, transferSuccess = false)
+          ) ++ TestData.createImportRequestDetails(wireMockBaseUrlAsString, transferSuccess = false, files = Seq.empty)
         )
       }
 
@@ -351,7 +366,7 @@ class CreateUpdateCaseControllerAsyncISpec
             "duplicate"    -> true,
             "errorCode"    -> "409",
             "errorMessage" -> "PCE201103470D2CC8K0NH3"
-          ) ++ TestData.createExportRequestDetails(wireMockBaseUrlAsString, transferSuccess = false)
+          ) ++ TestData.createExportRequestDetails(wireMockBaseUrlAsString, transferSuccess = false, files = Seq.empty)
         )
       }
 
@@ -387,7 +402,7 @@ class CreateUpdateCaseControllerAsyncISpec
             "duplicate"    -> false,
             "errorCode"    -> "403",
             "errorMessage" -> "Error: empty response"
-          ) ++ TestData.createImportRequestDetails(wireMockBaseUrlAsString, transferSuccess = false)
+          ) ++ TestData.createImportRequestDetails(wireMockBaseUrlAsString, transferSuccess = false, files = Seq.empty)
         )
       }
 

@@ -24,7 +24,7 @@ import java.time.LocalDateTime
 case class FileTransferAudit(
   upscanReference: String,
   downloadUrl: String,
-  uploadTimestamp: ZonedDateTime,
+  uploadTimestamp: Option[ZonedDateTime] = None,
   checksum: String,
   fileName: String,
   fileMimeType: String,

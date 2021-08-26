@@ -42,6 +42,7 @@ import java.time.LocalTime
 import uk.gov.hmrc.traderservices.models.ImportQuestions
 import uk.gov.hmrc.traderservices.models.ExportQuestions
 import play.api.Logger
+import uk.gov.hmrc.traderservices.models.FileTransferData
 
 object TraderServicesAuditEvent extends Enumeration {
   type TraderServicesAuditEvent = Value
@@ -151,7 +152,8 @@ object AuditService {
     contactNumber: Option[String],
     numberOfFilesUploaded: Int,
     uploadedFiles: Seq[FileTransferAudit],
-    correlationId: String
+    correlationId: String,
+    explanation: Option[String]
   )
 
   object CreateCaseAuditEventDetails {
@@ -184,9 +186,11 @@ object AuditService {
                 numberOfFilesUploaded = createRequest.uploadedFiles.size,
                 uploadedFiles = combineFileUploadAndTransferResults(
                   createRequest.uploadedFiles,
-                  createResponse.result.map(_.fileTransferResults)
+                  createResponse.result.map(_.fileTransferResults),
+                  q.explanation
                 ),
-                correlationId = createResponse.correlationId
+                correlationId = createResponse.correlationId,
+                explanation = q.explanation
               )
 
             case q: ExportQuestions =>
@@ -210,9 +214,11 @@ object AuditService {
                 numberOfFilesUploaded = createRequest.uploadedFiles.size,
                 uploadedFiles = combineFileUploadAndTransferResults(
                   createRequest.uploadedFiles,
-                  createResponse.result.map(_.fileTransferResults)
+                  createResponse.result.map(_.fileTransferResults),
+                  q.explanation
                 ),
-                correlationId = createResponse.correlationId
+                correlationId = createResponse.correlationId,
+                explanation = q.explanation
               )
           }
         )
@@ -255,7 +261,8 @@ object AuditService {
             numberOfFilesUploaded = updateRequest.uploadedFiles.size,
             uploadedFiles = combineFileUploadAndTransferResults(
               updateRequest.uploadedFiles,
-              updateResponse.result.map(_.fileTransferResults)
+              updateResponse.result.map(_.fileTransferResults),
+              None
             ),
             correlationId = updateResponse.correlationId
           )
@@ -296,22 +303,51 @@ object AuditService {
 
   def combineFileUploadAndTransferResults(
     uploadedFiles: Seq[UploadedFile],
+    fileTransferResults: Option[Seq[FileTransferResult]],
+    explanation: Option[String]
+  ): Seq[FileTransferAudit] = {
+    val filesAudits =
+      uploadedFiles.map { upload =>
+        val transferResultOpt = fileTransferResults.flatMap(_.find(_.upscanReference == upload.upscanReference))
+        FileTransferAudit(
+          upscanReference = upload.upscanReference,
+          downloadUrl = upload.downloadUrl,
+          uploadTimestamp = Some(upload.uploadTimestamp),
+          checksum = upload.checksum,
+          fileName = upload.fileName,
+          fileMimeType = upload.fileMimeType,
+          transferSuccess = transferResultOpt.map(_.success).orElse(Some(false)),
+          transferHttpStatus = transferResultOpt.map(_.httpStatus),
+          transferredAt = transferResultOpt.map(_.transferredAt),
+          transferError = transferResultOpt.flatMap(_.error)
+        )
+      }
+    explanation
+      .flatMap(e => auditExplanationFile(e, fileTransferResults))
+      .map(filesAudits :+ _)
+      .getOrElse(filesAudits)
+  }
+
+  def auditExplanationFile(
+    explanation: String,
     fileTransferResults: Option[Seq[FileTransferResult]]
-  ): Seq[FileTransferAudit] =
-    uploadedFiles.map { upload =>
-      val transferResultOpt = fileTransferResults.flatMap(_.find(_.upscanReference == upload.upscanReference))
-      FileTransferAudit(
-        upscanReference = upload.upscanReference,
-        downloadUrl = upload.downloadUrl,
-        uploadTimestamp = upload.uploadTimestamp,
-        checksum = upload.checksum,
-        fileName = upload.fileName,
-        fileMimeType = upload.fileMimeType,
-        transferSuccess = transferResultOpt.map(_.success).orElse(Some(false)),
-        transferHttpStatus = transferResultOpt.map(_.httpStatus),
-        transferredAt = transferResultOpt.map(_.transferredAt),
-        transferError = transferResultOpt.flatMap(_.error)
-      )
-    }
+  ): Option[FileTransferAudit] =
+    fileTransferResults
+      .flatMap(_.find(_.upscanReference == FileTransferData.EXPLANATION_REFERENCE))
+      .map { t =>
+        val f = FileTransferData.fromExplanation(explanation)
+        FileTransferAudit(
+          upscanReference = t.upscanReference,
+          downloadUrl = f.downloadUrl,
+          uploadTimestamp = None,
+          checksum = t.checksum,
+          fileName = t.fileName,
+          fileMimeType = t.fileMimeType,
+          transferSuccess = Some(t.success),
+          transferHttpStatus = Some(t.httpStatus),
+          transferredAt = Some(t.transferredAt),
+          transferError = t.error
+        )
+      }
 
 }

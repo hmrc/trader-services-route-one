@@ -23,7 +23,9 @@ import play.api.libs.json.JsValue
 import play.api.libs.json.JsObject
 import play.api.libs.json.JsError
 
-trait QuestionsAnswers
+trait QuestionsAnswers {
+  def explanation: Option[String]
+}
 
 object QuestionsAnswers {
 

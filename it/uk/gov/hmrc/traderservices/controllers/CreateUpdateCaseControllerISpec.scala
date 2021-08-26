@@ -25,6 +25,7 @@ import akka.util.ByteString
 import java.nio.charset.StandardCharsets
 import play.api.libs.ws.BodyWritable
 import java.net.URLEncoder
+import play.api.libs.json.JsArray
 
 class CreateUpdateCaseControllerISpec
     extends ServerBaseISpec with AuthStubs with CreateCaseStubs with UpdateCaseStubs with FileTransferStubs
@@ -43,13 +44,20 @@ class CreateUpdateCaseControllerISpec
         val correlationId = ju.UUID.randomUUID().toString()
         givenAuthorised()
         givenPegaCreateImportCaseRequestSucceeds(200)
+
         val createCaseRequest =
           TestData.testCreateImportCaseRequest(wireMockBaseUrlAsString)
+
+        val files = FileTransferData.fromUploadedFilesAndExplanation(
+          createCaseRequest.uploadedFiles,
+          createCaseRequest.questionsAnswers.explanation
+        )
+
         givenMultiFileTransferSucceeds(
           "PCE201103470D2CC8K0NH3",
           "Route1",
           correlationId,
-          createCaseRequest.uploadedFiles.map(FileTransferData.fromUploadedFile)
+          files
         )
 
         val result = wsClient
@@ -64,7 +72,7 @@ class CreateUpdateCaseControllerISpec
             haveProperty[JsObject](
               "result",
               haveProperty[String]("caseId", be("PCE201103470D2CC8K0NH3")) and
-                haveProperty[Seq[FileTransferResult]]("fileTransferResults", have(size(2)))
+                haveProperty[Seq[FileTransferResult]]("fileTransferResults", have(size(3)))
             )
         )
 
@@ -77,7 +85,7 @@ class CreateUpdateCaseControllerISpec
           Json.obj(
             "success"             -> true,
             "caseReferenceNumber" -> "PCE201103470D2CC8K0NH3"
-          ) ++ TestData.createImportRequestDetails(wireMockBaseUrlAsString, transferSuccess = true)
+          ) ++ TestData.createImportRequestDetails(wireMockBaseUrlAsString, transferSuccess = true, files = files)
         )
       }
 
@@ -85,13 +93,20 @@ class CreateUpdateCaseControllerISpec
         val correlationId = ju.UUID.randomUUID().toString()
         givenAuthorised()
         givenPegaCreateExportCaseRequestSucceeds()
+
         val createCaseRequest =
           TestData.testCreateExportCaseRequest(wireMockBaseUrlAsString)
+
+        val files = FileTransferData.fromUploadedFilesAndExplanation(
+          createCaseRequest.uploadedFiles,
+          createCaseRequest.questionsAnswers.explanation
+        )
+
         givenMultiFileTransferSucceeds(
           "PCE201103470D2CC8K0NH3",
           "Route1",
           correlationId,
-          createCaseRequest.uploadedFiles.map(FileTransferData.fromUploadedFile)
+          files
         )
 
         val result = wsClient
@@ -106,7 +121,7 @@ class CreateUpdateCaseControllerISpec
             haveProperty[JsObject](
               "result",
               haveProperty[String]("caseId", be("PCE201103470D2CC8K0NH3")) and
-                haveProperty[Seq[FileTransferResult]]("fileTransferResults", have(size(2)))
+                haveProperty[Seq[FileTransferResult]]("fileTransferResults", have(size(3)))
             )
         )
 
@@ -119,7 +134,7 @@ class CreateUpdateCaseControllerISpec
           Json.obj(
             "success"             -> true,
             "caseReferenceNumber" -> "PCE201103470D2CC8K0NH3"
-          ) ++ TestData.createExportRequestDetails(wireMockBaseUrlAsString, transferSuccess = true)
+          ) ++ TestData.createExportRequestDetails(wireMockBaseUrlAsString, transferSuccess = true, files)
         )
       }
 
@@ -243,7 +258,7 @@ class CreateUpdateCaseControllerISpec
           1,
           TraderServicesAuditEvent.CreateCase,
           Json.obj("success" -> false, "duplicate" -> false, "errorCode" -> "400")
-            ++ TestData.createImportRequestDetails(wireMockBaseUrlAsString, transferSuccess = false)
+            ++ TestData.createImportRequestDetails(wireMockBaseUrlAsString, transferSuccess = false, files = Seq.empty)
         )
       }
 
@@ -272,7 +287,7 @@ class CreateUpdateCaseControllerISpec
           1,
           TraderServicesAuditEvent.CreateCase,
           Json.obj("success" -> false, "duplicate" -> false, "errorCode" -> "500", "errorMessage" -> "Foo Bar")
-            ++ TestData.createImportRequestDetails(wireMockBaseUrlAsString, transferSuccess = false)
+            ++ TestData.createImportRequestDetails(wireMockBaseUrlAsString, transferSuccess = false, files = Seq.empty)
         )
       }
 
@@ -308,7 +323,7 @@ class CreateUpdateCaseControllerISpec
             "duplicate"    -> true,
             "errorCode"    -> "409",
             "errorMessage" -> "PCE201103470D2CC8K0NH3"
-          ) ++ TestData.createImportRequestDetails(wireMockBaseUrlAsString, transferSuccess = false)
+          ) ++ TestData.createImportRequestDetails(wireMockBaseUrlAsString, transferSuccess = false, files = Seq.empty)
         )
       }
 
@@ -344,7 +359,7 @@ class CreateUpdateCaseControllerISpec
             "duplicate"    -> true,
             "errorCode"    -> "409",
             "errorMessage" -> "PCE201103470D2CC8K0NH3"
-          ) ++ TestData.createExportRequestDetails(wireMockBaseUrlAsString, transferSuccess = false)
+          ) ++ TestData.createExportRequestDetails(wireMockBaseUrlAsString, transferSuccess = false, files = Seq.empty)
         )
       }
 
@@ -380,7 +395,7 @@ class CreateUpdateCaseControllerISpec
             "duplicate"    -> false,
             "errorCode"    -> "403",
             "errorMessage" -> "Error: empty response"
-          ) ++ TestData.createImportRequestDetails(wireMockBaseUrlAsString, transferSuccess = false)
+          ) ++ TestData.createImportRequestDetails(wireMockBaseUrlAsString, transferSuccess = false, files = Seq.empty)
         )
       }
 
@@ -893,6 +908,9 @@ object TestData {
           contactName = Some("Full Name"),
           contactNumber = Some("07123456789"),
           contactEmail = "sampelname@gmail.com"
+        ),
+        explanation = Some(
+          "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin tempus tempor est in dapibus. Maecenas dignissim elit in tempus vehicula. Nullam nunc eros, laoreet eu augue a, elementum mattis leo."
         )
       ),
       Seq(
@@ -935,6 +953,9 @@ object TestData {
           contactName = Some("Full Name"),
           contactNumber = Some("07123456789"),
           contactEmail = "sampelname@gmail.com"
+        ),
+        explanation = Some(
+          "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin tempus tempor est in dapibus. Maecenas dignissim elit in tempus vehicula. Nullam nunc eros, laoreet eu augue a, elementum mattis leo."
         )
       ),
       Seq(
@@ -958,7 +979,7 @@ object TestData {
       eori = Some("GB123456789012345")
     )
 
-  def createImportRequestDetails(baseUrl: String, transferSuccess: Boolean): JsObject =
+  def createImportRequestDetails(baseUrl: String, transferSuccess: Boolean, files: Seq[FileTransferData]): JsObject =
     Json.obj(
       "eori"            -> "GB123456789012345",
       "declarationType" -> "import",
@@ -974,30 +995,22 @@ object TestData {
       "contactNumber" -> "07123456789",
       "contactEmail"  -> "sampelname@gmail.com",
       "contactName"   -> "Full Name",
-      "uploadedFiles" -> Json.arr(
-        Json.obj(
-          "upscanReference" -> "ref-123",
-          "fileName"        -> "test⫐1.jpeg",
-          "checksum"        -> "f55a741917d512ab4c547ea97bdfdd8df72bed5fe51b6a248e0a5a0ae58061c8",
-          "fileMimeType"    -> "image/jpeg",
-          "uploadTimestamp" -> "2020-10-10T10:10:10Z[UTC]",
-          "downloadUrl"     -> (baseUrl + s"/bucket/${URLEncoder.encode("test⫐1.jpeg", "UTF-8")}"),
-          "transferSuccess" -> transferSuccess
-        ),
-        Json.obj(
-          "upscanReference" -> "ref-789",
-          "fileName"        -> "app.routes",
-          "checksum"        -> "f1198e91e6fe05ccf6788b2f871f0fa90e9fab98252e81ca20238cf26119e616",
-          "fileMimeType"    -> "application/routes",
-          "uploadTimestamp" -> "2020-10-10T10:20:20Z[UTC]",
-          "downloadUrl"     -> (baseUrl + "/bucket/app.routes"),
-          "transferSuccess" -> transferSuccess
+      "uploadedFiles" -> JsArray(
+        files.map(f =>
+          Json.obj(
+            "upscanReference" -> f.upscanReference,
+            "fileName"        -> f.fileName,
+            "checksum"        -> f.checksum,
+            "fileMimeType"    -> f.fileMimeType,
+            "downloadUrl"     -> f.downloadUrl,
+            "transferSuccess" -> transferSuccess
+          )
         )
       ),
       "numberOfFilesUploaded" -> 2
     )
 
-  def createExportRequestDetails(baseUrl: String, transferSuccess: Boolean): JsObject =
+  def createExportRequestDetails(baseUrl: String, transferSuccess: Boolean, files: Seq[FileTransferData]): JsObject =
     Json.obj(
       "eori"            -> "GB123456789012345",
       "declarationType" -> "export",
@@ -1013,24 +1026,16 @@ object TestData {
       "contactNumber" -> "07123456789",
       "contactEmail"  -> "sampelname@gmail.com",
       "contactName"   -> "Full Name",
-      "uploadedFiles" -> Json.arr(
-        Json.obj(
-          "upscanReference" -> "ref-123",
-          "fileName"        -> "test⫐1.jpeg",
-          "checksum"        -> "f55a741917d512ab4c547ea97bdfdd8df72bed5fe51b6a248e0a5a0ae58061c8",
-          "fileMimeType"    -> "image/jpeg",
-          "uploadTimestamp" -> "2020-10-10T10:10:10Z[UTC]",
-          "downloadUrl"     -> (baseUrl + s"/bucket/${URLEncoder.encode("test⫐1.jpeg", "UTF-8")}"),
-          "transferSuccess" -> transferSuccess
-        ),
-        Json.obj(
-          "upscanReference" -> "ref-789",
-          "fileName"        -> "app.routes",
-          "checksum"        -> "f1198e91e6fe05ccf6788b2f871f0fa90e9fab98252e81ca20238cf26119e616",
-          "fileMimeType"    -> "application/routes",
-          "uploadTimestamp" -> "2020-10-10T10:20:20Z[UTC]",
-          "downloadUrl"     -> (baseUrl + "/bucket/app.routes"),
-          "transferSuccess" -> transferSuccess
+      "uploadedFiles" -> JsArray(
+        files.map(f =>
+          Json.obj(
+            "upscanReference" -> f.upscanReference,
+            "fileName"        -> f.fileName,
+            "checksum"        -> f.checksum,
+            "fileMimeType"    -> f.fileMimeType,
+            "downloadUrl"     -> f.downloadUrl,
+            "transferSuccess" -> transferSuccess
+          )
         )
       ),
       "numberOfFilesUploaded" -> 2
