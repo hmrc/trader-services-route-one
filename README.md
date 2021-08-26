@@ -49,7 +49,8 @@ Example request payload
                     "contactName" : "Bob",
                     "contactEmail" : "name@somewhere.com",
                     "contactNumber" : "01234567891"
-                }
+                },
+                "explanation" : "Humpty Dumpty sat on a wall"
             }
         },
         "uploadedFiles" : [ {
@@ -61,7 +62,6 @@ Example request payload
             "fileMimeType" : "text/plain",
             "fileSize" : 6121
         } ],
-        "explanation" : "Humpty Dumpty sat on a wall",
         "eori" : "GB123456789012345"
     }
 
