@@ -26,7 +26,7 @@ case class ImportQuestions(
   freightType: ImportFreightType,
   vesselDetails: Option[VesselDetails] = None,
   contactInfo: ContactInfo,
-  explanation: Option[String] = None
+  reason: Option[String] = None
 ) extends QuestionsAnswers
 
 object ImportQuestions {

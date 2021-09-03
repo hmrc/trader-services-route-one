@@ -174,7 +174,7 @@ class CreateUpdateCaseController @Inject() (
             success.CaseID,
             correlationId,
             createCaseRequest.uploadedFiles,
-            createCaseRequest.questionsAnswers.explanation,
+            createCaseRequest.questionsAnswers.reason,
             appConfig.transferFilesAsync,
             auditFileTransferResults(audit, correlationId, success)
           )
@@ -287,17 +287,16 @@ class CreateUpdateCaseController @Inject() (
     caseReferenceNumber: String,
     conversationId: String,
     uploadedFiles: Seq[UploadedFile],
-    explanation: Option[String],
+    reason: Option[String],
     async: Boolean,
     audit: Seq[FileTransferResult] => Future[Unit]
   )(implicit hc: HeaderCarrier): Future[Seq[FileTransferResult]] = {
-
     val fileTransferRequest: MultiFileTransferRequest =
       MultiFileTransferRequest(
         conversationId,
         caseReferenceNumber,
         "Route1",
-        FileTransferData.fromUploadedFilesAndExplanation(uploadedFiles, explanation)
+        FileTransferData.fromUploadedFilesAndReason(uploadedFiles, reason)
       )
 
     def doTransferFiles: Future[Seq[FileTransferResult]] = {

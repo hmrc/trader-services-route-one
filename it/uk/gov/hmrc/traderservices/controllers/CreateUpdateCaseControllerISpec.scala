@@ -48,9 +48,9 @@ class CreateUpdateCaseControllerISpec
         val createCaseRequest =
           TestData.testCreateImportCaseRequest(wireMockBaseUrlAsString)
 
-        val files = FileTransferData.fromUploadedFilesAndExplanation(
+        val files = FileTransferData.fromUploadedFilesAndReason(
           createCaseRequest.uploadedFiles,
-          createCaseRequest.questionsAnswers.explanation
+          createCaseRequest.questionsAnswers.reason
         )
 
         givenMultiFileTransferSucceeds(
@@ -97,9 +97,9 @@ class CreateUpdateCaseControllerISpec
         val createCaseRequest =
           TestData.testCreateExportCaseRequest(wireMockBaseUrlAsString)
 
-        val files = FileTransferData.fromUploadedFilesAndExplanation(
+        val files = FileTransferData.fromUploadedFilesAndReason(
           createCaseRequest.uploadedFiles,
-          createCaseRequest.questionsAnswers.explanation
+          createCaseRequest.questionsAnswers.reason
         )
 
         givenMultiFileTransferSucceeds(
@@ -909,7 +909,7 @@ object TestData {
           contactNumber = Some("07123456789"),
           contactEmail = "sampelname@gmail.com"
         ),
-        explanation = Some(
+        reason = Some(
           "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin tempus tempor est in dapibus. Maecenas dignissim elit in tempus vehicula. Nullam nunc eros, laoreet eu augue a, elementum mattis leo."
         )
       ),
@@ -954,7 +954,7 @@ object TestData {
           contactNumber = Some("07123456789"),
           contactEmail = "sampelname@gmail.com"
         ),
-        explanation = Some(
+        reason = Some(
           "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin tempus tempor est in dapibus. Maecenas dignissim elit in tempus vehicula. Nullam nunc eros, laoreet eu augue a, elementum mattis leo."
         )
       ),

@@ -50,7 +50,7 @@ Example request payload
                     "contactEmail" : "name@somewhere.com",
                     "contactNumber" : "01234567891"
                 },
-                "explanation" : "Humpty Dumpty sat on a wall"
+                "reason" : "Humpty Dumpty sat on a wall"
             }
         },
         "uploadedFiles" : [ {

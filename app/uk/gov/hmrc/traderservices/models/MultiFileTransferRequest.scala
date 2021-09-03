@@ -38,19 +38,19 @@ case class FileTransferData(
 
 object FileTransferData {
 
-  val EXPLANATION_REFERENCE = "data:explanation"
-  val EXPLANATION_FILENAME = "explanation.txt"
+  val REASON_REFERENCE = "data:reason"
+  val REASON_FILENAME = "reason.txt"
 
   implicit val formats: Format[FileTransferData] =
     Json.format[FileTransferData]
 
-  def fromUploadedFilesAndExplanation(
+  def fromUploadedFilesAndReason(
     uploadedFiles: Seq[UploadedFile],
-    explanation: Option[String]
+    reason: Option[String]
   ): Seq[FileTransferData] = {
     val files = uploadedFiles.map(FileTransferData.fromUploadedFile)
-    explanation
-      .map(e => files :+ FileTransferData.fromExplanation(e))
+    reason
+      .map(e => files :+ FileTransferData.fromReason(e))
       .getOrElse(files)
   }
 
@@ -64,16 +64,16 @@ object FileTransferData {
       fileMimeType = file.fileMimeType
     )
 
-  def fromExplanation(explanation: String): FileTransferData = {
+  def fromReason(reason: String): FileTransferData = {
     val (base64Message, sha256Checksum) =
-      MessageUtils.encodeBase64AndCalculateSHA256(explanation)
+      MessageUtils.encodeBase64AndCalculateSHA256(reason)
 
     FileTransferData(
-      upscanReference = EXPLANATION_REFERENCE,
+      upscanReference = REASON_REFERENCE,
       downloadUrl = s"data:text/plain;charset=UTF-8;base64,$base64Message",
       checksum = sha256Checksum,
-      fileName = EXPLANATION_FILENAME,
-      fileSize = Some(explanation.length),
+      fileName = REASON_FILENAME,
+      fileSize = Some(reason.length),
       fileMimeType = "text/plain;charset=UTF-8"
     )
   }

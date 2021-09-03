@@ -92,7 +92,7 @@ object PegaCreateCaseRequest {
               freightType,
               vesselDetails,
               contactInfo,
-              explanation
+              reason
             ) =>
           Content(
             EntryType = "Import",
@@ -120,7 +120,7 @@ object PegaCreateCaseRequest {
               freightType,
               vesselDetails,
               contactInfo,
-              explanation
+              reason
             ) =>
           Content(
             EntryType = "Export",
