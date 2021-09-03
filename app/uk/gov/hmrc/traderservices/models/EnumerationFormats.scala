@@ -29,16 +29,16 @@ trait EnumerationFormats[A] {
   val values: Set[A]
 
   private lazy val valuesMap: Map[String, A] =
-    values.map(value => (normalize(value.getClass.getSimpleName), value)).toMap
+    values.map(value => (nameOfEnum(value), value)).toMap
 
-  lazy val keys: Set[String] = values.map(value => normalize(value.getClass.getSimpleName))
+  lazy val keys: Set[String] = values.map(value => nameOfEnum(value))
 
   /** Checks if given string is a valid enum key. */
   lazy val isValidKey: String => Boolean = keys.contains
 
   /** Optionally returns string key for a given enum value, if recognized or None */
   def keyOf(value: A): Option[String] =
-    Option(normalize(value.getClass.getSimpleName))
+    Option(nameOfEnum(value))
       .filter(isValidKey)
 
   /** Optionally returns enum for a given key, if exists or None */
@@ -64,7 +64,14 @@ trait EnumerationFormats[A] {
     )
   )
 
-  private def normalize(name: String): String = if (name.endsWith("$")) name.dropRight(1) else name
+  private def nameOfEnum(value: A): String = {
+    val name = value.getClass().getName()
+    val name1 = if (name.endsWith("$")) name.dropRight(1) else name
+    val name2 =
+      name1.substring(Math.max(name1.lastIndexOf("$"), name1.lastIndexOf(".")) + 1)
+    if (name2.isEmpty()) throw new IllegalStateException(s"Not a valid enum class $name")
+    else name2
+  }
 
   /** Instance of a typeclass declaration */
   implicit val enumerationFormats: EnumerationFormats[A] = this
