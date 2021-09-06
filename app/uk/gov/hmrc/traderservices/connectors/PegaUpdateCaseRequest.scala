@@ -17,7 +17,6 @@
 package uk.gov.hmrc.traderservices.connectors
 
 import play.api.libs.json.{Format, Json}
-import uk.gov.hmrc.traderservices.models.Validator
 import uk.gov.hmrc.traderservices.models.TraderServicesUpdateCaseRequest
 
 /**
@@ -36,9 +35,6 @@ case class PegaUpdateCaseRequest(
 )
 
 object PegaUpdateCaseRequest {
-
-  import Validator._
-  import CommonValues._
 
   /**
     * @param RequestType This field is used to specify the request type. This field will have following values: "Additional Information", "Query Response"
@@ -63,60 +59,8 @@ object PegaUpdateCaseRequest {
             s"The user has attached the following file(s): ${request.uploadedFiles.map(_.fileName.replaceAll(s"[^\\p{ASCII}]", "?")).mkString(", ")}."
           )
       )
-
-    val RequestTypeValidator: Validate[String] =
-      check(
-        _.isOneOf(RequestTypeEnum),
-        s""""Invalid RequestType, should be one of [${RequestTypeEnum.mkString(", ")}]"""
-      )
-
-    val CaseIDValidator: Validate[String] =
-      check(
-        _.lengthMinMaxInclusive(1, 32),
-        s""""Invalid CaseID, should be between 1 and 32 (inclusive) character long"""
-      )
-
-    val DescriptionValidator: Validate[String] =
-      check(
-        _.lengthMinMaxInclusive(1, 1024),
-        s""""Invalid Description, should be between 1 and 1024 (inclusive) character long"""
-      )
-
-    val validate: Validate[Content] = Validator(
-      checkProperty(_.RequestType, RequestTypeValidator),
-      checkProperty(_.CaseID, CaseIDValidator),
-      checkProperty(_.Description, DescriptionValidator)
-    )
-  }
-
-  object CommonValues {
-    val OriginatingSystemEnum = Seq("Digital")
-    val RequestTypeEnum = Seq("Additional Information", "Query Response")
-    val ApplicationTypeEnum = Seq("Route1")
   }
 
   implicit val formats: Format[PegaUpdateCaseRequest] = Json.format[PegaUpdateCaseRequest]
-
-  val AcknowledgementReferenceValidator: Validate[String] = check(
-    _.lengthMinMaxInclusive(1, 32),
-    s""""Invalid length of AcknowledgementReference, should be between 1 and 32 inclusive"""
-  )
-
-  val ApplicationTypeValidator: Validate[String] = check(
-    _ == "Route1",
-    s""""Invalid ApplicationType, should be "Route1""""
-  )
-
-  val OriginatingSystemValidator: Validate[String] = check(
-    _ == "Digital",
-    s""""Invalid OriginatingSystem, should be "Digital""""
-  )
-
-  implicit val validate: Validate[PegaUpdateCaseRequest] = Validator(
-    checkProperty(_.AcknowledgementReference, AcknowledgementReferenceValidator),
-    checkProperty(_.ApplicationType, ApplicationTypeValidator),
-    checkProperty(_.OriginatingSystem, OriginatingSystemValidator),
-    checkProperty(_.Content, Content.validate)
-  )
 
 }
