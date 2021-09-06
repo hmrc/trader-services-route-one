@@ -51,9 +51,9 @@ class CreateUpdateCaseControllerAsyncISpec
         val createCaseRequest =
           TestData.testCreateImportCaseRequest(wireMockBaseUrlAsString)
 
-        val files = FileTransferData.fromUploadedFilesAndExplanation(
+        val files = FileTransferData.fromUploadedFilesAndReason(
           createCaseRequest.uploadedFiles,
-          createCaseRequest.questionsAnswers.explanation
+          createCaseRequest.questionsAnswers.reason
         )
 
         givenMultiFileTransferSucceeds(
@@ -102,9 +102,9 @@ class CreateUpdateCaseControllerAsyncISpec
         val createCaseRequest =
           TestData.testCreateExportCaseRequest(wireMockBaseUrlAsString)
 
-        val files = FileTransferData.fromUploadedFilesAndExplanation(
+        val files = FileTransferData.fromUploadedFilesAndReason(
           createCaseRequest.uploadedFiles,
-          createCaseRequest.questionsAnswers.explanation
+          createCaseRequest.questionsAnswers.reason
         )
 
         givenMultiFileTransferSucceeds(

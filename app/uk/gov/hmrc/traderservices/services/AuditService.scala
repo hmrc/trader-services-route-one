@@ -153,7 +153,7 @@ object AuditService {
     numberOfFilesUploaded: Int,
     uploadedFiles: Seq[FileTransferAudit],
     correlationId: String,
-    explanation: Option[String]
+    reason: Option[String]
   )
 
   object CreateCaseAuditEventDetails {
@@ -187,10 +187,10 @@ object AuditService {
                 uploadedFiles = combineFileUploadAndTransferResults(
                   createRequest.uploadedFiles,
                   createResponse.result.map(_.fileTransferResults),
-                  q.explanation
+                  q.reason
                 ),
                 correlationId = createResponse.correlationId,
-                explanation = q.explanation
+                reason = q.reason
               )
 
             case q: ExportQuestions =>
@@ -215,10 +215,10 @@ object AuditService {
                 uploadedFiles = combineFileUploadAndTransferResults(
                   createRequest.uploadedFiles,
                   createResponse.result.map(_.fileTransferResults),
-                  q.explanation
+                  q.reason
                 ),
                 correlationId = createResponse.correlationId,
-                explanation = q.explanation
+                reason = q.reason
               )
           }
         )
@@ -304,7 +304,7 @@ object AuditService {
   def combineFileUploadAndTransferResults(
     uploadedFiles: Seq[UploadedFile],
     fileTransferResults: Option[Seq[FileTransferResult]],
-    explanation: Option[String]
+    reason: Option[String]
   ): Seq[FileTransferAudit] = {
     val filesAudits =
       uploadedFiles.map { upload =>
@@ -322,20 +322,20 @@ object AuditService {
           transferError = transferResultOpt.flatMap(_.error)
         )
       }
-    explanation
-      .flatMap(e => auditExplanationFile(e, fileTransferResults))
+    reason
+      .flatMap(e => auditReasonFile(e, fileTransferResults))
       .map(filesAudits :+ _)
       .getOrElse(filesAudits)
   }
 
-  def auditExplanationFile(
-    explanation: String,
+  def auditReasonFile(
+    reason: String,
     fileTransferResults: Option[Seq[FileTransferResult]]
   ): Option[FileTransferAudit] =
     fileTransferResults
-      .flatMap(_.find(_.upscanReference == FileTransferData.EXPLANATION_REFERENCE))
+      .flatMap(_.find(_.upscanReference == FileTransferData.REASON_REFERENCE))
       .map { t =>
-        val f = FileTransferData.fromExplanation(explanation)
+        val f = FileTransferData.fromReason(reason)
         FileTransferAudit(
           upscanReference = t.upscanReference,
           downloadUrl = f.downloadUrl,
