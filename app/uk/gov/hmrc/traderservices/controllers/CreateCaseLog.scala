@@ -40,7 +40,7 @@ object CreateCaseLog {
 
   private def stripSensitiveData(v: JsValue): JsValue =
     v match {
-      case o: JsObject => o.-("contactInfo")
+      case o: JsObject => o.-("contactInfo").-("reason")
       case x           => x
     }
 
