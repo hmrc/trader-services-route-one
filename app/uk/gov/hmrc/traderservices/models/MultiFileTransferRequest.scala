@@ -74,7 +74,7 @@ object FileTransferData {
       checksum = sha256Checksum,
       fileName = REASON_FILENAME,
       fileSize = Some(reason.length),
-      fileMimeType = "text/plain;charset=UTF-8"
+      fileMimeType = "text/plain"
     )
   }
 
