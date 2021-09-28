@@ -56,7 +56,7 @@ object CreateCaseLog {
       case x           => x
     }
 
-  implicit def writes: Writes[QuestionsAnswers] =
+  implicit lazy val writes: Writes[QuestionsAnswers] =
     new Writes[QuestionsAnswers] {
       override def writes(o: QuestionsAnswers): JsValue =
         o match {
