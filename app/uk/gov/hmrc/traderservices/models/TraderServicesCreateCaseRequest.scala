@@ -91,10 +91,6 @@ object TraderServicesCreateCaseRequest {
       ),
       check(_.fileMimeType.nonEmpty, "fileMimeType must be not empty"),
       check(_.fileName.nonEmpty, "fileName must be not empty"),
-      check(
-        _.fileName.length < 94,
-        "fileName must be less than 94 characters"
-      ),
       check(_.fileSize.forall(_ > 0), "fileSize must be greater than zero"),
       check(_.fileSize.forall(_ <= 6 * 1024 * 1024), "fileSize must be lower or equal to 6MB")
     )

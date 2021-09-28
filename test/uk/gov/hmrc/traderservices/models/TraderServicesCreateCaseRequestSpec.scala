@@ -125,11 +125,11 @@ class TraderServicesCreateCaseRequestSpec extends UnitSpec {
           "https://aaa.aa/aaa.aa",
           ZonedDateTime.now,
           "a" * 64,
-          "a" * 94,
+          "a" * 256,
           "aaaa/aaaa",
           Some(1)
         )
-      ).isValid shouldBe false
+      ).isValid shouldBe true
       uploadedFileValidator(
         UploadedFile("", "", ZonedDateTime.now, "", "", "", None)
       ).isValid shouldBe false
