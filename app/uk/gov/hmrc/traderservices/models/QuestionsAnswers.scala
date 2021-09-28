@@ -29,7 +29,7 @@ trait QuestionsAnswers {
 
 object QuestionsAnswers {
 
-  implicit def reads: Reads[QuestionsAnswers] =
+  implicit lazy val reads: Reads[QuestionsAnswers] =
     Reads {
       case o: JsObject if (o \ ExportQuestions.tag).isDefined =>
         ExportQuestions.formats.reads((o \ ExportQuestions.tag).get)
@@ -38,7 +38,7 @@ object QuestionsAnswers {
       case _ => JsError("Invalid format of QuestionsAnswers")
     }
 
-  implicit def writes: Writes[QuestionsAnswers] =
+  implicit lazy val writes: Writes[QuestionsAnswers] =
     new Writes[QuestionsAnswers] {
       override def writes(o: QuestionsAnswers): JsValue =
         o match {
