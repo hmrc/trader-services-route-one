@@ -24,7 +24,8 @@ import java.time.LocalDateTime
 case class TraderServicesResult(
   caseId: String,
   generatedAt: LocalDateTime,
-  fileTransferResults: Seq[FileTransferResult]
+  fileTransferResults: Seq[FileTransferResult],
+  totalFileTransferDurationMillis: Option[Int]
 )
 
 object TraderServicesResult {
