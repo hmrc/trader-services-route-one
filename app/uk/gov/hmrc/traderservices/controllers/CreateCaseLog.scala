@@ -31,7 +31,9 @@ case class CreateCaseLog(
   fileTransferSuccesses: Option[Int],
   fileTransferFailures: Option[Int],
   fileCorrelationIds: Seq[String],
-  filesSize: Option[Int]
+  fileTransferDurations: Seq[Int],
+  filesSize: Option[Int],
+  totalFileTransferDurationMillis: Option[Int]
 )
 
 object CreateCaseLog {
@@ -85,7 +87,9 @@ object CreateCaseLog {
         fileTransferSuccesses = response.result.map(_.fileTransferResults.count(_.success)),
         fileTransferFailures = response.result.map(_.fileTransferResults.count(f => !f.success)),
         fileCorrelationIds = response.result.map(_.fileTransferResults.map(_.correlationId)).getOrElse(Seq.empty),
-        filesSize = response.result.map(_.fileTransferResults.map(_.fileSize).sum)
+        fileTransferDurations = response.result.map(_.fileTransferResults.map(_.durationMillis)).getOrElse(Seq.empty),
+        filesSize = response.result.map(_.fileTransferResults.map(_.fileSize).sum),
+        totalFileTransferDurationMillis = response.result.flatMap(_.totalFileTransferDurationMillis)
       )
     Logger(getClass()).info(s"json${Json.stringify(Json.toJson(log))}")
   }

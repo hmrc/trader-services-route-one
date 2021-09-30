@@ -178,11 +178,16 @@ class CreateUpdateCaseController @Inject() (
             appConfig.transferFilesAsync,
             auditFileTransferResults(audit, correlationId, success)
           )
-            .map { fileTransferResults =>
+            .map { multiFileTransferResult =>
               val response = TraderServicesCaseResponse(
                 correlationId = correlationId,
                 result = Option(
-                  TraderServicesResult(success.CaseID, LocalDateTime.now(), fileTransferResults)
+                  TraderServicesResult(
+                    success.CaseID,
+                    LocalDateTime.now(),
+                    multiFileTransferResult.map(_.results).getOrElse(Seq.empty),
+                    multiFileTransferResult.map(_.totalDurationMillis)
+                  )
                 )
               )
               Created(Json.toJson(response))
@@ -243,11 +248,16 @@ class CreateUpdateCaseController @Inject() (
             appConfig.transferFilesAsync,
             auditFileTransferResults(audit, correlationId, success)
           )
-            .map { fileTransferResults =>
+            .map { multiFileTransferResult =>
               val response = TraderServicesCaseResponse(
                 correlationId = correlationId,
                 result = Option(
-                  TraderServicesResult(success.CaseID, LocalDateTime.now(), fileTransferResults)
+                  TraderServicesResult(
+                    success.CaseID,
+                    LocalDateTime.now(),
+                    multiFileTransferResult.map(_.results).getOrElse(Seq.empty),
+                    multiFileTransferResult.map(_.totalDurationMillis)
+                  )
                 )
               )
               Created(Json.toJson(response))
@@ -272,12 +282,17 @@ class CreateUpdateCaseController @Inject() (
     audit: TraderServicesCaseResponse => Future[Unit],
     correlationId: String,
     success: PegaCaseSuccess
-  ): Seq[FileTransferResult] => Future[Unit] =
-    fileTransferResults => {
+  ): Option[MultiFileTransferResult] => Future[Unit] =
+    multiFileTransferResult => {
       val response = TraderServicesCaseResponse(
         correlationId = correlationId,
         result = Option(
-          TraderServicesResult(success.CaseID, LocalDateTime.now(), fileTransferResults)
+          TraderServicesResult(
+            success.CaseID,
+            LocalDateTime.now(),
+            multiFileTransferResult.map(_.results).getOrElse(Seq.empty),
+            multiFileTransferResult.map(_.totalDurationMillis)
+          )
         )
       )
       audit(response)
@@ -289,8 +304,8 @@ class CreateUpdateCaseController @Inject() (
     uploadedFiles: Seq[UploadedFile],
     reason: Option[String],
     async: Boolean,
-    audit: Seq[FileTransferResult] => Future[Unit]
-  )(implicit hc: HeaderCarrier): Future[Seq[FileTransferResult]] = {
+    audit: Option[MultiFileTransferResult] => Future[Unit]
+  )(implicit hc: HeaderCarrier): Future[Option[MultiFileTransferResult]] = {
     val fileTransferRequest: MultiFileTransferRequest =
       MultiFileTransferRequest(
         conversationId,
@@ -299,16 +314,16 @@ class CreateUpdateCaseController @Inject() (
         FileTransferData.fromUploadedFilesAndReason(uploadedFiles, reason)
       )
 
-    def doTransferFiles: Future[Seq[FileTransferResult]] = {
+    def doTransferFiles: Future[Option[MultiFileTransferResult]] = {
       if (fileTransferRequest.files.nonEmpty)
         fileTransferConnector
           .transferMultipleFiles(fileTransferRequest, conversationId)
           .map {
-            case Left(status)  => Seq.empty
-            case Right(result) => result.results
+            case Left(status)  => None
+            case Right(result) => Some(result)
           }
       else
-        Future.successful(Seq.empty)
+        Future.successful(None)
     }.andThen {
       case Success(results) =>
         audit(results)
@@ -322,7 +337,7 @@ class CreateUpdateCaseController @Inject() (
             Await.ready(doTransferFiles, FiniteDuration(5, "min"))
         }
       )
-      Future.successful(Seq.empty)
+      Future.successful(None)
     } else
       doTransferFiles
 

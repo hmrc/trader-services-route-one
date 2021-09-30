@@ -153,7 +153,8 @@ object AuditService {
     numberOfFilesUploaded: Int,
     uploadedFiles: Seq[FileTransferAudit],
     correlationId: String,
-    reason: Option[String]
+    reason: Option[String],
+    totalFileTransferDurationMillis: Option[Int]
   )
 
   object CreateCaseAuditEventDetails {
@@ -190,7 +191,8 @@ object AuditService {
                   q.reason
                 ),
                 correlationId = createResponse.correlationId,
-                reason = q.reason
+                reason = q.reason,
+                totalFileTransferDurationMillis = createResponse.result.flatMap(_.totalFileTransferDurationMillis)
               )
 
             case q: ExportQuestions =>
@@ -218,7 +220,8 @@ object AuditService {
                   q.reason
                 ),
                 correlationId = createResponse.correlationId,
-                reason = q.reason
+                reason = q.reason,
+                totalFileTransferDurationMillis = createResponse.result.flatMap(_.totalFileTransferDurationMillis)
               )
           }
         )
@@ -241,7 +244,8 @@ object AuditService {
     responseText: Option[String] = None,
     numberOfFilesUploaded: Int,
     uploadedFiles: Seq[FileTransferAudit],
-    correlationId: String
+    correlationId: String,
+    totalFileTransferDurationMillis: Option[Int]
   )
 
   object UpdateCaseAuditEventDetails {
@@ -264,7 +268,8 @@ object AuditService {
               updateResponse.result.map(_.fileTransferResults),
               None
             ),
-            correlationId = updateResponse.correlationId
+            correlationId = updateResponse.correlationId,
+            totalFileTransferDurationMillis = updateResponse.result.flatMap(_.totalFileTransferDurationMillis)
           )
         )
         .as[JsObject]
