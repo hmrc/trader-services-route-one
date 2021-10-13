@@ -17,13 +17,13 @@
 package uk.gov.hmrc.traderservices.controllers
 
 import java.time.LocalDateTime
-import java.{util => ju}
+import java.util.UUID
+
 import javax.inject.{Inject, Singleton}
 
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.util.Success
-
 import akka.actor.ActorSystem
 import play.api.libs.json.Json
 import play.api.mvc._
@@ -53,12 +53,7 @@ class CreateUpdateCaseController @Inject() (
     Action.async(parseTolerantTextUtf8) { implicit request =>
       val correlationId = request.headers
         .get("X-Correlation-Id")
-        .orElse(
-          request.headers
-            .get("X-Request-Id")
-            .map(_.takeRight(36))
-        )
-        .getOrElse(ju.UUID.randomUUID().toString())
+        .getOrElse(UUID.randomUUID().toString)
 
       withAuthorised {
         withPayload[TraderServicesCreateCaseRequest] { createCaseRequest =>
@@ -105,12 +100,7 @@ class CreateUpdateCaseController @Inject() (
     Action.async(parseTolerantTextUtf8) { implicit request =>
       val correlationId = request.headers
         .get("x-correlation-id")
-        .orElse(
-          request.headers
-            .get("X-Request-Id")
-            .map(_.takeRight(36))
-        )
-        .getOrElse(ju.UUID.randomUUID().toString())
+        .getOrElse(UUID.randomUUID().toString)
 
       withAuthorised {
         withPayload[TraderServicesUpdateCaseRequest] { updateCaseRequest =>
