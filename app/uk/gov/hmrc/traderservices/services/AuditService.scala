@@ -110,7 +110,7 @@ class AuditService @Inject() (val auditConnector: AuditConnector) {
     event: TraderServicesAuditEvent,
     transactionName: String,
     details: JsValue
-  )(implicit hc: HeaderCarrier, request: Request[Any], ec: ExecutionContext): ExtendedDataEvent = {
+  )(implicit hc: HeaderCarrier, request: Request[Any]): ExtendedDataEvent = {
     val tags = hc.toAuditTags(transactionName, request.path)
     ExtendedDataEvent(
       auditSource = "trader-services-route-one",
