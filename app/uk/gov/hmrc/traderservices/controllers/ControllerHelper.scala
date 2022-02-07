@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 HM Revenue & Customs
+ * Copyright 2022 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,6 @@ import scala.util.Failure
 import scala.util.Try
 import scala.concurrent.Future
 import play.api.mvc.Result
-import scala.concurrent.ExecutionContext
 import play.api.mvc.Request
 import uk.gov.hmrc.traderservices.models.Validator
 import cats.data.Validated.Invalid
@@ -57,8 +56,7 @@ trait ControllerHelper {
   )(implicit
     request: Request[String],
     reads: Reads[T],
-    validate: Validator.Validate[T],
-    ec: ExecutionContext
+    validate: Validator.Validate[T]
   ): Future[Result] =
     Try(Json.parse(request.body).validate[T]) match {
 

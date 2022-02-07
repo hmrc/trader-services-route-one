@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 HM Revenue & Customs
+ * Copyright 2022 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@ import ch.qos.logback.classic.spi.{ILoggingEvent, ThrowableProxyUtil}
 import ch.qos.logback.core.encoder.EncoderBase
 import com.fasterxml.jackson.core.JsonGenerator.Feature
 import com.fasterxml.jackson.databind.ObjectMapper
-import org.apache.commons.io.IOUtils._
 import org.apache.commons.lang3.time.FastDateFormat
 import com.typesafe.config.ConfigFactory
 
@@ -38,7 +37,7 @@ class JsonEncoder extends EncoderBase[ILoggingEvent] {
   val mapper = new ObjectMapper().configure(Feature.ESCAPE_NON_ASCII, true)
 
   lazy val appName: String = Try(ConfigFactory.load().getString("appName")) match {
-    case Success(name) => name.toString
+    case Success(name) => name
     case _             => "APP NAME NOT SET"
   }
 
@@ -46,7 +45,7 @@ class JsonEncoder extends EncoderBase[ILoggingEvent] {
 
   private lazy val dateFormat = {
     val dformat = Try(ConfigFactory.load().getString("logger.json.dateformat")) match {
-      case Success(date) => date.toString
+      case Success(date) => date
       case _             => DATE_FORMAT
     }
     FastDateFormat.getInstance(dformat)
@@ -79,7 +78,7 @@ class JsonEncoder extends EncoderBase[ILoggingEvent] {
     )
     event.getMDCPropertyMap.asScala foreach { case (k, v) => eventNode.put(k.toLowerCase, v) }
 
-    s"${mapper.writeValueAsString(eventNode)}$LINE_SEPARATOR".getBytes(StandardCharsets.UTF_8)
+    s"${mapper.writeValueAsString(eventNode)}${System.lineSeparator()}".getBytes(StandardCharsets.UTF_8)
   }
 
   def decodeMessage(eventNode: ObjectNode, message: String): Unit = {
@@ -91,10 +90,10 @@ class JsonEncoder extends EncoderBase[ILoggingEvent] {
           val intermediaryDataNodes: Seq[(String, ObjectNode)] =
             jsonDataPrefix.init.map(p => (p, mapper.createObjectNode))
           intermediaryDataNodes.foldLeft[ObjectNode](eventNode) {
-            case (parent, (name, child)) => parent.put(name, child); child
+            case (parent, (name, child)) => parent.replace(name, child); child
           }
         } else eventNode
-        dataNode.put(jsonDataPrefix.last, messageNode)
+        dataNode.replace(jsonDataPrefix.last, messageNode)
       } catch {
         case e: Exception =>
           Logger(getClass).error(e.getMessage())
@@ -103,9 +102,9 @@ class JsonEncoder extends EncoderBase[ILoggingEvent] {
   }
 
   override def footerBytes(): Array[Byte] =
-    LINE_SEPARATOR.getBytes(StandardCharsets.UTF_8)
+    System.lineSeparator().getBytes(StandardCharsets.UTF_8)
 
   override def headerBytes(): Array[Byte] =
-    LINE_SEPARATOR.getBytes(StandardCharsets.UTF_8)
+    System.lineSeparator().getBytes(StandardCharsets.UTF_8)
 
 }

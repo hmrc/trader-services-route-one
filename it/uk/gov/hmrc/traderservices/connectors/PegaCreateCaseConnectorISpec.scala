@@ -132,7 +132,7 @@ class PegaCreateCaseConnectorISpec extends PegaCreateCaseConnectorISpecSetup {
 
         val request = testCreateImportCaseRequest
 
-        an[Upstream5xxResponse] shouldBe thrownBy {
+        an[UpstreamErrorResponse] shouldBe thrownBy {
           await(connector.createCase(request, correlationId))
         }
         verifyPegaCreateCaseRequestHasHappened(times = 1)
