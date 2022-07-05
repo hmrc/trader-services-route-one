@@ -10,18 +10,20 @@ import uk.gov.hmrc.traderservices.stubs._
 import uk.gov.hmrc.traderservices.support.ServerBaseISpec
 import uk.gov.hmrc.traderservices.support.JsonMatchers
 import play.api.libs.json.JsObject
+
 import java.{util => ju}
 import uk.gov.hmrc.traderservices.services.TraderServicesAuditEvent
 import uk.gov.hmrc.traderservices.connectors.ApiError
 import play.api.libs.ws.InMemoryBody
 import akka.util.ByteString
+
 import java.nio.charset.StandardCharsets
 import play.api.libs.ws.BodyWritable
-
 import play.api.Application
 import org.scalatest.concurrent.Eventually
 import org.scalatest.time.Span
 import org.scalatest.time.Millis
+import uk.gov.hmrc.http.HeaderNames
 
 class CreateUpdateCaseControllerAsyncISpec
     extends ServerBaseISpec with AuthStubs with CreateCaseStubs with UpdateCaseStubs with FileTransferStubs
@@ -65,7 +67,7 @@ class CreateUpdateCaseControllerAsyncISpec
 
         val result = wsClient
           .url(s"$baseUrl/create-case")
-          .withHttpHeaders("X-Correlation-ID" -> correlationId)
+          .withHttpHeaders("X-Correlation-ID" -> correlationId, HeaderNames.authorisation -> "Bearer dummy-it-token")
           .post(Json.toJson(createCaseRequest))
           .futureValue
 
@@ -116,7 +118,7 @@ class CreateUpdateCaseControllerAsyncISpec
 
         val result = wsClient
           .url(s"$baseUrl/create-case")
-          .withHttpHeaders("X-Correlation-ID" -> correlationId)
+          .withHttpHeaders("X-Correlation-ID" -> correlationId, HeaderNames.authorisation -> "Bearer dummy-it-token")
           .post(Json.toJson(createCaseRequest))
           .futureValue
 
@@ -151,12 +153,12 @@ class CreateUpdateCaseControllerAsyncISpec
 
         val result = wsClient
           .url(s"$baseUrl/create-case")
-          .withHttpHeaders("X-Correlation-ID" -> correlationId)
+          .withHttpHeaders("X-Correlation-ID" -> correlationId, HeaderNames.authorisation -> "Bearer dummy-it-token")
           .post(Json.obj())
           .futureValue
 
         val errorMessage =
-          "Invalid payload: Parsing failed due to at path /uploadedFiles with error.path.missing, and at path /entryDetails with error.path.missing, and at path /questionsAnswers with error.path.missing."
+          "Invalid payload: Parsing failed due to at path /entryDetails with error.path.missing, and at path /questionsAnswers with error.path.missing, and at path /uploadedFiles with error.path.missing."
 
         result.status shouldBe 400
         result.json.as[JsObject] should (
@@ -200,7 +202,7 @@ class CreateUpdateCaseControllerAsyncISpec
 
         val result = wsClient
           .url(s"$baseUrl/create-case")
-          .withHttpHeaders("X-Correlation-ID" -> correlationId)
+          .withHttpHeaders("X-Correlation-ID" -> correlationId, HeaderNames.authorisation -> "Bearer dummy-it-token")
           .post(jsonPayload.take(13))(jsonBodyWritable)
           .futureValue
 
@@ -245,7 +247,7 @@ class CreateUpdateCaseControllerAsyncISpec
 
         val result = wsClient
           .url(s"$baseUrl/create-case")
-          .withHttpHeaders("X-Correlation-ID" -> correlationId)
+          .withHttpHeaders("X-Correlation-ID" -> correlationId, HeaderNames.authorisation -> "Bearer dummy-it-token")
           .post(Json.toJson(TestData.testCreateImportCaseRequest(wireMockBaseUrlAsString)))
           .futureValue
 
@@ -275,6 +277,7 @@ class CreateUpdateCaseControllerAsyncISpec
 
         val result = wsClient
           .url(s"$baseUrl/create-case")
+          .withHttpHeaders(HeaderNames.authorisation -> "Bearer dummy-it-token")
           .post(Json.toJson(TestData.testCreateImportCaseRequest(wireMockBaseUrlAsString)))
           .futureValue
 
@@ -306,7 +309,7 @@ class CreateUpdateCaseControllerAsyncISpec
 
         val result = wsClient
           .url(s"$baseUrl/create-case")
-          .withHttpHeaders("X-Correlation-ID" -> correlationId)
+          .withHttpHeaders("X-Correlation-ID" -> correlationId, HeaderNames.authorisation -> "Bearer dummy-it-token")
           .post(Json.toJson(TestData.testCreateImportCaseRequest(wireMockBaseUrlAsString)))
           .futureValue
 
@@ -342,7 +345,7 @@ class CreateUpdateCaseControllerAsyncISpec
 
         val result = wsClient
           .url(s"$baseUrl/create-case")
-          .withHttpHeaders("X-Correlation-ID" -> correlationId)
+          .withHttpHeaders("X-Correlation-ID" -> correlationId, HeaderNames.authorisation -> "Bearer dummy-it-token")
           .post(Json.toJson(TestData.testCreateExportCaseRequest(wireMockBaseUrlAsString)))
           .futureValue
 
@@ -378,7 +381,7 @@ class CreateUpdateCaseControllerAsyncISpec
 
         val result = wsClient
           .url(s"$baseUrl/create-case")
-          .withHttpHeaders("X-Correlation-ID" -> correlationId)
+          .withHttpHeaders("X-Correlation-ID" -> correlationId, HeaderNames.authorisation -> "Bearer dummy-it-token")
           .post(Json.toJson(TestData.testCreateImportCaseRequest(wireMockBaseUrlAsString)))
           .futureValue
 
@@ -414,7 +417,7 @@ class CreateUpdateCaseControllerAsyncISpec
 
         val result = wsClient
           .url(s"$baseUrl/create-case")
-          .withHttpHeaders("X-Correlation-ID" -> correlationId)
+          .withHttpHeaders("X-Correlation-ID" -> correlationId, HeaderNames.authorisation -> "Bearer dummy-it-token")
           .post(Json.toJson(TestData.testCreateImportCaseRequest(wireMockBaseUrlAsString)))
           .futureValue
 
@@ -452,7 +455,7 @@ class CreateUpdateCaseControllerAsyncISpec
 
         val result = wsClient
           .url(s"$baseUrl/update-case")
-          .withHttpHeaders("X-Correlation-ID" -> correlationId)
+          .withHttpHeaders("X-Correlation-ID" -> correlationId, HeaderNames.authorisation -> "Bearer dummy-it-token")
           .post(Json.toJson(payload))
           .futureValue
 
@@ -504,7 +507,7 @@ class CreateUpdateCaseControllerAsyncISpec
 
         val result = wsClient
           .url(s"$baseUrl/update-case")
-          .withHttpHeaders("X-Correlation-ID" -> correlationId)
+          .withHttpHeaders("X-Correlation-ID" -> correlationId, HeaderNames.authorisation -> "Bearer dummy-it-token")
           .post(Json.toJson(payload))
           .futureValue
 
@@ -557,7 +560,7 @@ class CreateUpdateCaseControllerAsyncISpec
 
         val result = wsClient
           .url(s"$baseUrl/update-case")
-          .withHttpHeaders("X-Correlation-ID" -> correlationId)
+          .withHttpHeaders("X-Correlation-ID" -> correlationId, HeaderNames.authorisation -> "Bearer dummy-it-token")
           .post(Json.toJson(payload))
           .futureValue
 
@@ -602,7 +605,7 @@ class CreateUpdateCaseControllerAsyncISpec
 
         val result = wsClient
           .url(s"$baseUrl/update-case")
-          .withHttpHeaders("X-Correlation-ID" -> correlationId)
+          .withHttpHeaders("X-Correlation-ID" -> correlationId, HeaderNames.authorisation -> "Bearer dummy-it-token")
           .post(Json.toJson(payload))
           .futureValue
 
@@ -646,12 +649,12 @@ class CreateUpdateCaseControllerAsyncISpec
 
         val result = wsClient
           .url(s"$baseUrl/update-case")
-          .withHttpHeaders("X-Correlation-ID" -> correlationId)
+          .withHttpHeaders("X-Correlation-ID" -> correlationId, HeaderNames.authorisation -> "Bearer dummy-it-token")
           .post(Json.obj())
           .futureValue
 
         val errorMessage =
-          "Invalid payload: Parsing failed due to at path /uploadedFiles with error.path.missing, and at path /caseReferenceNumber with error.path.missing, and at path /typeOfAmendment with error.path.missing."
+          "Invalid payload: Parsing failed due to at path /caseReferenceNumber with error.path.missing, and at path /typeOfAmendment with error.path.missing, and at path /uploadedFiles with error.path.missing."
 
         result.status shouldBe 400
         result.json.as[JsObject] should (
@@ -700,7 +703,7 @@ class CreateUpdateCaseControllerAsyncISpec
 
         val result = wsClient
           .url(s"$baseUrl/update-case")
-          .withHttpHeaders("X-Correlation-ID" -> correlationId)
+          .withHttpHeaders("X-Correlation-ID" -> correlationId, HeaderNames.authorisation -> "Bearer dummy-it-token")
           .post(Json.prettyPrint(Json.toJson(payload)).take(21))(jsonBodyWritable)
           .futureValue
 
@@ -744,7 +747,7 @@ class CreateUpdateCaseControllerAsyncISpec
 
         val result = wsClient
           .url(s"$baseUrl/update-case")
-          .withHttpHeaders("X-Correlation-ID" -> correlationId)
+          .withHttpHeaders("X-Correlation-ID" -> correlationId, HeaderNames.authorisation -> "Bearer dummy-it-token")
           .post(Json.toJson(TestData.testUpdateCaseRequest(wireMockBaseUrlAsString)))
           .futureValue
 
@@ -776,6 +779,7 @@ class CreateUpdateCaseControllerAsyncISpec
 
         val result = wsClient
           .url(s"$baseUrl/update-case")
+          .withHttpHeaders(HeaderNames.authorisation -> "Bearer dummy-it-token")
           .post(Json.toJson(TestData.testUpdateCaseRequest(wireMockBaseUrlAsString)))
           .futureValue
 
@@ -810,7 +814,7 @@ class CreateUpdateCaseControllerAsyncISpec
 
         val result = wsClient
           .url(s"$baseUrl/update-case")
-          .withHttpHeaders("X-Correlation-ID" -> correlationId)
+          .withHttpHeaders("X-Correlation-ID" -> correlationId, HeaderNames.authorisation -> "Bearer dummy-it-token")
           .post(Json.toJson(TestData.testUpdateCaseRequest(wireMockBaseUrlAsString)))
           .futureValue
 
@@ -845,7 +849,7 @@ class CreateUpdateCaseControllerAsyncISpec
 
         val result = wsClient
           .url(s"$baseUrl/update-case")
-          .withHttpHeaders("X-Correlation-ID" -> correlationId)
+          .withHttpHeaders("X-Correlation-ID" -> correlationId, HeaderNames.authorisation -> "Bearer dummy-it-token")
           .post(Json.toJson(TestData.testUpdateCaseRequest(wireMockBaseUrlAsString)))
           .futureValue
 
@@ -880,7 +884,7 @@ class CreateUpdateCaseControllerAsyncISpec
 
         val result = wsClient
           .url(s"$baseUrl/update-case")
-          .withHttpHeaders("X-Correlation-ID" -> correlationId)
+          .withHttpHeaders("X-Correlation-ID" -> correlationId, HeaderNames.authorisation -> "Bearer dummy-it-token")
           .post(Json.toJson(TestData.testUpdateCaseRequest(wireMockBaseUrlAsString)))
           .futureValue
 
