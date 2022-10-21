@@ -21,7 +21,7 @@ import java.nio.charset.StandardCharsets
 
 import ch.qos.logback.classic.spi.{ILoggingEvent, ThrowableProxyUtil}
 import ch.qos.logback.core.encoder.EncoderBase
-import com.fasterxml.jackson.core.JsonGenerator.Feature
+import com.fasterxml.jackson.core.json.JsonWriteFeature.ESCAPE_NON_ASCII
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.apache.commons.lang3.time.FastDateFormat
 import com.typesafe.config.ConfigFactory
@@ -34,7 +34,7 @@ import play.api.Logger
 
 class JsonEncoder extends EncoderBase[ILoggingEvent] {
 
-  val mapper = new ObjectMapper().configure(Feature.ESCAPE_NON_ASCII, true)
+  val mapper = new ObjectMapper().configure(ESCAPE_NON_ASCII.mappedFeature(), true)
 
   lazy val appName: String = Try(ConfigFactory.load().getString("appName")) match {
     case Success(name) => name
