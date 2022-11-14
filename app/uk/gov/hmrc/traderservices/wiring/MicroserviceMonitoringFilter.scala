@@ -16,17 +16,16 @@
 
 package uk.gov.hmrc.traderservices.wiring
 
-import java.util.regex.{Matcher, Pattern}
-import javax.inject.{Inject, Singleton}
-
 import akka.stream.Materializer
-import app.Routes
 import com.codahale.metrics.MetricRegistry
 import com.kenshoo.play.metrics.Metrics
 import play.api.Logger
 import play.api.mvc.{Filter, RequestHeader, Result}
-import uk.gov.hmrc.http.{HttpException, Upstream4xxResponse, Upstream5xxResponse}
+import uk.gov.hmrc.http.{HttpException, UpstreamErrorResponse}
+import app.Routes
 
+import java.util.regex.{Matcher, Pattern}
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.duration.NANOSECONDS
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
@@ -99,10 +98,8 @@ abstract class MonitoringFilter(kenshooRegistry: MetricRegistry)(implicit ec: Ex
           .getOrDefault(counterName, kenshooRegistry.counter(counterName))
           .inc()
 
-      case Failure(exception: Upstream5xxResponse) =>
-        recordFailure(serviceName, exception.upstreamResponseCode, start)
-      case Failure(exception: Upstream4xxResponse) =>
-        recordFailure(serviceName, exception.upstreamResponseCode, start)
+      case Failure(exception: UpstreamErrorResponse) if exception.statusCode >= 400 =>
+        recordFailure(serviceName, exception.statusCode, start)
       case Failure(exception: HttpException) =>
         recordFailure(serviceName, exception.responseCode, start)
       case Failure(_: Throwable) => recordFailure(serviceName, 500, start)
