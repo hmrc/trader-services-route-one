@@ -99,7 +99,7 @@ class PegaCreateCaseConnectorISpec extends PegaCreateCaseConnectorISpecSetup {
             .ErrorDetail(
               errorCode = Some("200"),
               errorMessage = Some(
-                s"POST of '$wireMockBaseUrlAsString/cpr/caserequest/route1/create/v1' returned invalid json. Attempting to convert to uk.gov.hmrc.traderservices.connectors.PegaCaseResponse gave errors: List((/Status,List(JsonValidationError(List(error.path.missing),ArraySeq()))), (/CaseID,List(JsonValidationError(List(error.path.missing),ArraySeq()))))"
+                s"POST of '$wireMockBaseUrlAsString/cpr/caserequest/route1/create/v1' returned invalid json. Attempting to convert to uk.gov.hmrc.traderservices.connectors.PegaCaseResponse gave errors: List((/CaseID,List(JsonValidationError(List(error.path.missing),WrappedArray()))), (/Status,List(JsonValidationError(List(error.path.missing),WrappedArray()))))"
               )
             )
         )
@@ -119,7 +119,7 @@ class PegaCreateCaseConnectorISpec extends PegaCreateCaseConnectorISpecSetup {
             .ErrorDetail(
               errorCode = Some("403"),
               errorMessage = Some(
-                s"POST of '$wireMockBaseUrlAsString/cpr/caserequest/route1/create/v1' returned invalid json. Attempting to convert to uk.gov.hmrc.traderservices.connectors.PegaCaseResponse gave errors: List((/errorDetail,List(JsonValidationError(List(error.path.missing),ArraySeq()))))"
+                s"POST of '$wireMockBaseUrlAsString/cpr/caserequest/route1/create/v1' returned invalid json. Attempting to convert to uk.gov.hmrc.traderservices.connectors.PegaCaseResponse gave errors: List((/errorDetail,List(JsonValidationError(List(error.path.missing),WrappedArray()))))"
               )
             )
         )

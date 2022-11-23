@@ -96,7 +96,7 @@ class JsonEncoder extends EncoderBase[ILoggingEvent] {
         dataNode.replace(jsonDataPrefix.last, messageNode)
       } catch {
         case e: Exception =>
-          Logger(getClass).error(e.getMessage())
+          Logger(getClass).error(e.getMessage)
       }
     }
   }

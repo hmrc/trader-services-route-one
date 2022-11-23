@@ -158,7 +158,7 @@ class CreateUpdateCaseControllerAsyncISpec
           .futureValue
 
         val errorMessage =
-          "Invalid payload: Parsing failed due to at path /uploadedFiles with error.path.missing, and at path /entryDetails with error.path.missing, and at path /questionsAnswers with error.path.missing."
+          "Invalid payload: Parsing failed due to at path /entryDetails with error.path.missing, and at path /questionsAnswers with error.path.missing, and at path /uploadedFiles with error.path.missing."
 
         result.status shouldBe 400
         result.json.as[JsObject] should (
@@ -610,8 +610,8 @@ class CreateUpdateCaseControllerAsyncISpec
           .futureValue
 
         val errorMessage =
-          s"""Invalid payload: Validation failed due to "Invalid caseReferenceNumber, should be between 1 and 32 (inclusive) character long. in ${payload
-            .toString()}."""
+          s"""Invalid payload: Validation failed due to "Invalid caseReferenceNumber, should be between 1 and 32 (inclusive) character long. in ${payload.toString
+            .replace("List", "Vector")}."""
 
         result.status shouldBe 400
         result.json.as[JsObject] should (
@@ -643,7 +643,7 @@ class CreateUpdateCaseControllerAsyncISpec
       }
 
       "return 400 if empty payload" in {
-        val correlationId = ju.UUID.randomUUID().toString()
+        val correlationId = ju.UUID.randomUUID().toString
         givenAuthorised()
 
         val result = wsClient
@@ -653,7 +653,7 @@ class CreateUpdateCaseControllerAsyncISpec
           .futureValue
 
         val errorMessage =
-          "Invalid payload: Parsing failed due to at path /uploadedFiles with error.path.missing, and at path /typeOfAmendment with error.path.missing, and at path /caseReferenceNumber with error.path.missing."
+          "Invalid payload: Parsing failed due to at path /caseReferenceNumber with error.path.missing, and at path /typeOfAmendment with error.path.missing, and at path /uploadedFiles with error.path.missing."
 
         result.status shouldBe 400
         result.json.as[JsObject] should (
