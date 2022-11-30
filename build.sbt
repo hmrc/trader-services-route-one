@@ -36,7 +36,7 @@ lazy val root = (project in file("."))
   .settings(
     name := "trader-services-route-one",
     organization := "uk.gov.hmrc",
-    scalaVersion := "2.12.15",
+    scalaVersion := "2.13.8",
     PlayKeys.playDefaultPort := 9380,
     libraryDependencies ++= compileDeps ++ testDeps("test") ++ testDeps("it") ++ itDeps,
     publishingSettings,
