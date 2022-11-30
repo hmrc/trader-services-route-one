@@ -17,7 +17,7 @@
 package uk.gov.hmrc.traderservices.stubs
 
 import java.io.InputStream
-import java.nio.ByteBuffer
+import java.nio.{Buffer, ByteBuffer}
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
 import java.util.Base64
@@ -66,7 +66,7 @@ object MessageUtils {
       }
     }
     val bytes = Array.ofDim[Byte](rawBuffer.position())
-    rawBuffer.clear()
+    rawBuffer.asInstanceOf[Buffer].clear()
     rawBuffer.get(bytes)
     val encoded = Array.ofDim[Byte](encodedBuffer.position())
     encodedBuffer.clear()
