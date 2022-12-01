@@ -314,9 +314,8 @@ class CreateUpdateCaseController @Inject() (
           }
       else
         Future.successful(None)
-    }.andThen {
-      case Success(results) =>
-        audit(results)
+    }.andThen { case Success(results) =>
+      audit(results)
     }
 
     if (async) {

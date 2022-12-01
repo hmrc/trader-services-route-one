@@ -18,10 +18,10 @@ package uk.gov.hmrc.traderservices.models
 
 import play.api.libs.json._
 
-/**
-  * Helper trait providing JSON formatter based on the set of enum values.
-  * Designed to be mixed in the companion object of the enum type and as typeclass.
-  * @tparam A enum type
+/** Helper trait providing JSON formatter based on the set of enum values. Designed to be mixed in the companion object
+  * of the enum type and as typeclass.
+  * @tparam A
+  *   enum type
   */
 trait EnumerationFormats[A] {
 

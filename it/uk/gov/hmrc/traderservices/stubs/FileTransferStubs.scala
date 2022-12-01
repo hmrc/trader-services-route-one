@@ -62,15 +62,15 @@ trait FileTransferStubs {
                |   "applicationName":"$applicationName",
                |   "conversationId":"$conversationId",
                |   "files": [ ${files
-              .map(file => s"""{
-               |          "upscanReference":"${file.upscanReference}",
-               |          "downloadUrl":"${file.downloadUrl}",
-               |          "fileName":"${file.fileName}",
-               |          "fileMimeType":"${file.fileMimeType}"
-               |          ${file.fileSize.map(s => s""", "fileSize":$s""").getOrElse("")},
-               |          "checksum":"${file.checksum}"
-               |      }""".stripMargin)
-              .mkString(",")}
+                .map(file => s"""{
+                                |          "upscanReference":"${file.upscanReference}",
+                                |          "downloadUrl":"${file.downloadUrl}",
+                                |          "fileName":"${file.fileName}",
+                                |          "fileMimeType":"${file.fileMimeType}"
+                                |          ${file.fileSize.map(s => s""", "fileSize":$s""").getOrElse("")},
+                                |          "checksum":"${file.checksum}"
+                                |      }""".stripMargin)
+                .mkString(",")}
                |   ]
                |}""".stripMargin,
             true,
@@ -86,20 +86,20 @@ trait FileTransferStubs {
                          |   "conversationId":"$conversationId",
                          |   "totalDurationMillis": 2222,
                          |   "results": [ ${files
-              .map(file => s"""{
-                         |          "upscanReference":"${file.upscanReference}",
-                         |          "fileName":"${file.fileName}",
-                         |          "fileMimeType":"${file.fileMimeType}"
-                         |          ${file.fileSize.map(s => s""", "fileSize":$s""").getOrElse("")},
-                         |          "checksum":"${file.checksum}",
-                         |          "fileSize": 1024,
-                         |          "success": true,
-                         |          "httpStatus": 202,
-                         |          "transferredAt": "2021-07-17T12:18:09",
-                         |          "durationMillis": 1234,
-                         |          "correlationId": "${UUID.randomUUID}"
-                         |      }""".stripMargin)
-              .mkString(",")}
+                          .map(file => s"""{
+                                          |          "upscanReference":"${file.upscanReference}",
+                                          |          "fileName":"${file.fileName}",
+                                          |          "fileMimeType":"${file.fileMimeType}"
+                                          |          ${file.fileSize.map(s => s""", "fileSize":$s""").getOrElse("")},
+                                          |          "checksum":"${file.checksum}",
+                                          |          "fileSize": 1024,
+                                          |          "success": true,
+                                          |          "httpStatus": 202,
+                                          |          "transferredAt": "2021-07-17T12:18:09",
+                                          |          "durationMillis": 1234,
+                                          |          "correlationId": "${UUID.randomUUID}"
+                                          |      }""".stripMargin)
+                          .mkString(",")}
                          |   ]
                          |}""".stripMargin)
         )

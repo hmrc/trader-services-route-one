@@ -48,10 +48,9 @@ abstract class ReadSuccessOrFailure[A, S <: A: Reads, F <: A: Reads](fallback: (
                 Try[HttpReads[A]](implicitly[Reads[S]].reads(response.json) match {
                   case JsSuccess(value, path) => HttpReads.pure(value)
                   case JsError(errors) =>
-                    HttpReads.ask.flatMap {
-                      case (method, url, response) =>
-                        val e = new JsValidationException(method, url, mf.runtimeClass, errors.toString)
-                        HttpReads.pure(fallback(status, e.getMessage()))
+                    HttpReads.ask.flatMap { case (method, url, response) =>
+                      val e = new JsValidationException(method, url, mf.runtimeClass, errors.toString)
+                      HttpReads.pure(fallback(status, e.getMessage()))
                     }
                 })
                   .fold(e => HttpReads.pure(fallback(status, e.getMessage())), identity)
@@ -59,10 +58,9 @@ abstract class ReadSuccessOrFailure[A, S <: A: Reads, F <: A: Reads](fallback: (
                 Try[HttpReads[A]](implicitly[Reads[F]].reads(response.json) match {
                   case JsSuccess(value, path) => HttpReads.pure(value)
                   case JsError(errors) =>
-                    HttpReads.ask.flatMap {
-                      case (method, url, response) =>
-                        val e = new JsValidationException(method, url, mf.runtimeClass, errors.toString)
-                        HttpReads.pure(fallback(status, e.getMessage()))
+                    HttpReads.ask.flatMap { case (method, url, response) =>
+                      val e = new JsValidationException(method, url, mf.runtimeClass, errors.toString)
+                      HttpReads.pure(fallback(status, e.getMessage()))
                     }
                 })
                   .fold(e => HttpReads.pure(fallback(status, e.getMessage())), identity)
@@ -72,7 +70,7 @@ abstract class ReadSuccessOrFailure[A, S <: A: Reads, F <: A: Reads](fallback: (
             case other =>
               throw UpstreamErrorResponse(
                 s"Unexpected response type of status $status, expected application/json but got ${other
-                  .getOrElse("none")} with body:\n${response.body}",
+                    .getOrElse("none")} with body:\n${response.body}",
                 500
               )
           }

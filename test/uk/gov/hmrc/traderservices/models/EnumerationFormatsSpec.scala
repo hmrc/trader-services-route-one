@@ -26,7 +26,7 @@ class EnumerationFormatsSpec extends UnitSpec {
     case object FOO extends Example
     case object BAR extends Example
     case object BAZ extends Example
-    case object ZOO extends Example //not listed in values!
+    case object ZOO extends Example // not listed in values!
     override val values: Set[Example] = Set(FOO, BAR, BAZ)
   }
 

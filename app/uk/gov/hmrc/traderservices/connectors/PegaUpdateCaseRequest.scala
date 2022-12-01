@@ -19,13 +19,16 @@ package uk.gov.hmrc.traderservices.connectors
 import play.api.libs.json.{Format, Json}
 import uk.gov.hmrc.traderservices.models.TraderServicesUpdateCaseRequest
 
-/**
-  * An API to create specified case in the PEGA system automatically.
-  * Based on spec "CPR02-1.0.0-EIS API Specification-Update Case from MDTP"
+/** An API to create specified case in the PEGA system automatically. Based on spec "CPR02-1.0.0-EIS API
+  * Specification-Update Case from MDTP"
   *
-  * @param AcknowledgementReference Unique id created at source after a form is saved Unique ID throughout the journey of a message-stored in CSG data records, may be passed to Decision Service, CSG records can be searched using this field etc.
-  * @param ApplicationType Its key value to create the case for respective process.
-  * @param OriginatingSystem “Digital” for all requests originating in Digital
+  * @param AcknowledgementReference
+  *   Unique id created at source after a form is saved Unique ID throughout the journey of a message-stored in CSG data
+  *   records, may be passed to Decision Service, CSG records can be searched using this field etc.
+  * @param ApplicationType
+  *   Its key value to create the case for respective process.
+  * @param OriginatingSystem
+  *   “Digital” for all requests originating in Digital
   */
 case class PegaUpdateCaseRequest(
   AcknowledgementReference: String,
@@ -36,10 +39,13 @@ case class PegaUpdateCaseRequest(
 
 object PegaUpdateCaseRequest {
 
-  /**
-    * @param RequestType This field is used to specify the request type. This field will have following values: "Additional Information", "Query Response"
-    * @param CaseID This field is used to hold the Case ID to be updated. No validation required against this field
-    * @param Description This field is used to hold the query response description or the additional information notes
+  /** @param RequestType
+    *   This field is used to specify the request type. This field will have following values: "Additional Information",
+    *   "Query Response"
+    * @param CaseID
+    *   This field is used to hold the Case ID to be updated. No validation required against this field
+    * @param Description
+    *   This field is used to hold the query response description or the additional information notes
     */
   case class Content(
     RequestType: String,

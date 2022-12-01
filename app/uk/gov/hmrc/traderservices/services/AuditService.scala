@@ -69,10 +69,10 @@ class AuditService @Inject() (val auditConnector: AuditConnector) {
     val details: JsValue = pegaResponseToDetails(createResponse, true)
     Logger(getClass).error(
       s"""Failure of CreateCase request [correlationId=${createResponse.correlationId}] because of ${createResponse.error
-        .map(_.errorCode)
-        .getOrElse("")} ${createResponse.error
-        .flatMap(_.errorMessage)
-        .getOrElse("")}"""
+          .map(_.errorCode)
+          .getOrElse("")} ${createResponse.error
+          .flatMap(_.errorMessage)
+          .getOrElse("")}"""
     )
     auditExtendedEvent(CreateCase, "create-case", details)
   }
@@ -91,10 +91,10 @@ class AuditService @Inject() (val auditConnector: AuditConnector) {
     val details: JsObject = pegaResponseToDetails(updateResponse, false)
     Logger(getClass).error(
       s"""Failure of UpdateCase request [correlationId=${updateResponse.correlationId}] because of ${updateResponse.error
-        .map(_.errorCode)
-        .getOrElse("")} ${updateResponse.error
-        .flatMap(_.errorMessage)
-        .getOrElse("")}"""
+          .map(_.errorCode)
+          .getOrElse("")} ${updateResponse.error
+          .flatMap(_.errorMessage)
+          .getOrElse("")}"""
     )
     auditExtendedEvent(UpdateCase, "update-case", details)
   }
@@ -229,7 +229,7 @@ object AuditService {
 
       if (createResponse.result.isDefined) requestDetails
       else
-        (requestDetails ++ pegaResponseToDetails(createResponse, true))
+        requestDetails ++ pegaResponseToDetails(createResponse, true)
     }
 
     implicit val formats: Format[CreateCaseAuditEventDetails] =
@@ -276,7 +276,7 @@ object AuditService {
 
       if (updateResponse.result.isDefined) requestDetails
       else
-        (requestDetails ++ pegaResponseToDetails(updateResponse, false))
+        requestDetails ++ pegaResponseToDetails(updateResponse, false)
     }
 
     implicit val formats: Format[UpdateCaseAuditEventDetails] =

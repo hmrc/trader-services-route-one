@@ -18,7 +18,7 @@ trait TestApplication {
         "auditing.consumer.baseUri.host"                               -> wireMockHost,
         "auditing.consumer.baseUri.port"                               -> wireMockPort,
         "microservice.services.file-transfer.url"                      -> s"$wireMockBaseUrlAsString/transfer-file",
-        "microservice.services.multi-file-transfer.url"                -> s"$wireMockBaseUrlAsString/transfer-multiple-files",
-        "features.transferFilesAsync"                                  -> false
+        "microservice.services.multi-file-transfer.url" -> s"$wireMockBaseUrlAsString/transfer-multiple-files",
+        "features.transferFilesAsync"                   -> false
       )
 }
