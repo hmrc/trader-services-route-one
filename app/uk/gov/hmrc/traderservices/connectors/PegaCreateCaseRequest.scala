@@ -20,13 +20,15 @@ import play.api.libs.json.{Format, Json}
 import uk.gov.hmrc.traderservices.models._
 import java.time.format.DateTimeFormatter
 
-/**
-  * Create specified case in the PEGA system.
-  * Based on spec "CPR01-1.0.0-EIS API Specification-Create Case from MDTP"
+/** Create specified case in the PEGA system. Based on spec "CPR01-1.0.0-EIS API Specification-Create Case from MDTP"
   *
-  * @param AcknowledgementReference Unique id created at source after a form is saved Unique ID throughout the journey of a message-stored in CSG data records, may be passed to Decision Service, CSG records can be searched using this field etc.
-  * @param ApplicationType Its key value to create the case for respective process.
-  * @param OriginatingSystem “Digital” for all requests originating in Digital
+  * @param AcknowledgementReference
+  *   Unique id created at source after a form is saved Unique ID throughout the journey of a message-stored in CSG data
+  *   records, may be passed to Decision Service, CSG records can be searched using this field etc.
+  * @param ApplicationType
+  *   Its key value to create the case for respective process.
+  * @param OriginatingSystem
+  *   “Digital” for all requests originating in Digital
   */
 case class PegaCreateCaseRequest(
   AcknowledgementReference: String,
@@ -37,24 +39,41 @@ case class PegaCreateCaseRequest(
 
 object PegaCreateCaseRequest {
 
-  /**
-    * @param EntryType specify whether it is Import or Export.
-    * @param RequestType specify the request type.
-    * @param EntryNumber CHIEF entry number value.
-    * @param Route route value for this application.
-    * @param EntryProcessingUnit 3 digit entry processing unit.
-    * @param EntryDate CHIEF entry date in YYYYMMDD format.
-    * @param FreightOption freight option value.
-    * @param EmailAddress trader email address.
-    * @param Priority value of priority.
-    * @param VesselName the Vessel Name, this field is mandatory when Route has a value of Hold and Freight Option has a value of Meritime; not needed otherwise.
-    * @param VesselEstimatedDate the Vessel Estimated Date in YYYYMMDD format.
-    * @param VesselEstimatedTime the Vessel Estimated Time in HHMMSS format.
-    * @param MUCR the Master Unique Consignment Reference.
-    * @param IsALVS This field is used hold the Boolean value of IsALVS.
-    * @param TraderName This field is used hold the TraderName when supplied.
-    * @param EORI This field is used to hold the EORI value entered by the user.
-    * @param TelephoneNumber This field is used to hold the trader telephone number.
+  /** @param EntryType
+    *   specify whether it is Import or Export.
+    * @param RequestType
+    *   specify the request type.
+    * @param EntryNumber
+    *   CHIEF entry number value.
+    * @param Route
+    *   route value for this application.
+    * @param EntryProcessingUnit
+    *   3 digit entry processing unit.
+    * @param EntryDate
+    *   CHIEF entry date in YYYYMMDD format.
+    * @param FreightOption
+    *   freight option value.
+    * @param EmailAddress
+    *   trader email address.
+    * @param Priority
+    *   value of priority.
+    * @param VesselName
+    *   the Vessel Name, this field is mandatory when Route has a value of Hold and Freight Option has a value of
+    *   Meritime; not needed otherwise.
+    * @param VesselEstimatedDate
+    *   the Vessel Estimated Date in YYYYMMDD format.
+    * @param VesselEstimatedTime
+    *   the Vessel Estimated Time in HHMMSS format.
+    * @param MUCR
+    *   the Master Unique Consignment Reference.
+    * @param IsALVS
+    *   This field is used hold the Boolean value of IsALVS.
+    * @param TraderName
+    *   This field is used hold the TraderName when supplied.
+    * @param EORI
+    *   This field is used to hold the EORI value entered by the user.
+    * @param TelephoneNumber
+    *   This field is used to hold the trader telephone number.
     */
   case class Content(
     EntryType: String,

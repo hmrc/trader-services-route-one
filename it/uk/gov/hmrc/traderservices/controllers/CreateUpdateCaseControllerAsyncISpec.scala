@@ -430,9 +430,9 @@ class CreateUpdateCaseControllerAsyncISpec
           1,
           TraderServicesAuditEvent.CreateCase,
           Json.obj(
-            "success"      -> false,
-            "duplicate"    -> false,
-            "errorCode"    -> "500",
+            "success"   -> false,
+            "duplicate" -> false,
+            "errorCode" -> "500",
             "errorMessage" -> "Unexpected response type of status 400, expected application/json but got text/html with body:\n<html>\\r\\n<head><title>400 Bad Request</title></head>\\r\\n<body bgcolor=\\\"white\\\">\\r\\n<center><h1>400 Bad Request</h1></center>\\r\\n<hr><center>nginx</center>\\r\\n</body>\\r\\n</html>\\r\\n\\"
           )
         )

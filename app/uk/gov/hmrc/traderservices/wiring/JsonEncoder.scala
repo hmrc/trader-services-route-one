@@ -89,8 +89,8 @@ class JsonEncoder extends EncoderBase[ILoggingEvent] {
         val dataNode = if (jsonDataPrefix.size > 1) {
           val intermediaryDataNodes: Seq[(String, ObjectNode)] =
             jsonDataPrefix.init.map(p => (p, mapper.createObjectNode))
-          intermediaryDataNodes.foldLeft[ObjectNode](eventNode) {
-            case (parent, (name, child)) => parent.replace(name, child); child
+          intermediaryDataNodes.foldLeft[ObjectNode](eventNode) { case (parent, (name, child)) =>
+            parent.replace(name, child); child
           }
         } else eventNode
         dataNode.replace(jsonDataPrefix.last, messageNode)
