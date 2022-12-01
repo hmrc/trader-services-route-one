@@ -69,7 +69,7 @@ object MessageUtils {
     rawBuffer.asInstanceOf[Buffer].clear()
     rawBuffer.get(bytes)
     val encoded = Array.ofDim[Byte](encodedBuffer.position())
-    encodedBuffer.clear()
+    encodedBuffer.asInstanceOf[Buffer].clear()
     encodedBuffer.get(encoded)
     io.close()
     val checksum = digest.digest()
