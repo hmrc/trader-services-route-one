@@ -6,6 +6,8 @@ Backend microservice exposing an API of Trader Services on MDTP.
 
 ## Dependencies
 
+testing
+
 - PEGA API via IF/EIS
 - [file-transmission-synchronous](https://github.com/hmrc/file-transmission-synchronous)
 
