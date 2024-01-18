@@ -16,7 +16,7 @@ lazy val scoverageSettings = {
 
 lazy val compileDeps = Seq(
   ws,
-  "uk.gov.hmrc"                  %% "bootstrap-backend-play-28" % "7.12.0",
+  "uk.gov.hmrc"                  %% "bootstrap-backend-play-28" % "8.4.0",
   "org.typelevel"                %% "cats-core"                 % "2.7.0",
   "com.fasterxml.jackson.module" %% "jackson-module-scala"      % "2.14.2"
 )
@@ -36,10 +36,9 @@ lazy val root = (project in file("."))
   .settings(
     name := "trader-services-route-one",
     organization := "uk.gov.hmrc",
-    scalaVersion := "2.13.8",
+    scalaVersion := "2.13.12",
     PlayKeys.playDefaultPort := 9380,
     libraryDependencies ++= compileDeps ++ testDeps("test") ++ testDeps("it") ++ itDeps,
-    publishingSettings,
     scoverageSettings,
     Compile / unmanagedResourceDirectories += baseDirectory.value / "resources",
     Compile / scalafmtOnCompile := true,
