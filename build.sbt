@@ -1,5 +1,4 @@
 import sbt.Tests.{Group, SubProcess}
-import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin._
 import uk.gov.hmrc.SbtAutoBuildPlugin
 
 lazy val scoverageSettings = {
@@ -13,18 +12,20 @@ lazy val scoverageSettings = {
     Test / parallelExecution := false
   )
 }
+val bootstrapVersion = "8.4.0"
 
 lazy val compileDeps = Seq(
   ws,
-  "uk.gov.hmrc"                  %% "bootstrap-backend-play-28" % "8.4.0",
+  "uk.gov.hmrc"                  %% "bootstrap-backend-play-28" % bootstrapVersion,
   "org.typelevel"                %% "cats-core"                 % "2.7.0",
   "com.fasterxml.jackson.module" %% "jackson-module-scala"      % "2.14.2"
 )
 
 def testDeps(scope: String) =
   Seq(
-    "org.scalatest"       %% "scalatest"    % "3.2.11" % scope,
-    "com.vladsch.flexmark" % "flexmark-all" % "0.62.2" % scope
+    "uk.gov.hmrc"         %% "bootstrap-test-play-28" % bootstrapVersion % scope,
+    "org.scalatest"       %% "scalatest"              % "3.2.11"         % scope,
+    "com.vladsch.flexmark" % "flexmark-all"           % "0.62.2"         % scope
   )
 
 lazy val itDeps = Seq(
@@ -44,6 +45,7 @@ lazy val root = (project in file("."))
     Compile / scalafmtOnCompile := true,
     Test / scalafmtOnCompile := true
   )
+  .settings(libraryDependencySchemes += "org.scala-lang.modules" %% "scala-xml" % VersionScheme.Always)
   .configs(IntegrationTest)
   .settings(
     IntegrationTest / Keys.fork := false,
