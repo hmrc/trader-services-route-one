@@ -57,6 +57,7 @@ lazy val root = (project in file("."))
   .settings(headerSettings(IntegrationTest): _*)
   .settings(automateHeaderSettings(IntegrationTest))
   .enablePlugins(PlayScala, SbtAutoBuildPlugin, SbtGitVersioning, SbtDistributablesPlugin)
+  .disablePlugins(JUnitXmlReportPlugin)
 
 inConfig(IntegrationTest)(org.scalafmt.sbt.ScalafmtPlugin.scalafmtConfigSettings)
 
