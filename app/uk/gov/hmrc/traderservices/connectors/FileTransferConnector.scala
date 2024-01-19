@@ -21,7 +21,7 @@ import uk.gov.hmrc.http.{HeaderCarrier, HttpPost}
 import uk.gov.hmrc.traderservices.wiring.AppConfig
 
 import scala.concurrent.{ExecutionContext, Future}
-import com.kenshoo.play.metrics.Metrics
+import uk.gov.hmrc.play.bootstrap.metrics.Metrics
 import com.codahale.metrics.MetricRegistry
 import uk.gov.hmrc.traderservices.models.{FileTransferRequest, FileTransferResult, MultiFileTransferRequest, MultiFileTransferResult}
 import uk.gov.hmrc.http.HttpResponse
@@ -38,7 +38,7 @@ class FileTransferConnector @Inject() (
   val actorSystem: ActorSystem
 ) extends HttpAPIMonitor with Retries {
 
-  override val kenshooRegistry: MetricRegistry = metrics.defaultRegistry
+  override val metricRegistry: MetricRegistry = metrics.defaultRegistry
 
   final lazy val fileTransferUrl = config.fileTransferUrl
   final lazy val multiFileTransferUrl = config.multiFileTransferUrl

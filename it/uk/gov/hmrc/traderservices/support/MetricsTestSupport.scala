@@ -17,12 +17,12 @@
 package uk.gov.hmrc.traderservices.support
 
 import com.codahale.metrics.MetricRegistry
-import com.kenshoo.play.metrics.Metrics
 import org.scalatest.Suite
+import org.scalatest.matchers.should.Matchers
 import play.api.Application
+import uk.gov.hmrc.play.bootstrap.metrics.Metrics
 
 import scala.collection.JavaConverters
-import org.scalatest.matchers.should.Matchers
 
 trait MetricsTestSupport {
   self: Suite with Matchers =>

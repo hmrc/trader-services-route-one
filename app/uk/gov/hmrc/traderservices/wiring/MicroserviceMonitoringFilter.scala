@@ -18,7 +18,7 @@ package uk.gov.hmrc.traderservices.wiring
 
 import akka.stream.Materializer
 import com.codahale.metrics.MetricRegistry
-import com.kenshoo.play.metrics.Metrics
+import uk.gov.hmrc.play.bootstrap.metrics.Metrics
 import play.api.Logger
 import play.api.mvc.{Filter, RequestHeader, Result}
 import uk.gov.hmrc.http.{HttpException, UpstreamErrorResponse}
