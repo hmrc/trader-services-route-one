@@ -157,8 +157,8 @@ Example 400 error response payload
 
 ## Running the app locally
 
-    sm --start TRADER_SERVICES_ALL
-    sm --stop TRADER_SERVICES_ROUTE_ONE
+    sm2 --start TRADER_SERVICES_ALL
+    sm2 --stop TRADER_SERVICES_ROUTE_ONE
     sbt run
 
 It should then be listening on port 9380
