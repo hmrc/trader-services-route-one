@@ -1,5 +1,5 @@
 import sbt.Tests.{Group, SubProcess}
-import uk.gov.hmrc.SbtAutoBuildPlugin
+import uk.gov.hmrc.{DefaultBuildSettings, SbtAutoBuildPlugin}
 
 lazy val scoverageSettings = {
   import scoverage.ScoverageKeys
@@ -12,58 +12,53 @@ lazy val scoverageSettings = {
     Test / parallelExecution := false
   )
 }
+
+ThisBuild / majorVersion := 0
+ThisBuild / scalaVersion := "2.13.12"
+
 val bootstrapVersion = "8.4.0"
 
 lazy val compileDeps = Seq(
   ws,
-  "uk.gov.hmrc"                  %% "bootstrap-backend-play-28" % bootstrapVersion,
-  "org.typelevel"                %% "cats-core"                 % "2.7.0",
-  "com.fasterxml.jackson.module" %% "jackson-module-scala"      % "2.14.2"
+  "uk.gov.hmrc"                  %% "bootstrap-backend-play-30" % bootstrapVersion,
+  "org.typelevel"                %% "cats-core"                 % "2.10.0",
+  "com.fasterxml.jackson.module" %% "jackson-module-scala"      % "2.16.1"
 )
 
-def testDeps(scope: String) =
+def testDeps: Seq[ModuleID] =
   Seq(
-    "uk.gov.hmrc"         %% "bootstrap-test-play-28" % bootstrapVersion % scope,
-    "org.scalatest"       %% "scalatest"              % "3.2.11"         % scope,
-    "com.vladsch.flexmark" % "flexmark-all"           % "0.62.2"         % scope
-  )
-
-lazy val itDeps = Seq(
-  "org.scalatestplus.play" %% "scalatestplus-play" % "5.1.0"  % "it",
-  "com.github.tomakehurst"  % "wiremock-jre8"      % "2.32.0" % "it"
-)
+    "uk.gov.hmrc"            %% "bootstrap-test-play-30" % bootstrapVersion,
+    "org.scalatest"          %% "scalatest"              % "3.2.17",
+    "com.vladsch.flexmark"    % "flexmark-all"           % "0.64.8",
+    "org.scalatestplus.play" %% "scalatestplus-play"     % "7.0.1",
+    "com.github.tomakehurst"  % "wiremock-jre8"          % "3.0.1"
+  ).map(_ % Test)
 
 lazy val root = (project in file("."))
   .settings(
     name := "trader-services-route-one",
     organization := "uk.gov.hmrc",
-    scalaVersion := "2.13.12",
     PlayKeys.playDefaultPort := 9380,
-    libraryDependencies ++= compileDeps ++ testDeps("test") ++ testDeps("it") ++ itDeps,
+    libraryDependencies ++= compileDeps ++ testDeps,
     scoverageSettings,
     Compile / unmanagedResourceDirectories += baseDirectory.value / "resources",
     Compile / scalafmtOnCompile := true,
     Test / scalafmtOnCompile := true
   )
   .settings(libraryDependencySchemes += "org.scala-lang.modules" %% "scala-xml" % VersionScheme.Always)
-  .configs(IntegrationTest)
-  .settings(
-    IntegrationTest / Keys.fork := false,
-    Defaults.itSettings,
-    IntegrationTest / unmanagedSourceDirectories += baseDirectory(_ / "it").value,
-    IntegrationTest / parallelExecution := false,
-    IntegrationTest / testGrouping := oneForkedJvmPerTest((IntegrationTest / definedTests).value),
-    IntegrationTest / scalafmtOnCompile := true,
-    majorVersion := 0
-  )
-  .settings(headerSettings(IntegrationTest): _*)
-  .settings(automateHeaderSettings(IntegrationTest))
+  .settings(headerSettings(Test): _*)
+  .settings(automateHeaderSettings(Test))
   .enablePlugins(PlayScala, SbtAutoBuildPlugin, SbtGitVersioning, SbtDistributablesPlugin)
   .disablePlugins(JUnitXmlReportPlugin)
-
-inConfig(IntegrationTest)(org.scalafmt.sbt.ScalafmtPlugin.scalafmtConfigSettings)
 
 def oneForkedJvmPerTest(tests: Seq[TestDefinition]) =
   tests.map { test =>
     new Group(test.name, Seq(test), SubProcess(ForkOptions().withRunJVMOptions(Vector(s"-Dtest.name=${test.name}"))))
   }
+
+lazy val it = project
+  .enablePlugins(PlayScala)
+  .dependsOn(root % "test->test") // the "test->test" allows reusing test code and test dependencies
+  .settings(DefaultBuildSettings.itSettings())
+  .settings(libraryDependencies ++= testDeps)
+  .settings(inConfig(Test)(org.scalafmt.sbt.ScalafmtPlugin.scalafmtConfigSettings))

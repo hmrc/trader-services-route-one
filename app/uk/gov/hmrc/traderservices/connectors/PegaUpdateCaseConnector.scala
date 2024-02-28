@@ -24,7 +24,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import uk.gov.hmrc.play.bootstrap.metrics.Metrics
 import com.codahale.metrics.MetricRegistry
 import play.api.libs.json.Writes
-import akka.actor.ActorSystem
+import org.apache.pekko.actor.ActorSystem
 import scala.concurrent.duration._
 
 @Singleton

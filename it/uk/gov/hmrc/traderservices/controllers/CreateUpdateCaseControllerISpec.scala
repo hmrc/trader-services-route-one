@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.traderservices.controllers
 
-import akka.util.ByteString
+import org.apache.pekko.util.ByteString
 import org.scalatest.Suite
 import org.scalatestplus.play.ServerProvider
 import play.api.libs.json.{JsArray, JsObject, Json}

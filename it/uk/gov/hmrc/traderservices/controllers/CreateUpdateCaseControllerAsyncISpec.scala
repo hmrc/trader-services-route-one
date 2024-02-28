@@ -31,7 +31,7 @@ import java.{util => ju}
 import uk.gov.hmrc.traderservices.services.TraderServicesAuditEvent
 import uk.gov.hmrc.traderservices.connectors.ApiError
 import play.api.libs.ws.InMemoryBody
-import akka.util.ByteString
+import org.apache.pekko.util.ByteString
 
 import java.nio.charset.StandardCharsets
 import play.api.libs.ws.BodyWritable
