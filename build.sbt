@@ -29,9 +29,7 @@ def testDeps: Seq[ModuleID] =
   Seq(
     "uk.gov.hmrc"            %% "bootstrap-test-play-30" % bootstrapVersion,
     "org.scalatest"          %% "scalatest"              % "3.2.17",
-    "com.vladsch.flexmark"    % "flexmark-all"           % "0.62.2",
-    "org.scalatestplus.play" %% "scalatestplus-play"     % "7.0.1",
-    "org.wiremock"  % "wiremock"      % "3.4.2"
+    "org.scalatestplus.play" %% "scalatestplus-play"     % "7.0.1"
   ).map(_ % Test)
 
 lazy val root = (project in file("."))
