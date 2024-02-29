@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.traderservices.wiring
 
-import akka.stream.Materializer
+import org.apache.pekko.stream.Materializer
 import com.codahale.metrics.MetricRegistry
 import uk.gov.hmrc.play.bootstrap.metrics.Metrics
 import play.api.Logger

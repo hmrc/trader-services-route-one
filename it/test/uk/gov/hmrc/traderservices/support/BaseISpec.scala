@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.traderservices.support
 
-import akka.stream.Materializer
+import org.apache.pekko.stream.Materializer
 import play.api.Application
 import play.api.i18n.{Lang, Messages, MessagesApi}
 import play.api.mvc.Result

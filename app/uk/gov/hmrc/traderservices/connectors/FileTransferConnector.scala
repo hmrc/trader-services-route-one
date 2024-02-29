@@ -27,7 +27,7 @@ import uk.gov.hmrc.traderservices.models.{FileTransferRequest, FileTransferResul
 import uk.gov.hmrc.http.HttpResponse
 import uk.gov.hmrc.http.HttpReads.Implicits._
 import java.time.LocalDateTime
-import akka.actor.ActorSystem
+import org.apache.pekko.actor.ActorSystem
 import scala.concurrent.duration._
 
 @Singleton

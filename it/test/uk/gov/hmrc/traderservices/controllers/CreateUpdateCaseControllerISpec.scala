@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.traderservices.controllers
 
-import akka.util.ByteString
+import org.apache.pekko.util.ByteString
 import org.scalatest.Suite
 import org.scalatestplus.play.ServerProvider
 import play.api.libs.json.{JsArray, JsObject, Json}
@@ -40,9 +40,9 @@ class CreateUpdateCaseControllerISpec
 
   val baseUrl = s"http://localhost:$port"
 
-  val dateTime = LocalDateTime.now()
+  val dateTime: LocalDateTime = LocalDateTime.now()
 
-  val wsClient = app.injector.instanceOf[WSClient]
+  val wsClient: WSClient = app.injector.instanceOf[WSClient]
 
   "CreateUpdateCaseController" when {
     "POST /create-case" should {
@@ -240,7 +240,7 @@ class CreateUpdateCaseControllerISpec
         givenAuthorised()
         givenPegaCreateCaseRequestFails(403, "400")
 
-        val correlationId = ju.UUID.randomUUID().toString()
+        val correlationId = ju.UUID.randomUUID().toString
 
         val result = wsClient
           .url(s"$baseUrl/create-case")
@@ -894,7 +894,7 @@ class CreateUpdateCaseControllerISpec
 
 object TestData {
 
-  def testCreateImportCaseRequest(baseUrl: String) =
+  def testCreateImportCaseRequest(baseUrl: String): TraderServicesCreateCaseRequest =
     TraderServicesCreateCaseRequest(
       EntryDetails(EPU(2), EntryNumber("223456A"), LocalDate.parse("2020-09-02")),
       ImportQuestions(
@@ -940,7 +940,7 @@ object TestData {
       eori = Some("GB123456789012345")
     )
 
-  def testCreateExportCaseRequest(baseUrl: String) =
+  def testCreateExportCaseRequest(baseUrl: String): TraderServicesCreateCaseRequest =
     TraderServicesCreateCaseRequest(
       EntryDetails(EPU(2), EntryNumber("A23456A"), LocalDate.parse("2020-09-02")),
       ExportQuestions(
@@ -1054,7 +1054,7 @@ object TestData {
     ) ++
       (error.errorMessage.map(m => Json.obj("errorMessage" -> s"$m")).getOrElse(Json.obj()))
 
-  def testUpdateCaseRequestUploadedFiles(baseUrl: String) =
+  def testUpdateCaseRequestUploadedFiles(baseUrl: String): Seq[UploadedFile] =
     Seq(
       UploadedFile(
         "ref-123",
@@ -1066,7 +1066,7 @@ object TestData {
       )
     )
 
-  def updateRequestFileUploadDetailsMap(baseUrl: String, transferSuccess: Boolean) =
+  def updateRequestFileUploadDetailsMap(baseUrl: String, transferSuccess: Boolean): JsObject =
     Json.obj(
       "uploadedFiles" -> Json.arr(
         Json.obj(
@@ -1081,7 +1081,7 @@ object TestData {
       "numberOfFilesUploaded" -> 1
     )
 
-  def testUpdateCaseRequest(baseUrl: String) =
+  def testUpdateCaseRequest(baseUrl: String): TraderServicesUpdateCaseRequest =
     TraderServicesUpdateCaseRequest(
       caseReferenceNumber = "PCE201103470D2CC8K0NH3",
       typeOfAmendment = TypeOfAmendment.WriteResponseAndUploadDocuments,
@@ -1090,7 +1090,7 @@ object TestData {
       eori = Some("GB123456789012345")
     )
 
-  def updateRequestDetailsMap(baseUrl: String, transferSuccess: Boolean) =
+  def updateRequestDetailsMap(baseUrl: String, transferSuccess: Boolean): JsObject =
     Json.obj(
       "typeOfAmendment"     -> "WriteResponseAndUploadDocuments",
       "caseReferenceNumber" -> "PCE201103470D2CC8K0NH3",

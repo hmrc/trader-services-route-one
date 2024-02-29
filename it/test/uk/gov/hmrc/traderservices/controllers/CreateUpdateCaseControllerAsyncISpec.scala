@@ -31,7 +31,7 @@ import java.{util => ju}
 import uk.gov.hmrc.traderservices.services.TraderServicesAuditEvent
 import uk.gov.hmrc.traderservices.connectors.ApiError
 import play.api.libs.ws.InMemoryBody
-import akka.util.ByteString
+import org.apache.pekko.util.ByteString
 
 import java.nio.charset.StandardCharsets
 import play.api.libs.ws.BodyWritable
@@ -55,14 +55,14 @@ class CreateUpdateCaseControllerAsyncISpec
 
   val baseUrl = s"http://localhost:$port"
 
-  val dateTime = LocalDateTime.now()
+  val dateTime: LocalDateTime = LocalDateTime.now()
 
-  val wsClient = app.injector.instanceOf[WSClient]
+  val wsClient: WSClient = app.injector.instanceOf[WSClient]
 
   "CreateUpdateCaseController" when {
     "POST /create-case" should {
       "return 201 with CaseID as a result if successful PEGA API call for import case" in {
-        val correlationId = ju.UUID.randomUUID().toString()
+        val correlationId = ju.UUID.randomUUID().toString
         givenAuthorised()
         givenPegaCreateImportCaseRequestSucceeds(200)
 
@@ -113,7 +113,7 @@ class CreateUpdateCaseControllerAsyncISpec
       }
 
       "return 201 with CaseID as a result if successful PEGA API call for export case" in {
-        val correlationId = ju.UUID.randomUUID().toString()
+        val correlationId = ju.UUID.randomUUID().toString
         givenAuthorised()
         givenPegaCreateExportCaseRequestSucceeds()
 
@@ -164,7 +164,7 @@ class CreateUpdateCaseControllerAsyncISpec
       }
 
       "return 400 if empty payload" in {
-        val correlationId = ju.UUID.randomUUID().toString()
+        val correlationId = ju.UUID.randomUUID().toString
         givenAuthorised()
 
         val result = wsClient

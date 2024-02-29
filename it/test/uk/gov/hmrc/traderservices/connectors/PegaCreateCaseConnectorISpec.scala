@@ -17,7 +17,6 @@
 package uk.gov.hmrc.traderservices.connectors
 
 import play.api.Application
-import uk.gov.hmrc.traderservices.models._
 import uk.gov.hmrc.traderservices.stubs.CreateCaseStubs
 import uk.gov.hmrc.traderservices.support.AppBaseISpec
 import uk.gov.hmrc.http._
@@ -103,7 +102,7 @@ class PegaCreateCaseConnectorISpec extends PegaCreateCaseConnectorISpecSetup {
       }
 
       "return error code and message if 200 with invalid success response content" in {
-        givenPegaCreateImportRespondsWithInvalidSuccessMessage
+        givenPegaCreateImportRespondsWithInvalidSuccessMessage()
         givenAuditConnector()
 
         val request = testCreateImportCaseRequest
@@ -115,7 +114,7 @@ class PegaCreateCaseConnectorISpec extends PegaCreateCaseConnectorISpecSetup {
             .ErrorDetail(
               errorCode = Some("200"),
               errorMessage = Some(
-                s"POST of '$wireMockBaseUrlAsString/cpr/caserequest/route1/create/v1' returned invalid json. Attempting to convert to uk.gov.hmrc.traderservices.connectors.PegaCaseResponse gave errors: List((/Status,List(JsonValidationError(List(error.path.missing),ArraySeq()))), (/CaseID,List(JsonValidationError(List(error.path.missing),ArraySeq()))))"
+                s"POST of '$wireMockBaseUrlAsString/cpr/caserequest/route1/create/v1' returned invalid json. Attempting to convert to uk.gov.hmrc.traderservices.connectors.PegaCaseResponse gave errors: List((/Status,List(JsonValidationError(List(error.path.missing),List()))), (/CaseID,List(JsonValidationError(List(error.path.missing),List()))))"
               )
             )
         )
@@ -135,7 +134,7 @@ class PegaCreateCaseConnectorISpec extends PegaCreateCaseConnectorISpecSetup {
             .ErrorDetail(
               errorCode = Some("403"),
               errorMessage = Some(
-                s"POST of '$wireMockBaseUrlAsString/cpr/caserequest/route1/create/v1' returned invalid json. Attempting to convert to uk.gov.hmrc.traderservices.connectors.PegaCaseResponse gave errors: List((/errorDetail,List(JsonValidationError(List(error.path.missing),ArraySeq()))))"
+                s"POST of '$wireMockBaseUrlAsString/cpr/caserequest/route1/create/v1' returned invalid json. Attempting to convert to uk.gov.hmrc.traderservices.connectors.PegaCaseResponse gave errors: List((/errorDetail,List(JsonValidationError(List(error.path.missing),List()))))"
               )
             )
         )
@@ -167,9 +166,9 @@ trait PegaCreateCaseConnectorISpecSetup extends AppBaseISpec with CreateCaseStub
   lazy val connector: PegaCreateCaseConnector =
     app.injector.instanceOf[PegaCreateCaseConnector]
 
-  val correlationId = java.util.UUID.randomUUID().toString()
+  val correlationId: String = java.util.UUID.randomUUID().toString
 
-  val testCreateImportCaseRequest = PegaCreateCaseRequest(
+  val testCreateImportCaseRequest: PegaCreateCaseRequest = PegaCreateCaseRequest(
     AcknowledgementReference = "XYZ123",
     ApplicationType = "Route1",
     OriginatingSystem = "Digital",

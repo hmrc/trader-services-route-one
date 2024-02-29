@@ -24,7 +24,7 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.util.Success
-import akka.actor.ActorSystem
+import org.apache.pekko.actor.ActorSystem
 import play.api.libs.json.Json
 import play.api.mvc._
 import play.api.{Configuration, Environment}

@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.traderservices.controllers
 
-import play.api.mvc.Result
+import play.api.mvc.{AnyContentAsEmpty, Result}
 import play.api.mvc.Results._
 import play.api.test.FakeRequest
 import uk.gov.hmrc.auth.core.{AuthConnector, AuthorisationException, InsufficientEnrolments}
@@ -47,8 +47,8 @@ class AuthActionsISpec extends AppBaseISpec {
     }
 
     import scala.concurrent.ExecutionContext.Implicits.global
-    implicit val hc = HeaderCarrier(authorization = Some(Authorization("Bearer XYZ")))
-    implicit val request = FakeRequest()
+    implicit val hc: HeaderCarrier = HeaderCarrier(authorization = Some(Authorization("Bearer XYZ")))
+    implicit val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest()
       .withSession(SessionKeys.authToken -> "Bearer XYZ")
 
     def withAuthorised[A]: Result =
