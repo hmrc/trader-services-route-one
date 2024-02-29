@@ -20,9 +20,8 @@ val bootstrapVersion = "8.4.0"
 
 lazy val compileDeps = Seq(
   ws,
-  "uk.gov.hmrc"                  %% "bootstrap-backend-play-30" % bootstrapVersion,
-  "org.typelevel"                %% "cats-core"                 % "2.10.0",
-  "com.fasterxml.jackson.module" %% "jackson-module-scala"      % "2.16.1"
+  "uk.gov.hmrc"   %% "bootstrap-backend-play-30" % bootstrapVersion,
+  "org.typelevel" %% "cats-core"                 % "2.10.0"
 )
 
 def testDeps: Seq[ModuleID] =

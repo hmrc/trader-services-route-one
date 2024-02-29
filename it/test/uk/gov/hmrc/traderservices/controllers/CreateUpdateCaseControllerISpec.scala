@@ -212,7 +212,7 @@ class CreateUpdateCaseControllerISpec
                 haveProperty[String](
                   "errorMessage",
                   be(
-                    "Could not parse payload due to Unexpected end-of-input in field name\n at [Source: REDACTED (`StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION` disabled); line: 2, column: 12]."
+                    "Could not parse payload due to Unexpected end-of-input in field name\n at [Source: (String)\"{\n  \"entryDet\"; line: 2, column: 12]."
                   )
                 )
             )
@@ -229,7 +229,7 @@ class CreateUpdateCaseControllerISpec
             ApiError(
               "ERROR_UNKNOWN",
               Some(
-                "Could not parse payload due to Unexpected end-of-input in field name\n at [Source: REDACTED (`StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION` disabled); line: 2, column: 12]."
+                "Could not parse payload due to Unexpected end-of-input in field name\n at [Source: (String)\"{\n  \"entryDet\"; line: 2, column: 12]."
               )
             )
           ) ++ Json.obj("duplicate" -> false)
@@ -697,7 +697,7 @@ class CreateUpdateCaseControllerISpec
           .futureValue
 
         val errorMessage =
-          "Could not parse payload due to Unexpected end-of-input in field name\n at [Source: REDACTED (`StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION` disabled); line: 2, column: 20]."
+          "Could not parse payload due to Unexpected end-of-input in field name\n at [Source: (String)\"{\n  \"caseReferenceNum\"; line: 2, column: 20]."
 
         result.status shouldBe 400
         result.json.as[JsObject] should (
