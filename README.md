@@ -163,6 +163,10 @@ Example 400 error response payload
 
 It should then be listening on port 9380
 
+## Other related Route1 services:
+- Frontend service: [trader-services-route-one-frontend](https://github.com/hmrc/trader-services-route-one-frontend)
+- Stubs: [trader-services-route-one-stub](https://github.com/hmrc/trader-services-route-one-stub/)
+
 ### License
 
 This code is open source software licensed under the [Apache 2.0 License]("http://www.apache.org/licenses/LICENSE-2.0.html")
