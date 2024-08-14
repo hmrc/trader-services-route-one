@@ -16,8 +16,7 @@
 
 package uk.gov.hmrc.traderservices.connectors
 
-import play.api.libs.json.{Format, Json}
-import play.api.libs.json.JsObject
+import play.api.libs.json.{Format, JsObject, Json, Reads, Writes}
 
 sealed trait PegaCaseResponse
 
@@ -104,5 +103,16 @@ object PegaCaseResponse {
         s"${errorDetail.errorCode.getOrElse("")} ${errorDetail.errorMessage.getOrElse("")}"
       case _ => ""
     }
+
+  def reads: Reads[PegaCaseResponse] =
+    PegaCaseSuccess.formats.widen[PegaCaseResponse] orElse
+      PegaCaseError.formats.widen[PegaCaseResponse]
+
+  def writes: Writes[PegaCaseResponse] = Writes {
+    case u: PegaCaseSuccess => Json.toJson(u)(PegaCaseSuccess.formats)
+    case i: PegaCaseError   => Json.toJson(i)(PegaCaseError.formats)
+  }
+
+  implicit def format: Format[PegaCaseResponse] = Format(reads, writes)
 
 }

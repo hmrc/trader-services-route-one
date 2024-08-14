@@ -33,7 +33,7 @@ class PegaUpdateCaseConnector @Inject() (
   val http: HttpPost,
   metrics: Metrics,
   val actorSystem: ActorSystem
-) extends ReadSuccessOrFailure[PegaCaseResponse, PegaCaseSuccess, PegaCaseError](
+) extends ReadSuccessOrFailure[PegaCaseResponse](
       PegaCaseError.fromStatusAndMessage
     ) with PegaConnector with HttpAPIMonitor with Retries {
 

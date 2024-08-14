@@ -16,19 +16,12 @@
 
 package uk.gov.hmrc.traderservices.connectors
 
-import play.api.libs.json.Reads
-import uk.gov.hmrc.http.HttpReads
-import uk.gov.hmrc.http.UpstreamErrorResponse
-import uk.gov.hmrc.http.JsValidationException
-import play.api.libs.json.JsSuccess
-import play.api.libs.json.JsError
-import uk.gov.hmrc.http.HttpResponse
+import play.api.libs.json.{JsError, JsSuccess, Reads}
+import play.mvc.Http.{HeaderNames, MimeTypes}
 import uk.gov.hmrc.http.HttpReads.Implicits._
-import play.mvc.Http.HeaderNames
-import play.mvc.Http.MimeTypes
-import scala.util.Try
+import uk.gov.hmrc.http.{HttpReads, HttpResponse, JsValidationException, UpstreamErrorResponse}
 
-abstract class ReadSuccessOrFailure[A, S <: A: Reads, F <: A: Reads](fallback: (Int, String) => A)(implicit
+abstract class ReadSuccessOrFailure[A: Reads](fallback: (Int, String) => A)(implicit
   mf: Manifest[A]
 ) {
 
@@ -36,7 +29,7 @@ abstract class ReadSuccessOrFailure[A, S <: A: Reads, F <: A: Reads](fallback: (
     HttpReads[HttpResponse]
       .flatMap { response =>
         val status = response.status
-        if (response.body.isEmpty())
+        if (response.body.isEmpty)
           HttpReads.pure(fallback(status, "Error: empty response"))
         else
           response.header(HeaderNames.CONTENT_TYPE) match {
@@ -44,26 +37,23 @@ abstract class ReadSuccessOrFailure[A, S <: A: Reads, F <: A: Reads](fallback: (
               HttpReads.pure(fallback(status, "Error: missing content-type header"))
 
             case Some(MimeTypes.JSON) =>
-              if (status >= 200 && status < 300)
-                Try[HttpReads[A]](implicitly[Reads[S]].reads(response.json) match {
-                  case JsSuccess(value, path) => HttpReads.pure(value)
-                  case JsError(errors) =>
-                    HttpReads.ask.flatMap { case (method, url, response) =>
-                      val e = new JsValidationException(method, url, mf.runtimeClass, errors.toString)
-                      HttpReads.pure(fallback(status, e.getMessage()))
-                    }
-                })
-                  .fold(e => HttpReads.pure(fallback(status, e.getMessage())), identity)
+              if (status >= 200 && status < 300) implicitly[Reads[A]].reads(response.json) match {
+                case JsSuccess(value, path) => HttpReads.pure(value)
+                case JsError(errors) =>
+                  HttpReads.ask.flatMap { case (method, url, response) =>
+                    val e = new JsValidationException(method, url, mf.runtimeClass, errors.toString)
+                    HttpReads.pure(fallback(status, e.getMessage()))
+                  }
+              }
               else if (status >= 400)
-                Try[HttpReads[A]](implicitly[Reads[F]].reads(response.json) match {
+                implicitly[Reads[A]].reads(response.json) match {
                   case JsSuccess(value, path) => HttpReads.pure(value)
                   case JsError(errors) =>
                     HttpReads.ask.flatMap { case (method, url, response) =>
                       val e = new JsValidationException(method, url, mf.runtimeClass, errors.toString)
                       HttpReads.pure(fallback(status, e.getMessage()))
                     }
-                })
-                  .fold(e => HttpReads.pure(fallback(status, e.getMessage())), identity)
+                }
               else
                 throw UpstreamErrorResponse(s"Unexpected response status $status", 500)
 

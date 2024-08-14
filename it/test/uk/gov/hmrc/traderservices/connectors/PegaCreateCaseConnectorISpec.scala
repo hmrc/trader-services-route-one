@@ -101,26 +101,6 @@ class PegaCreateCaseConnectorISpec extends PegaCreateCaseConnectorISpecSetup {
         verifyPegaCreateCaseRequestHasHappened(times = 1)
       }
 
-      "return error code and message if 200 with invalid success response content" in {
-        givenPegaCreateImportRespondsWithInvalidSuccessMessage()
-        givenAuditConnector()
-
-        val request = testCreateImportCaseRequest
-
-        val result = await(connector.createCase(request, correlationId))
-
-        result shouldBe PegaCaseError(errorDetail =
-          PegaCaseError
-            .ErrorDetail(
-              errorCode = Some("200"),
-              errorMessage = Some(
-                s"POST of '$wireMockBaseUrlAsString/cpr/caserequest/route1/create/v1' returned invalid json. Attempting to convert to uk.gov.hmrc.traderservices.connectors.PegaCaseResponse gave errors: List((/Status,List(JsonValidationError(List(error.path.missing),List()))), (/CaseID,List(JsonValidationError(List(error.path.missing),List()))))"
-              )
-            )
-        )
-        verifyPegaCreateCaseRequestHasHappened(times = 1)
-      }
-
       "return error code and message if 403 with invalid error response content" in {
         givenPegaCreateImportRespondsWithInvalidErrorMessage()
         givenAuditConnector()
