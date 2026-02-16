@@ -20,7 +20,7 @@ val bootstrapVersion = "10.1.0"
 lazy val compileDeps = Seq(
   ws,
   "uk.gov.hmrc"           %% s"bootstrap-backend-play-30" % bootstrapVersion exclude("org.apache.commons", "commons-lang3"),
-  "org.apache.commons"    % "commons-lang3" % "3.18.0",
+  "org.apache.commons"    % "commons-lang3"               % "3.18.0",
   "org.typelevel"         %% "cats-core"                  % "2.10.0",
   "ch.qos.logback"        % "logback-core"                % "1.5.27",
   "ch.qos.logback"        % "logback-classic"             % "1.5.27"
