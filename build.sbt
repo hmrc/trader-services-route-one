@@ -24,7 +24,7 @@ lazy val compileDeps = Seq(
   "org.typelevel"         %% "cats-core"                  % "2.10.0",
   "ch.qos.logback"        % "logback-core"                % "1.5.27",
   "ch.qos.logback"        % "logback-classic"             % "1.5.27",
-  "at.yawk.lz4"          %  "lz4-java"                   % "1.10.3"
+  "at.yawk.lz4"           %  "lz4-java"                   % "1.10.3"
 )
 
 def testDeps: Seq[ModuleID] =
