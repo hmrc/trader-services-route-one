@@ -19,8 +19,11 @@ val bootstrapVersion = "10.1.0"
 
 lazy val compileDeps = Seq(
   ws,
-  "uk.gov.hmrc"   %% "bootstrap-backend-play-30" % bootstrapVersion,
-  "org.typelevel" %% "cats-core"                 % "2.10.0"
+  "uk.gov.hmrc"           %% s"bootstrap-backend-play-30" % bootstrapVersion exclude("org.apache.commons", "commons-lang3"),
+  "org.apache.commons"    % "commons-lang3" % "3.18.0",
+  "org.typelevel"         %% "cats-core"                  % "2.10.0",
+  "ch.qos.logback"        % "logback-core"                % "1.5.27",
+  "ch.qos.logback"        % "logback-classic"             % "1.5.27"
 )
 
 def testDeps: Seq[ModuleID] =
@@ -36,6 +39,7 @@ lazy val root = (project in file("."))
     organization := "uk.gov.hmrc",
     PlayKeys.playDefaultPort := 9380,
     libraryDependencies ++= compileDeps ++ testDeps,
+    excludeDependencies += ExclusionRule("org.lz4", "lz4-java"),
     scoverageSettings,
     Compile / unmanagedResourceDirectories += baseDirectory.value / "resources",
     Compile / scalafmtOnCompile := true,
