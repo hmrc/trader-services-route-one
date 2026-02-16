@@ -15,7 +15,7 @@ lazy val scoverageSettings = {
 ThisBuild / majorVersion := 0
 ThisBuild / scalaVersion := "2.13.16"
 
-val bootstrapVersion = "10.1.0"
+val bootstrapVersion = "10.5.0"
 
 lazy val compileDeps = Seq(
   ws,
