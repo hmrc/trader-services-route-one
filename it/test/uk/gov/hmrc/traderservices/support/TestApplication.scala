@@ -19,9 +19,9 @@ package uk.gov.hmrc.traderservices.support
 import play.api.inject.guice.GuiceApplicationBuilder
 
 trait TestApplication {
-  _: BaseISpec =>
+  self: BaseISpec =>
 
-  def defaultAppBuilder =
+  def defaultAppBuilder: GuiceApplicationBuilder =
     new GuiceApplicationBuilder()
       .configure(
         "microservice.services.auth.port"                              -> wireMockPort,

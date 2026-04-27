@@ -16,32 +16,35 @@
 
 package uk.gov.hmrc.traderservices.connectors
 
-import javax.inject.{Inject, Singleton}
-import uk.gov.hmrc.http.{HeaderCarrier, HttpPost}
+import com.codahale.metrics.MetricRegistry
+import org.apache.pekko.actor.ActorSystem
+import play.api.libs.json.Json
+import play.api.libs.ws.JsonBodyWritables.writeableOf_JsValue
+import uk.gov.hmrc.http.HttpReads.Implicits.*
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
+import uk.gov.hmrc.http.client.HttpClientV2
+import uk.gov.hmrc.play.bootstrap.metrics.Metrics
+import uk.gov.hmrc.traderservices.models.{FileTransferRequest, FileTransferResult, MultiFileTransferRequest, MultiFileTransferResult}
 import uk.gov.hmrc.traderservices.wiring.AppConfig
 
-import scala.concurrent.{ExecutionContext, Future}
-import uk.gov.hmrc.play.bootstrap.metrics.Metrics
-import com.codahale.metrics.MetricRegistry
-import uk.gov.hmrc.traderservices.models.{FileTransferRequest, FileTransferResult, MultiFileTransferRequest, MultiFileTransferResult}
-import uk.gov.hmrc.http.HttpResponse
-import uk.gov.hmrc.http.HttpReads.Implicits._
+import java.net.URI
 import java.time.LocalDateTime
-import org.apache.pekko.actor.ActorSystem
-import scala.concurrent.duration._
+import javax.inject.{Inject, Singleton}
+import scala.concurrent.duration.*
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class FileTransferConnector @Inject() (
   val config: AppConfig,
-  val http: HttpPost,
+  val http: HttpClientV2,
   metrics: Metrics,
   val actorSystem: ActorSystem
 ) extends HttpAPIMonitor with Retries {
 
   override val metricRegistry: MetricRegistry = metrics.defaultRegistry
 
-  final lazy val fileTransferUrl = config.fileTransferUrl
-  final lazy val multiFileTransferUrl = config.multiFileTransferUrl
+  private final lazy val fileTransferUrl = config.fileTransferUrl
+  private final lazy val multiFileTransferUrl = config.multiFileTransferUrl
 
   final def transferFile(fileTransferRequest: FileTransferRequest, correlationId: String)(implicit
     hc: HeaderCarrier,
@@ -50,7 +53,10 @@ class FileTransferConnector @Inject() (
     retry[HttpResponse](1.second, 2.seconds)(shouldRetry, errorMessage) {
       monitor(s"ConsumedAPI-trader-services-transfer-file-api-POST") {
         http
-          .POST[FileTransferRequest, HttpResponse](fileTransferUrl, fileTransferRequest)
+          .post(new URI(fileTransferUrl).toURL)
+          .setHeader(("x-correlation-id", correlationId))
+          .withBody(Json.toJson(fileTransferRequest))
+          .execute[HttpResponse]
       }
     }.map(response =>
       FileTransferResult(
@@ -78,7 +84,10 @@ class FileTransferConnector @Inject() (
     retry[HttpResponse](1.second, 2.seconds)(shouldRetry, errorMessage) {
       monitor(s"ConsumedAPI-trader-services-transfer-multiple-files-api-POST") {
         http
-          .POST[MultiFileTransferRequest, HttpResponse](multiFileTransferUrl, multipleFileTransferRequest)
+          .post(new URI(multiFileTransferUrl).toURL)
+          .setHeader(("x-correlation-id", correlationId))
+          .withBody(Json.toJson(multipleFileTransferRequest))
+          .execute[HttpResponse]
       }
     }.map(response =>
       if (isSuccess(response))

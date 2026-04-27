@@ -13,21 +13,21 @@ lazy val scoverageSettings = {
 }
 
 ThisBuild / majorVersion := 0
-ThisBuild / scalaVersion := "2.13.18"
+ThisBuild / scalaVersion := "3.3.7"
 
-val bootstrapVersion = "10.6.0"
+val bootstrapVersion = "10.7.0"
 
 lazy val compileDeps = Seq(
   ws,
   "uk.gov.hmrc"   %% "bootstrap-backend-play-30" % bootstrapVersion,
-  "org.typelevel" %% "cats-core"                 % "2.10.0"
+  "org.typelevel" %% "cats-core"                 % "2.13.0"
 )
 
 def testDeps: Seq[ModuleID] =
   Seq(
     "uk.gov.hmrc"            %% "bootstrap-test-play-30" % bootstrapVersion,
-    "org.scalatest"          %% "scalatest"              % "3.2.17",
-    "org.scalatestplus.play" %% "scalatestplus-play"     % "7.0.1"
+    "org.scalatest"          %% "scalatest"              % "3.2.20",
+    "org.scalatestplus.play" %% "scalatestplus-play"     % "7.0.2"
   ).map(_ % Test)
 
 lazy val root = (project in file("."))
@@ -39,7 +39,8 @@ lazy val root = (project in file("."))
     scoverageSettings,
     Compile / unmanagedResourceDirectories += baseDirectory.value / "resources",
     Compile / scalafmtOnCompile := true,
-    Test / scalafmtOnCompile := true
+    Test / scalafmtOnCompile := true,
+    coverageEnabled := true
   )
   .settings(libraryDependencySchemes += "org.scala-lang.modules" %% "scala-xml" % VersionScheme.Always)
   .settings(headerSettings(Test): _*)

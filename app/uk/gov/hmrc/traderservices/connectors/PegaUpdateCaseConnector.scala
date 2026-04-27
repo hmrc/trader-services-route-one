@@ -16,21 +16,24 @@
 
 package uk.gov.hmrc.traderservices.connectors
 
-import javax.inject.{Inject, Singleton}
-import uk.gov.hmrc.http.{HeaderCarrier, HttpPost}
+import com.codahale.metrics.MetricRegistry
+import org.apache.pekko.actor.ActorSystem
+import play.api.libs.json.Json
+import play.api.libs.ws.JsonBodyWritables.writeableOf_JsValue
+import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.http.client.HttpClientV2
+import uk.gov.hmrc.play.bootstrap.metrics.Metrics
 import uk.gov.hmrc.traderservices.wiring.AppConfig
 
+import java.net.URI
+import javax.inject.{Inject, Singleton}
+import scala.concurrent.duration.*
 import scala.concurrent.{ExecutionContext, Future}
-import uk.gov.hmrc.play.bootstrap.metrics.Metrics
-import com.codahale.metrics.MetricRegistry
-import play.api.libs.json.Writes
-import org.apache.pekko.actor.ActorSystem
-import scala.concurrent.duration._
 
 @Singleton
 class PegaUpdateCaseConnector @Inject() (
   val config: AppConfig,
-  val http: HttpPost,
+  val http: HttpClientV2,
   metrics: Metrics,
   val actorSystem: ActorSystem
 ) extends ReadSuccessOrFailure[PegaCaseResponse, PegaCaseSuccess, PegaCaseError](
@@ -48,16 +51,10 @@ class PegaUpdateCaseConnector @Inject() (
     retry(1.second, 2.seconds)(PegaCaseResponse.shouldRetry, PegaCaseResponse.errorMessage) {
       monitor(s"ConsumedAPI-eis-pega-update-case-api-POST") {
         http
-          .POST[PegaUpdateCaseRequest, PegaCaseResponse](
-            url,
-            createCaseRequest,
-            pegaApiHeaders(correlationId, config.eisEnvironment, config.eisAuthorizationToken)
-          )(
-            implicitly[Writes[PegaUpdateCaseRequest]],
-            readFromJsonSuccessOrFailure,
-            hc,
-            implicitly[ExecutionContext]
-          )
+          .post(new URI(url).toURL)
+          .withBody(Json.toJson(createCaseRequest))
+          .setHeader(pegaApiHeaders(correlationId, config.eisEnvironment, config.eisAuthorizationToken): _*)
+          .execute[PegaCaseResponse](readFromJsonSuccessOrFailure)
       }
     }
 

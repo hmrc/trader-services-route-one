@@ -156,7 +156,7 @@ trait FileTransferConnectorISpecSetup extends AppBaseISpec with FileTransferStub
 
   implicit val hc: HeaderCarrier = HeaderCarrier()
 
-  override def fakeApplication: Application = defaultAppBuilder.build()
+  override def fakeApplication(): Application = defaultAppBuilder.build()
 
   lazy val connector: FileTransferConnector =
     app.injector.instanceOf[FileTransferConnector]

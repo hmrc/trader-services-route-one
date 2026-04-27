@@ -114,7 +114,7 @@ class PegaCreateCaseConnectorISpec extends PegaCreateCaseConnectorISpecSetup {
             .ErrorDetail(
               errorCode = Some("200"),
               errorMessage = Some(
-                s"POST of '$wireMockBaseUrlAsString/cpr/caserequest/route1/create/v1' returned invalid json. Attempting to convert to uk.gov.hmrc.traderservices.connectors.PegaCaseResponse gave errors: List((/Status,List(JsonValidationError(List(error.path.missing),List()))), (/CaseID,List(JsonValidationError(List(error.path.missing),List()))))"
+                s"POST of '$wireMockBaseUrlAsString/cpr/caserequest/route1/create/v1' returned invalid json. Attempting to convert to uk.gov.hmrc.traderservices.connectors.PegaCaseResponse gave errors: List((/Status,List(JsonValidationError(List(error.path.missing),ArraySeq()))), (/CaseID,List(JsonValidationError(List(error.path.missing),ArraySeq()))))"
               )
             )
         )
@@ -134,7 +134,7 @@ class PegaCreateCaseConnectorISpec extends PegaCreateCaseConnectorISpecSetup {
             .ErrorDetail(
               errorCode = Some("403"),
               errorMessage = Some(
-                s"POST of '$wireMockBaseUrlAsString/cpr/caserequest/route1/create/v1' returned invalid json. Attempting to convert to uk.gov.hmrc.traderservices.connectors.PegaCaseResponse gave errors: List((/errorDetail,List(JsonValidationError(List(error.path.missing),List()))))"
+                s"POST of '$wireMockBaseUrlAsString/cpr/caserequest/route1/create/v1' returned invalid json. Attempting to convert to uk.gov.hmrc.traderservices.connectors.PegaCaseResponse gave errors: List((/errorDetail,List(JsonValidationError(List(error.path.missing),ArraySeq()))))"
               )
             )
         )
@@ -161,7 +161,7 @@ trait PegaCreateCaseConnectorISpecSetup extends AppBaseISpec with CreateCaseStub
 
   implicit val hc: HeaderCarrier = HeaderCarrier()
 
-  override def fakeApplication: Application = defaultAppBuilder.build()
+  override def fakeApplication(): Application = defaultAppBuilder.build()
 
   lazy val connector: PegaCreateCaseConnector =
     app.injector.instanceOf[PegaCreateCaseConnector]
