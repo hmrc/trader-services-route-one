@@ -39,8 +39,7 @@ lazy val root = (project in file("."))
     scoverageSettings,
     Compile / unmanagedResourceDirectories += baseDirectory.value / "resources",
     Compile / scalafmtOnCompile := true,
-    Test / scalafmtOnCompile := true,
-    coverageEnabled := true
+    Test / scalafmtOnCompile := true
   )
   .settings(libraryDependencySchemes += "org.scala-lang.modules" %% "scala-xml" % VersionScheme.Always)
   .settings(headerSettings(Test): _*)
