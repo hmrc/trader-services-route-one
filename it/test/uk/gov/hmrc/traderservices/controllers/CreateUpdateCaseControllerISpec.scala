@@ -20,18 +20,19 @@ import org.apache.pekko.util.ByteString
 import org.scalatest.Suite
 import org.scalatestplus.play.ServerProvider
 import play.api.libs.json.{JsArray, JsObject, Json}
+import play.api.libs.ws.JsonBodyWritables.writeableOf_JsValue
 import play.api.libs.ws.{BodyWritable, InMemoryBody, WSClient}
 import uk.gov.hmrc.http.HeaderNames
 import uk.gov.hmrc.traderservices.connectors.ApiError
-import uk.gov.hmrc.traderservices.models._
+import uk.gov.hmrc.traderservices.models.*
 import uk.gov.hmrc.traderservices.services.TraderServicesAuditEvent
-import uk.gov.hmrc.traderservices.stubs._
+import uk.gov.hmrc.traderservices.stubs.*
 import uk.gov.hmrc.traderservices.support.{JsonMatchers, ServerBaseISpec}
 
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
-import java.time._
-import java.{util => ju}
+import java.time.*
+import java.util as ju
 
 class CreateUpdateCaseControllerISpec
     extends ServerBaseISpec with AuthStubs with CreateCaseStubs with UpdateCaseStubs with FileTransferStubs
@@ -155,7 +156,7 @@ class CreateUpdateCaseControllerISpec
           .futureValue
 
         val errorMessage =
-          "Invalid payload: Parsing failed due to at path /uploadedFiles with error.path.missing, and at path /entryDetails with error.path.missing, and at path /questionsAnswers with error.path.missing."
+          "Invalid payload: Parsing failed due to at path /uploadedFiles with error.path.missing, and at path /questionsAnswers with error.path.missing, and at path /entryDetails with error.path.missing."
 
         result.status shouldBe 400
         result.json.as[JsObject] should (

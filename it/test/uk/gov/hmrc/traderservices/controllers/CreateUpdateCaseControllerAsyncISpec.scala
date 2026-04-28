@@ -16,30 +16,25 @@
 
 package uk.gov.hmrc.traderservices.controllers
 
-import java.time.LocalDateTime
-import org.scalatest.Suite
-import org.scalatestplus.play.ServerProvider
-import play.api.libs.json.Json
-import play.api.libs.ws.WSClient
-import uk.gov.hmrc.traderservices.models._
-import uk.gov.hmrc.traderservices.stubs._
-import uk.gov.hmrc.traderservices.support.ServerBaseISpec
-import uk.gov.hmrc.traderservices.support.JsonMatchers
-import play.api.libs.json.JsObject
-
-import java.{util => ju}
-import uk.gov.hmrc.traderservices.services.TraderServicesAuditEvent
-import uk.gov.hmrc.traderservices.connectors.ApiError
-import play.api.libs.ws.InMemoryBody
 import org.apache.pekko.util.ByteString
+import org.scalatest.Suite
+import org.scalatest.concurrent.Eventually
+import org.scalatest.time.{Millis, Span}
+import org.scalatestplus.play.ServerProvider
+import play.api.Application
+import play.api.libs.json.{JsObject, Json}
+import play.api.libs.ws.JsonBodyWritables.writeableOf_JsValue
+import play.api.libs.ws.{BodyWritable, InMemoryBody, WSClient}
+import uk.gov.hmrc.http.HeaderNames
+import uk.gov.hmrc.traderservices.connectors.ApiError
+import uk.gov.hmrc.traderservices.models.*
+import uk.gov.hmrc.traderservices.services.TraderServicesAuditEvent
+import uk.gov.hmrc.traderservices.stubs.*
+import uk.gov.hmrc.traderservices.support.{JsonMatchers, ServerBaseISpec}
 
 import java.nio.charset.StandardCharsets
-import play.api.libs.ws.BodyWritable
-import play.api.Application
-import org.scalatest.concurrent.Eventually
-import org.scalatest.time.Span
-import org.scalatest.time.Millis
-import uk.gov.hmrc.http.HeaderNames
+import java.time.LocalDateTime
+import java.util as ju
 
 class CreateUpdateCaseControllerAsyncISpec
     extends ServerBaseISpec with AuthStubs with CreateCaseStubs with UpdateCaseStubs with FileTransferStubs
@@ -174,7 +169,7 @@ class CreateUpdateCaseControllerAsyncISpec
           .futureValue
 
         val errorMessage =
-          "Invalid payload: Parsing failed due to at path /uploadedFiles with error.path.missing, and at path /entryDetails with error.path.missing, and at path /questionsAnswers with error.path.missing."
+          "Invalid payload: Parsing failed due to at path /uploadedFiles with error.path.missing, and at path /questionsAnswers with error.path.missing, and at path /entryDetails with error.path.missing."
 
         result.status shouldBe 400
         result.json.as[JsObject] should (

@@ -24,7 +24,7 @@ case class TraderServicesUpdateCaseRequest(
   caseReferenceNumber: String,
   typeOfAmendment: TypeOfAmendment,
   responseText: Option[String] = None,
-  uploadedFiles: Seq[UploadedFile] = Seq.empty,
+  uploadedFiles: Seq[UploadedFile],
   eori: Option[String]
 )
 

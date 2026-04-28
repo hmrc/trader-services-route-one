@@ -95,7 +95,7 @@ trait PegaUpdateCaseConnectorISpecSetup extends AppBaseISpec with UpdateCaseStub
 
   implicit val hc: HeaderCarrier = HeaderCarrier()
 
-  override def fakeApplication: Application = defaultAppBuilder.build()
+  override def fakeApplication(): Application = defaultAppBuilder.build()
 
   lazy val connector: PegaUpdateCaseConnector =
     app.injector.instanceOf[PegaUpdateCaseConnector]
